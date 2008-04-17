@@ -2,12 +2,12 @@
  * Created on Jan 20, 2006
  *
  */
-package hpbtc;
+package hpbtc.client;
 
-import hpbtc.download.DownloadItem;
-import hpbtc.observer.TorrentObserver;
-import hpbtc.peer.Peer;
-import hpbtc.peer.PeerConnection;
+import hpbtc.client.download.DownloadItem;
+import hpbtc.client.observer.TorrentObserver;
+import hpbtc.client.peer.Peer;
+import hpbtc.client.peer.PeerConnection;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
