@@ -31,6 +31,7 @@ import hpbtc.selection.piece.RandomStrategy;
 import hpbtc.selection.piece.RarestFirstStrategy;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -123,8 +124,10 @@ public class DownloadItem {
     
     private void readTorrent(String ft) {
         try {
-            BencodingParser parser = new BencodingParser(ft);
-            BencodedDictionary meta = (BencodedDictionary) parser.parse();
+            FileInputStream fis = new FileInputStream(ft);
+            BencodingParser parser = new BencodingParser(fis);
+            BencodedDictionary meta = parser.readNextDictionary();
+            fis.close();
             BencodedDictionary info = (BencodedDictionary) meta.get("info");
             infoHash = info.getDigest();
             if (meta.containsKey("announce-list")) {
@@ -387,7 +390,7 @@ public class DownloadItem {
         con.setDoOutput(false);
         con.connect();
         BencodingParser parser = new BencodingParser(con.getInputStream());
-        BencodedDictionary response = (BencodedDictionary) parser.parse();
+        BencodedDictionary response = parser.readNextDictionary();
         con.disconnect();
         if (response.containsKey("failure reason")) {
             to.fireTrackerFailureEvent(((BencodedString) response.get("failure reason")).getValue());
