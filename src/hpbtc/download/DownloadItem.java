@@ -5,7 +5,7 @@
 package hpbtc.download;
 
 import hpbtc.Client;
-import hpbtc.bencoding.Bencoding;
+import hpbtc.bencoding.BencodingParser;
 import hpbtc.bencoding.element.BencodedDictionary;
 import hpbtc.bencoding.element.BencodedElement;
 import hpbtc.bencoding.element.BencodedInteger;
@@ -30,9 +30,7 @@ import hpbtc.selection.piece.PieceSelectionStrategy;
 import hpbtc.selection.piece.RandomStrategy;
 import hpbtc.selection.piece.RarestFirstStrategy;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -125,9 +123,8 @@ public class DownloadItem {
     
     private void readTorrent(String ft) {
         try {
-            BufferedInputStream bis = new BufferedInputStream(new FileInputStream(ft));
-            BencodedDictionary meta = (BencodedDictionary) Bencoding.getTopElement(bis);
-            bis.close();
+            BencodingParser parser = new BencodingParser(ft);
+            BencodedDictionary meta = (BencodedDictionary) parser.parse();
             BencodedDictionary info = (BencodedDictionary) meta.get("info");
             infoHash = info.getDigest();
             if (meta.containsKey("announce-list")) {
@@ -389,8 +386,9 @@ public class DownloadItem {
         con.setDoInput(true);
         con.setDoOutput(false);
         con.connect();
-        BufferedInputStream bis = new BufferedInputStream(con.getInputStream());
-        BencodedDictionary response = (BencodedDictionary) Bencoding.getTopElement(bis);
+        BencodingParser parser = new BencodingParser(con.getInputStream());
+        BencodedDictionary response = (BencodedDictionary) parser.parse();
+        con.disconnect();
         if (response.containsKey("failure reason")) {
             to.fireTrackerFailureEvent(((BencodedString) response.get("failure reason")).getValue());
         } else {
@@ -434,8 +432,6 @@ public class DownloadItem {
             }
             to.fireSetTotalPeersEvent(getTotalPeers());
         }
-        bis.close();
-        con.disconnect();
         lastCheck = l;
     }
     

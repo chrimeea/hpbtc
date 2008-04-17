@@ -10,6 +10,8 @@ import hpbtc.bencoding.element.BencodedInteger;
 import hpbtc.bencoding.element.BencodedList;
 import hpbtc.bencoding.element.BencodedString;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,9 +20,23 @@ import java.io.InputStream;
  * @author chris
  *
  */
-public class Bencoding {
+public class BencodingParser {
     
-    private static int readNumber(InputStream is, char terminator) throws IOException {
+    private BufferedInputStream is;
+    
+    public BencodingParser(InputStream is) {
+        if (!(is instanceof BufferedInputStream)) {
+            this.is = new BufferedInputStream(is);
+        } else {
+            this.is = (BufferedInputStream) is;
+        }
+    }
+    
+    public BencodingParser(String fileName) throws FileNotFoundException {
+        this(new BufferedInputStream(new FileInputStream(fileName)));
+    }
+    
+    private int readNumber(char terminator) throws IOException {
         int c = is.read();
         if (c == terminator) {
             throw new BencodingException("Parse error !");
@@ -55,8 +71,8 @@ public class Bencoding {
         return n;
     }
     
-    private static BencodedString readString(InputStream is) throws IOException {
-        int n = readNumber(is, ':');
+    private BencodedString readString() throws IOException {
+        int n = readNumber(':');
         if (n < 0) {
             throw new BencodingException("Found string element with negative length");
         }
@@ -72,15 +88,15 @@ public class Bencoding {
         return bs;
     }
     
-    private static BencodedInteger readInteger(InputStream is) throws IOException {
+    private BencodedInteger readInteger() throws IOException {
         int c = is.read();
         if (c != 'i') {
             throw new BencodingException("Found char: '" + (char) c + "', required: 'i'");
         }
-        return new BencodedInteger(readNumber(is, 'e'));
+        return new BencodedInteger(readNumber('e'));
     }
     
-    private static BencodedList readList(InputStream is) throws IOException {
+    private BencodedList readList() throws IOException {
         BencodedList r = new BencodedList();
         int c = is.read();
         if (c != 'l') {
@@ -90,7 +106,7 @@ public class Bencoding {
         c = is.read();
         while (c != 'e') {
             is.reset();
-            BencodedElement o = readElement(is);
+            BencodedElement o = readElement();
             r.addElement(o);
             is.mark(1);
             c = is.read();
@@ -98,7 +114,7 @@ public class Bencoding {
         return r;
     }
     
-    private static BencodedDictionary readDictionary(InputStream is) throws IOException {
+    private BencodedDictionary readDictionary() throws IOException {
         BencodedDictionary r = new BencodedDictionary();
         int c = is.read();
         if (c != 'd') {
@@ -108,8 +124,8 @@ public class Bencoding {
         c = is.read();
         while (c != 'e') {
             is.reset();
-            BencodedString key = readString(is);
-            BencodedElement value = readElement(is);
+            BencodedString key = readString();
+            BencodedElement value = readElement();
             r.addKeyValuePair(key, value);
             is.mark(1);
             c = is.read();
@@ -117,19 +133,19 @@ public class Bencoding {
         return r;
     }
     
-    private static BencodedElement readElement(InputStream is) throws IOException {
+    private BencodedElement readElement() throws IOException {
         BencodedElement r;
         is.mark(1);
         int c = is.read();
         is.reset();
         if (Character.isDigit(c)) {
-            r = readString(is);
+            r = readString();
         } else if (c == 'i') {
-            r = readInteger(is);
+            r = readInteger();
         } else if (c == 'l') {
-            r = readList(is);
+            r = readList();
         } else if (c == 'd') {
-            r = readDictionary(is);
+            r = readDictionary();
         } else {
             throw new BencodingException("Unrecognized element type: " + (char) c);
         }
@@ -140,16 +156,16 @@ public class Bencoding {
      * @param is
      * @return
      * @throws IOException
-     * @throws FileNotFoundException
      */
-    public static BencodedElement getTopElement(InputStream is) throws IOException, FileNotFoundException {
+    public BencodedElement parse() throws IOException {
         if (!is.markSupported()) {
             throw new BencodingException("Input data is not buffered");
         }
-        BencodedElement r = readElement(is);
+        BencodedElement r = readElement();
         if (is.read() > -1) {
             throw new BencodingException("The file contains more than one top element");
         }
+        is.close();
         return r;
     }
 }
