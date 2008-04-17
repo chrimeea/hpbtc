@@ -156,7 +156,7 @@ public class Client {
     /**
      * @param torrent
      */
-    public void setDownload(String torrent) {
+    public void setDownload(String torrent) throws IOException {
         item = new DownloadItem(torrent);
     }
 

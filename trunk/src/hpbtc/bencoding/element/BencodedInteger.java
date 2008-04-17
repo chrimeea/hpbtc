@@ -70,6 +70,7 @@ public class BencodedInteger extends BencodedElement {
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
+    @Override
     public String toString() {
         return this.element == null ? null : this.element.toString();
     }

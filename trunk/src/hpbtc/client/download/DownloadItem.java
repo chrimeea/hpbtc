@@ -5,12 +5,6 @@
 package hpbtc.client.download;
 
 import hpbtc.client.Client;
-import hpbtc.bencoding.BencodingParser;
-import hpbtc.bencoding.element.BencodedDictionary;
-import hpbtc.bencoding.element.BencodedElement;
-import hpbtc.bencoding.element.BencodedInteger;
-import hpbtc.bencoding.element.BencodedList;
-import hpbtc.bencoding.element.BencodedString;
 import hpbtc.client.message.HaveMessage;
 import hpbtc.client.message.RequestMessage;
 import hpbtc.client.observer.TorrentObserver;
@@ -30,19 +24,12 @@ import hpbtc.client.selection.piece.PieceSelectionStrategy;
 import hpbtc.client.selection.piece.RandomStrategy;
 import hpbtc.client.selection.piece.RarestFirstStrategy;
 
-import java.io.File;
-import java.io.FileInputStream;
+import hpbtc.client.torrent.TorrentInfo;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -58,7 +45,7 @@ import java.util.logging.Logger;
  *
  */
 public class DownloadItem {
-    
+
     public static final String DOWNLOAD_STARTED = "started";
     public static final String DOWNLOAD_COMPLETED = "completed";
     public static final String DOWNLOAD_STOPPED = "stopped";
@@ -68,162 +55,41 @@ public class DownloadItem {
     public static final int OPTIMISTIC_RATE = 3;
     public static final int OPTIMISTIC = 1;
     public static final int END_THRESHOLD = 2;
-    public static final int DEFAULT_INTERVAL = 15;
-    public static final int TOTAL_PEERS = 50;
     public static final int REQUEST_TIMEOUT = 60000;
     public static final int MAX_CONNECTIONS = 2;
-
     private static Logger logger = Logger.getLogger(DownloadItem.class.getName());
-
-    private List<LinkedList<String>> trackerURL;
-    private boolean multiple;
-    private String fileName;
-    private Integer fileLength;
-    private Integer pieceLength;
-    private List<BTFile> files;
-    private byte[] infoHash;
-    private int interval;
-    private int minInterval;
-    private int complete;
-    private int incomplete;
-    private Set<Peer> peers;
-    private Queue<Peer> connectionOrder;
+    private Set<Peer> peers = new HashSet<Peer>();
+    private Queue<Peer> connectionOrder = new ConcurrentLinkedQueue<Peer>();
     private List<Piece> pieces;
-    private int nrPieces;
-    private PieceSelectionStrategy pieceStrat;
-    private PeerSelectionStrategy peerStrat;
-    private ChokingStrategy chStrat;
-    private ChokingStrategy optStrat;
-    private String trackerId;
-    private boolean saved;
-    private long lastCheck;
+    private PieceSelectionStrategy pieceStrat = new RandomStrategy();
+    private PeerSelectionStrategy peerStrat = new DistributedStrategy();
+    private ChokingStrategy chStrat = new DownloadStrategy();
+    private ChokingStrategy optStrat = new OptimisticStrategy();
     private int pending;
     private int initiated;
     private Timer rate;
     private AtomicInteger piecesLeft;
-    
+    private TorrentInfo torrent;
+
     /**
      * @param ft
      */
-    public DownloadItem(String ft) {
-        initiated = 0;
-        connectionOrder = new ConcurrentLinkedQueue<Peer>();
-        pending = 0;
-        lastCheck = 0;
-        trackerId = null;
-        interval = DEFAULT_INTERVAL;
-        minInterval = 0;
-        pieceStrat = new RandomStrategy();
-        peerStrat = new DistributedStrategy();
-        chStrat = new DownloadStrategy();
-        optStrat = new OptimisticStrategy();
-        peers = new HashSet<Peer>();
-        saved = false;
-        readTorrent(ft);
+    public DownloadItem(String ft) throws IOException {
+        torrent = new TorrentInfo(ft);
+        piecesLeft = new AtomicInteger(torrent.getNrPieces());
+        createPieces(torrent.getPieceHash());
     }
-    
-    private void readTorrent(String ft) {
-        try {
-            FileInputStream fis = new FileInputStream(ft);
-            BencodingParser parser = new BencodingParser(fis);
-            BencodedDictionary meta = parser.readNextDictionary();
-            fis.close();
-            BencodedDictionary info = (BencodedDictionary) meta.get("info");
-            infoHash = info.getDigest();
-            if (meta.containsKey("announce-list")) {
-                BencodedList bl = (BencodedList) meta.get("announce-list");
-                trackerURL = new ArrayList<LinkedList<String>>(bl.getSize());
-                for (BencodedElement ul : bl) {
-                    BencodedList x = (BencodedList) ul;
-                    LinkedList<String> z = new LinkedList<String>();
-                    for (BencodedElement y : x) {
-                        String u = ((BencodedString) y).getValue();
-                        z.add(u);
-                    }
-                    Collections.shuffle(z);
-                    trackerURL.add(z);
-                }
-            } else {
-                trackerURL = new ArrayList<LinkedList<String>>(1);
-                LinkedList<String> ul = new LinkedList<String>();
-                String u = ((BencodedString) meta.get("announce")).getValue();
-                ul.add(u);
-                trackerURL.add(ul);
-            }
-            TorrentObserver to = Client.getInstance().getObserver();
-            to.fireSetTrackerURLEvent(trackerURL);
-            multiple = info.containsKey("files");
-            fileName = ((BencodedString) info.get("name")).getValue();
-            pieceLength = ((BencodedInteger) info.get("piece length")).getValue();
-            to.fireSetPieceLengthEvent(pieceLength);
-            if (multiple) {
-                BencodedList fls = (BencodedList) info.get("files");
-                files = new ArrayList<BTFile>(fls.getSize());
-                int index = 0;
-                int i = 0;
-                int off = 0;
-                fileLength = 0;
-                for (BencodedElement d : fls) {
-                    BencodedDictionary fd = (BencodedDictionary) d;
-                    BencodedList dirs = (BencodedList) fd.get("path");
-                    StringBuilder sb = new StringBuilder(fileName);
-                    sb.append(File.separator);
-                    for (BencodedElement dir : dirs) {
-                        sb.append(dir);
-                        sb.append(File.separator);
-                    }
-                    Integer fl = ((BencodedInteger) fd.get("length")).getValue();
-                    fileLength += fl;
-                    BTFile f = new BTFile();
-                    f.setPath(sb.substring(0, sb.length() - 1).toString());
-                    f.setLength(fl);
-                    f.setPieceIndex(index);
-                    f.setIndex(i++);
-                    f.setOffset(off);
-                    if (!f.create()) {
-                        saved = true;
-                    }
-                    files.add(f);
-                    index = fileLength / pieceLength;
-                    off = fileLength - index * pieceLength;
-                }
-            } else {
-                files = new ArrayList<BTFile>(1);
-                fileLength = ((BencodedInteger) info.get("length")).getValue();
-                BTFile f = new BTFile();
-                f.setPath(fileName);
-                f.setLength(fileLength);
-                f.setPieceIndex(0);
-                f.setIndex(0);
-                f.setOffset(0);
-                if (!f.create()) {
-                    saved = true;
-                }
-                files.add(f);
-            }
-            to.fireSetFilesEvent(files);
-            nrPieces = fileLength / pieceLength;
-            if (fileLength % pieceLength > 0) {
-                nrPieces++;
-            }
-            to.fireSetTotalPiecesEvent(nrPieces);
-            piecesLeft = new AtomicInteger(nrPieces);
-            createPieces(((BencodedString) info.get("pieces")).getBytes());
-        } catch (IOException e) {
-            logger.severe("Error while reading from torrent file");
-        }
-    }
-    
+
     public void removePeer(Peer p) {
-        synchronized(peers) {
+        synchronized (peers) {
             peers.remove(p);
         }
     }
-    
+
     private void recoverPieces() {
         TorrentObserver to = Client.getInstance().getObserver();
         to.fireStartCheckSavedEvent();
-        int n = nrPieces;
+        int n = torrent.getNrPieces();
         for (Piece p : pieces) {
             if (p.checkSaved()) {
                 n--;
@@ -238,9 +104,9 @@ public class DownloadItem {
         }
         piecesLeft.set(n);
     }
-    
+
     public Peer findPeer(Peer p) {
-        synchronized(peers) {
+        synchronized (peers) {
             for (Peer pp : peers) {
                 if (pp.equals(p)) {
                     return pp;
@@ -249,12 +115,12 @@ public class DownloadItem {
         }
         return null;
     }
-    
+
     /**
      * @return
      */
     public List<LightPeer> getPeers() {
-        synchronized(peers) {
+        synchronized (peers) {
             List<LightPeer> lp = new LinkedList<LightPeer>();
             for (Peer p : peers) {
                 PeerConnection pc = p.getConnection();
@@ -269,45 +135,43 @@ public class DownloadItem {
             return lp;
         }
     }
-    
+
     public int getPieceLength() {
-        return pieceLength;
+        return torrent.getPieceLength();
     }
-    
+
     private void createPieces(byte[] hash) {
         ByteBuffer bb = ByteBuffer.wrap(hash);
-        pieces = new ArrayList<Piece>(nrPieces);
+        pieces = new ArrayList<Piece>(torrent.getNrPieces());
         Piece pc;
-        for (int i = 0; i < nrPieces - 1; i++) {
+        for (int i = 0; i < torrent.getNrPieces() - 1; i++) {
             byte[] x = new byte[20];
             bb.get(x);
-            pc = new Piece(i, pieceLength, x);
+            pc = new Piece(i, torrent.getPieceLength(), x);
             pieces.add(pc);
         }
         byte[] x = new byte[20];
         bb.get(x);
-        pc = new Piece(nrPieces - 1, fileLength - (nrPieces - 1) * pieceLength, x);
+        pc = new Piece(torrent.getNrPieces() - 1, torrent.getFileLength() -
+                (torrent.getNrPieces() - 1) * torrent.getPieceLength(), x);
         pieces.add(pc);
         addFilesToPieces();
     }
-    
+
     private void addFilesToPieces() {
-        for (BTFile f : files) {
+        for (BTFile f : torrent.getFiles()) {
             Piece pc = pieces.get(f.getPieceIndex());
             pc.addFile(f);
-            for (int i = pc.getIndex() + 1; i <= f.getLastPieceIndex(pieceLength); i++) {
+            for (int i = pc.getIndex() + 1; i <= f.getLastPieceIndex(torrent.getPieceLength()); i++) {
                 pieces.get(i).addFile(f);
             }
         }
     }
-    
-    /**
-     * 
-     */
+
     public void stopDownload() {
         tryGetTrackerPeers(DOWNLOAD_STOPPED);
     }
-    
+
     /**
      * @param index
      * @return
@@ -317,40 +181,9 @@ public class DownloadItem {
     }
 
     private void tryGetTrackerPeers(String event) {
-        for (LinkedList<String> ul : trackerURL) {
-            Iterator<String> i = ul.iterator();
-            while (i.hasNext()) {
-                String tracker = i.next();
-                try {
-                    getTrackerPeers(event, tracker);
-                    i.remove();
-                    ul.addFirst(tracker);
-                    return;
-                } catch (IOException e) {
-                    Client.getInstance().getObserver().fireTrackerNotAvailableEvent(tracker);
-                }
-            }
-        }
-        logger.warning("All trackers unnavailable");
-    }
-
-    private void getTrackerPeers(String event, String tracker) throws IOException {
-        Client client = Client.getInstance();
-        TorrentObserver to = client.getObserver();
-        long l = System.currentTimeMillis();
-        long h = l - lastCheck;
-        long w = minInterval * 1000;
-        while (h < w) {
-            to.fireWaitTrackerEvent(w - h);
-            try {
-                wait(w - h);
-            } catch (InterruptedException e) {}
-            l = System.currentTimeMillis();
-            h = l - lastCheck;
-        }
         int uploaded = 0;
         int downloaded = 0;
-        synchronized(peers) {
+        synchronized (peers) {
             for (Peer p : peers) {
                 PeerConnection pc = p.getConnection();
                 if (pc != null) {
@@ -359,102 +192,37 @@ public class DownloadItem {
                 }
             }
         }
-        StringBuilder req = new StringBuilder(tracker);
-        req.append("?info_hash=");
-        req.append(URLEncoder.encode(new String(infoHash, "ISO-8859-1"), "ISO-8859-1"));
-        req.append("&peer_id=");
-        req.append(URLEncoder.encode(client.getPID(), "ISO-8859-1"));
-        req.append("&port=");
-        req.append(client.getPort());
-        req.append("&uploaded=");
-        req.append(uploaded);
-        req.append("&downloaded=");
-        req.append(downloaded);
-        req.append("&left=");
-        req.append(getBytesLeft());
-        req.append("&numwant=");
-        req.append(TOTAL_PEERS);
-        if (event != null) {
-            req.append("&event=");
-            req.append(event);
+        Set<Peer> lastPeers = torrent.tryGetTrackerPeers(event, uploaded, downloaded, getBytesLeft());
+        if (connectionOrder.isEmpty()) {
+            synchronized (peers) {
+                connectionOrder.addAll(peers);
+            }
         }
-        if (trackerId != null) {
-            req.append("trackerid");
-            req.append(URLEncoder.encode(trackerId, "ISO-8859-1"));
+        for (Peer p : lastPeers) {
+            if (addPeer(p)) {
+                connectionOrder.add(p);
+            }
         }
-        logger.info("Connecting to tracker uploaded " + uploaded + " downloaded " + downloaded);
-        URL track = new URL(req.toString());
-        HttpURLConnection con = (HttpURLConnection) track.openConnection();
-        con.setInstanceFollowRedirects(true);
-        con.setDoInput(true);
-        con.setDoOutput(false);
-        con.connect();
-        BencodingParser parser = new BencodingParser(con.getInputStream());
-        BencodedDictionary response = parser.readNextDictionary();
-        con.disconnect();
-        if (response.containsKey("failure reason")) {
-            to.fireTrackerFailureEvent(((BencodedString) response.get("failure reason")).getValue());
-        } else {
-            if (response.containsKey("warning message")) {
-                to.fireTrackerWarningEvent(((BencodedString) response.get("warning message")).getValue());
-            }
-            interval = ((BencodedInteger) response.get("interval")).getValue();
-            to.fireSetTrackerIntervalEvent(interval);
-            if (response.containsKey("min interval")) {
-                minInterval = ((BencodedInteger) response.get("min interval")).getValue();
-                to.fireSetTrackerMinIntervalEvent(minInterval);
-            }
-            if (response.containsKey("complete")) {
-                complete = ((BencodedInteger) response.get("complete")).getValue();
-                to.fireSetSeedersEvent(complete);
-            }
-            if (response.containsKey("incomplete")) {
-                incomplete = ((BencodedInteger) response.get("incomplete")).getValue();
-                to.fireSetLeechersEvent(incomplete);
-            }
-            if (response.containsKey("tracker id")) {
-                trackerId =  ((BencodedString) response.get("tracker id")).getValue();
-            }
-            BencodedList prs = (BencodedList) response.get("peers");
-            if (connectionOrder.isEmpty()) {
-                synchronized(peers) {
-                    connectionOrder.addAll(peers);
-                }
-            }
-            for (BencodedElement e : prs) {
-               BencodedDictionary d = (BencodedDictionary) e;
-               BencodedString beid = (BencodedString) d.get("peer id");
-               String id = beid.getValue();
-               if (!Arrays.equals(client.getPIDBytes(), beid.getBytes())) {
-                    Peer p = new Peer(((BencodedString) d.get("ip")).getValue(),
-                           ((BencodedInteger) d.get("port")).getValue(), id);
-                    if (addPeer(p)) {
-                        connectionOrder.add(p);
-                   }
-               }
-            }
-            to.fireSetTotalPeersEvent(getTotalPeers());
-        }
-        lastCheck = l;
+        Client.getInstance().getObserver().fireSetTotalPeersEvent(getTotalPeers());
     }
-    
+
     private int getTotalPeers() {
-        synchronized(peers) {
+        synchronized (peers) {
             return peers.size();
         }
     }
 
     public boolean addPeer(Peer p) {
-        synchronized(peers) {
+        synchronized (peers) {
             return peers.add(p);
         }
     }
 
     public void startDownload() {
-        if (trackerURL == null) {
+        if (torrent.getTrackerURL() == null) {
             return;
         }
-        if (saved) {
+        if (torrent.isSaved()) {
             recoverPieces();
         }
         rate = new Timer("Worker", true);
@@ -462,11 +230,11 @@ public class DownloadItem {
         startChokingTimer();
         findAllPieces();
     }
-    
+
     public Timer getRateTimer() {
         return rate;
     }
-    
+
     public synchronized void findAllPieces() {
         for (int i = pending; i < PIPELINE_SIZE; i++) {
             if (!findPiece()) {
@@ -474,13 +242,13 @@ public class DownloadItem {
             }
         }
     }
-    
+
     private void startChokingTimer() {
         try {
             rate.schedule(new TimerTask() {
-                
+
                 private int rep = 0;
-                
+
                 /* (non-Javadoc)
                  * @see java.util.TimerTask#run()
                  */
@@ -509,9 +277,10 @@ public class DownloadItem {
                     }
                 }
             }, RECALCULATION_DELAY, RECALCULATION_DELAY);
-        } catch (IllegalStateException e) {}
+        } catch (IllegalStateException e) {
+        }
     }
-    
+
     /**
      * @return
      */
@@ -532,12 +301,12 @@ public class DownloadItem {
         }
         return false;
     }
-    
+
     public synchronized void findNextPiece() {
         pending--;
         findPiece();
     }
-    
+
     /**
      * @param pi
      */
@@ -552,7 +321,7 @@ public class DownloadItem {
         }
         return false;
     }
-    
+
     private void getNewPeers(String ev) {
         tryGetTrackerPeers(ev);
         if (piecesLeft.get() > 0) {
@@ -560,23 +329,24 @@ public class DownloadItem {
         }
         startTrackerTimer();
     }
-    
+
     private void startTrackerTimer() {
         try {
             rate.schedule(new TimerTask() {
                 /* (non-Javadoc)
                  * @see java.util.TimerTask#run()
                  */
+
                 @Override
                 public void run() {
                     getNewPeers(null);
                 }
-            }, interval * 1000);
+            }, torrent.getInterval() * 1000);
         } catch (IllegalStateException e) {
             logger.severe(e.getMessage());
         }
     }
-    
+
     /**
      * @param i
      */
@@ -586,7 +356,7 @@ public class DownloadItem {
             pieceStrat = new RarestFirstStrategy();
         }
         BitSet a = getBitSet();
-        synchronized(peers) {
+        synchronized (peers) {
             for (Peer p : peers) {
                 if (p.isConnected() && !p.hasPiece(i)) {
                     HaveMessage hm = new HaveMessage();
@@ -602,11 +372,11 @@ public class DownloadItem {
             }
         }
     }
-    
+
     public boolean removePeerOrder(Peer p) {
         return connectionOrder.remove(p);
     }
-    
+
     public synchronized void initiateConnections(int finished) {
         initiated -= finished;
         while (initiated < MAX_CONNECTIONS) {
@@ -618,6 +388,7 @@ public class DownloadItem {
                 initiated++;
                 final Peer x = p;
                 rate.schedule(new TimerTask() {
+
                     public void run() {
                         PeerConnection con = new PeerConnection(x);
                         try {
@@ -648,7 +419,7 @@ public class DownloadItem {
                 s += p.getSize();
                 n--;
             }
-            s += n * pieceLength;
+            s += n * torrent.getPieceLength();
         }
         return s;
     }
@@ -657,19 +428,19 @@ public class DownloadItem {
      * @return
      */
     public byte[] getInfoHash() {
-        return infoHash;
+        return torrent.getInfoHash();
     }
-    
+
     /**
      * @return
      */
     public int getTotalPieces() {
-        return nrPieces;
+        return torrent.getNrPieces();
     }
-    
+
     private BitSet getBitSet() {
-        BitSet bs = new BitSet(nrPieces);
-        for (int i = 0; i < nrPieces; i++) {
+        BitSet bs = new BitSet(torrent.getNrPieces());
+        for (int i = 0; i < torrent.getNrPieces(); i++) {
             if (pieces.get(i).isComplete()) {
                 bs.set(i);
             }
