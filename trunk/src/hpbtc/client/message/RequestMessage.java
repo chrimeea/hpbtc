@@ -1,14 +1,15 @@
 package hpbtc.client.message;
 
-import hpbtc.client.Client;
-
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 /**
  * @author chris
  *
  */
 public class RequestMessage extends BlockMessage implements Cloneable {
+
+    private static Logger logger = Logger.getLogger(RequestMessage.class.getName());
     
     public RequestMessage() {
     }
@@ -42,7 +43,7 @@ public class RequestMessage extends BlockMessage implements Cloneable {
      */
     @Override
     public ByteBuffer send() {
-        Client.getInstance().getObserver().fireSendMessageEvent(this);
+        logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(17);
         bb.putInt(13);
         bb.put(TYPE_REQUEST);

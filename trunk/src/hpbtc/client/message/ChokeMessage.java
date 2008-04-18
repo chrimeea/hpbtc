@@ -5,9 +5,8 @@
 package hpbtc.client.message;
 
 import hpbtc.client.Client;
-
-import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 /**
  * @author chris
@@ -15,6 +14,8 @@ import java.nio.ByteBuffer;
  */
 public class ChokeMessage extends ProtocolMessage {
 
+    private static Logger logger = Logger.getLogger(ChokeMessage.class.getName());
+    
     public ChokeMessage() {
     }
     
@@ -40,7 +41,7 @@ public class ChokeMessage extends ProtocolMessage {
      */
     @Override
     public ByteBuffer send() {
-        Client.getInstance().getObserver().fireSendMessageEvent(this);
+        logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(5);
         bb.putInt(1);
         bb.put(TYPE_CHOKE);

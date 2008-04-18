@@ -1,10 +1,11 @@
 package hpbtc.client.message;
 
-import hpbtc.client.Client;
-
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 public class PIDMessage extends ProtocolMessage {
+
+    private static Logger logger = Logger.getLogger(PIDMessage.class.getName());
     
     ByteBuffer pid;
     
@@ -39,7 +40,7 @@ public class PIDMessage extends ProtocolMessage {
      */
     @Override
     public ByteBuffer send() {
-        Client.getInstance().getObserver().fireSendMessageEvent(this);
+        logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(20);
         bb.put(pid);
         return bb;

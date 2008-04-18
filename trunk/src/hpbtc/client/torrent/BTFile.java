@@ -7,12 +7,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.logging.Logger;
 
 /**
  * @author chris
  *
  */
 public class BTFile {
+    
+    private static Logger logger = Logger.getLogger(BTFile.class.getName());
     
     private String path;
     private int length;
@@ -30,7 +33,7 @@ public class BTFile {
         }
         f = new File(path);
         if (!f.exists() || !(f.length() == length)) {
-            Client.getInstance().getObserver().fireFileCreationEvent(path, length);
+            logger.info("file creation " + path);
             f.createNewFile();
             FileChannel fc = new FileOutputStream(f).getChannel();
             fc.position(length - 1);

@@ -167,7 +167,7 @@ public class PeerConnection {
         ch.configureBlocking(false);
         InetSocketAddress addr = new InetSocketAddress(peer.getIp(), peer.getPort());
         final Client cl = Client.getInstance();
-        cl.getObserver().fireConnectEvent(peer);
+        logger.info("connect " + peer);
         final DownloadItem item = cl.getDownloadItem();
         try {
             if (ch.connect(addr)) {
@@ -182,7 +182,7 @@ public class PeerConnection {
                      * @see java.lang.Runnable#run()
                      */
                     public void run() {
-                        cl.getObserver().fireConnectFailedEvent(peer);
+                        logger.info("connect failed " + peer);
                         item.removePeer(peer);
                         close();
                         item.initiateConnections(1);
@@ -193,7 +193,7 @@ public class PeerConnection {
                 }
             }
         } catch (ClosedChannelException e) {
-            cl.getObserver().fireConnectFailedEvent(peer);
+            logger.info("connect failed " + e.getMessage());
             close();
             Client.getInstance().getDownloadItem().initiateConnections(1);
         }
@@ -204,11 +204,9 @@ public class PeerConnection {
     }
     
     public void finishConnect() {
-        ProtocolMessage hm = new HandshakeMessage();
-        hm.setPeer(peer);
+        ProtocolMessage hm = new HandshakeMessage(Client.getInstance().getDownloadItem().getInfoHash());
         peer.getConnection().addUploadMessage(hm);
-        hm = new PIDMessage();
-        hm.setPeer(peer);
+        hm = new PIDMessage(Client.getInstance().getPIDBytes());
         peer.getConnection().addUploadMessage(hm);
         setHandshakeSent(true);
     }
@@ -249,7 +247,7 @@ public class PeerConnection {
                 downloadRate.set(downl);
                 lastUploaded = up;
                 lastDownloaded = down;
-                client.getObserver().fireRateChangeEvent(peer, upl, downl);
+                logger.info("rate change " + peer);
             }
         }, 0, AVERAGE_PERIOD);
     }
@@ -264,7 +262,6 @@ public class PeerConnection {
             public void run() {
                 if (isUploadEmpty()) {
                     ProtocolMessage pm = new IdleMessage();
-                    pm.setPeer(peer);
                     addUploadMessage(pm);
                 }
             }

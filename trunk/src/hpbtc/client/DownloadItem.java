@@ -46,6 +46,8 @@ import java.util.logging.Logger;
  *
  */
 public class DownloadItem {
+    
+    private static Logger logger = Logger.getLogger(DownloadItem.class.getName());
 
     public static final String DOWNLOAD_STARTED = "started";
     public static final String DOWNLOAD_COMPLETED = "completed";
@@ -58,7 +60,7 @@ public class DownloadItem {
     public static final int END_THRESHOLD = 2;
     public static final int REQUEST_TIMEOUT = 60000;
     public static final int MAX_CONNECTIONS = 2;
-    private static Logger logger = Logger.getLogger(DownloadItem.class.getName());
+    
     private Set<Peer> peers = new HashSet<Peer>();
     private Queue<Peer> connectionOrder = new ConcurrentLinkedQueue<Peer>();
     private List<Piece> pieces;
@@ -88,8 +90,7 @@ public class DownloadItem {
     }
 
     private void recoverPieces() {
-        TorrentObserver to = Client.getInstance().getObserver();
-        to.fireStartCheckSavedEvent();
+        logger.info("start check saved");
         int n = torrent.getNrPieces();
         for (Piece p : pieces) {
             if (p.checkSaved()) {
@@ -98,7 +99,7 @@ public class DownloadItem {
         }
         if (n == 0) {
             chStrat = new UploadStrategy();
-            to.fireStartSeedingEvent();
+            logger.info("start seeding");
         } else if (n == END_THRESHOLD) {
             peerStrat = new EndGameStrategy();
             logger.fine("Switching to EndGameStrategy for peer selection");
@@ -204,13 +205,6 @@ public class DownloadItem {
                 connectionOrder.add(p);
             }
         }
-        Client.getInstance().getObserver().fireSetTotalPeersEvent(getTotalPeers());
-    }
-
-    private int getTotalPeers() {
-        synchronized (peers) {
-            return peers.size();
-        }
     }
 
     public boolean addPeer(Peer p) {
@@ -292,7 +286,7 @@ public class DownloadItem {
             logger.fine("Switching to EndGameStrategy for peer selection");
         } else if (n == 0 && !(chStrat instanceof UploadStrategy)) {
             chStrat = new UploadStrategy();
-            Client.getInstance().getObserver().fireStartSeedingEvent();
+            logger.info("start seeding");
             tryGetTrackerPeers(DOWNLOAD_COMPLETED);
             return false;
         }
@@ -360,9 +354,7 @@ public class DownloadItem {
         synchronized (peers) {
             for (Peer p : peers) {
                 if (p.isConnected() && !p.hasPiece(i)) {
-                    HaveMessage hm = new HaveMessage();
-                    hm.setPeer(p);
-                    hm.setIndex(i);
+                    HaveMessage hm = new HaveMessage(i);
                     p.getConnection().addUploadMessage(hm);
                 }
                 BitSet b = p.getAllPieces();

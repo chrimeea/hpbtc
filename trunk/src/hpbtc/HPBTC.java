@@ -6,7 +6,6 @@ package hpbtc;
 
 import hpbtc.client.Client;
 import java.util.logging.Logger;
-import hpbtc.client.observer.LoggingObserver;
 import java.io.IOException;
 
 /**
@@ -29,7 +28,6 @@ public class HPBTC {
                 name += ".torrent";
             }
             final Client client = Client.getInstance();
-            client.setObserver(new LoggingObserver());
             try {
                 client.connect();
                 client.setDownload(name);

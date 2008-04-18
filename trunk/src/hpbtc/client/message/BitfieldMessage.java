@@ -4,17 +4,18 @@
  */
 package hpbtc.client.message;
 
-import hpbtc.client.Client;
-
 import java.nio.ByteBuffer;
 import java.util.BitSet;
+import java.util.logging.Logger;
 
 /**
  * @author chris
  *
  */
 public class BitfieldMessage extends ProtocolMessage {
-
+    
+    private static Logger logger = Logger.getLogger(BitfieldMessage.class.getName());
+    
     private BitSet pieces;
 
     public BitfieldMessage() {
@@ -62,6 +63,7 @@ public class BitfieldMessage extends ProtocolMessage {
      */
     @Override
     public ByteBuffer send() {
+        logger.info("send message " + this);
         int n = 1 + pieces.size() / 8;
         if (pieces.size() % 8 > 0) {
             n++;
@@ -90,7 +92,6 @@ public class BitfieldMessage extends ProtocolMessage {
             if (y != 0) {
                 bb.put(x);
             }
-            Client.getInstance().getObserver().fireSendMessageEvent(this);
             return bb;
         }
         return ByteBuffer.allocate(0);

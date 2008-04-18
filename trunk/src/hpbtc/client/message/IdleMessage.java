@@ -4,10 +4,8 @@
  */
 package hpbtc.client.message;
 
-import hpbtc.client.Client;
-
-import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 /**
  * @author chris
@@ -15,6 +13,8 @@ import java.nio.ByteBuffer;
  */
 public class IdleMessage extends ProtocolMessage {
 
+    private static Logger logger = Logger.getLogger(IdleMessage.class.getName());
+    
     public IdleMessage() {
     }
 
@@ -40,7 +40,7 @@ public class IdleMessage extends ProtocolMessage {
      */
     @Override
     public ByteBuffer send() {
-        Client.getInstance().getObserver().fireSendMessageEvent(this);
+        logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(4);
         bb.putInt(0);
         return bb;

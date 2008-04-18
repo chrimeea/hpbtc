@@ -148,11 +148,7 @@ public class Piece {
             rm.setPeer(pp);
             TimerTask tt = requestsSent.remove(rm);
             if (tt != null) {
-                CancelMessage cm = new CancelMessage();
-                cm.setPeer(pp);
-                cm.setIndex(rm.getIndex());
-                cm.setBegin(rm.getBegin());
-                cm.setLength(rm.getLength());
+                CancelMessage cm = new CancelMessage(rm.getBegin(), rm.getIndex(), rm.getLength());
                 pp.getConnection().addUploadMessage(cm);
                 r = true;
                 pp.setSnubbed(true);
@@ -243,10 +239,7 @@ public class Piece {
             return null;
         }
         req.set(lastChunk);
-        RequestMessage rm = new RequestMessage();
-        rm.setIndex(index);
-        rm.setBegin(lastChunk * chunkSize);
-        rm.setLength(getChunkSize(lastChunk));
+        RequestMessage rm = new RequestMessage(lastChunk * chunkSize, index, getChunkSize(lastChunk));
         if (lastChunk == totalChunks - 1) {
             lastChunk = -1;
         } else {
@@ -409,10 +402,10 @@ public class Piece {
                         }
                     }
                 }
-                client.getObserver().fireFinishedPieceEvent(this);
+                logger.info("finished piece " + this);
                 return true;
             } else {
-                client.getObserver().firePieceDiscardedEvent(this);
+                logger.info("piece discarded " + this);
                 freeBuffer();
                 reset();
             }
@@ -428,7 +421,7 @@ public class Piece {
         try {
             bb = getPiece(0, size);
             if (checkHash()) {
-                Client.getInstance().getObserver().fireRecoveredPieceEvent(this);
+                logger.info("recovered piece " + this);
                 ok.set(true);
                 lastChunk = -1;
                 bb = null;
@@ -455,7 +448,7 @@ public class Piece {
     }
     
     private void flush() {
-        Client.getInstance().getObserver().fireFlushPieceEvent(this);
+        logger.info("flush piece " + this);
         Iterator<BTFile> it = files.iterator();
         BTFile fl = it.next();
         int k = 0;
@@ -565,6 +558,7 @@ public class Piece {
     /* (non-Javadoc)
      * @see java.lang.Object#equals(java.lang.Object)
      */
+    @Override
     public boolean equals(Object o) {
         if (!(o instanceof Piece)) {
             return false;
@@ -579,7 +573,13 @@ public class Piece {
     /* (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */
+    @Override
     public int hashCode() {
        return new Integer(index).hashCode(); 
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(index);
     }
 }

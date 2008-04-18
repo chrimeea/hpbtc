@@ -4,8 +4,6 @@
  */
 package hpbtc.client;
 
-import hpbtc.client.DownloadItem;
-import hpbtc.client.observer.TorrentObserver;
 import hpbtc.client.peer.Peer;
 import hpbtc.client.peer.PeerConnection;
 
@@ -47,23 +45,11 @@ public class Client {
     private byte[] peerId;
     private Random r;
     private Queue<RegisterOp> registered;
-    private TorrentObserver tobs;
     
     private Client() throws IOException {
         registered = new ConcurrentLinkedQueue<RegisterOp>();
         r = new Random();
         peerId = generateId();
-    }
-    
-    public void setObserver(TorrentObserver ob) {
-        tobs = ob;
-    }
-    
-    /**
-     * @return
-     */
-    public TorrentObserver getObserver() {
-        return tobs;
     }
     
     public void connect() throws IOException {
@@ -88,7 +74,7 @@ public class Client {
         if (port > MAX_PORT) {
             throw new IOException("No ports available");
         } else {
-            tobs.fireServerStartedEvent(port);
+            logger.info("server started " + port);
             serverCh.configureBlocking(false);
             selector = Selector.open();
             serverCh.register(selector, SelectionKey.OP_ACCEPT, null);
@@ -246,7 +232,7 @@ public class Client {
                             PeerConnection pc = new PeerConnection(p);
                             pc.setChannel(chan);
                             chan.register(selector, SelectionKey.OP_READ, pc);
-                            tobs.fireIncomingConnectionEvent(s.getInetAddress().getHostAddress());
+                            logger.info("incoming connection " + s.getInetAddress().getHostAddress());
                         } else if (key.isConnectable()) {
                             final Peer p = con.getPeer();
                             try {
@@ -265,7 +251,7 @@ public class Client {
                                         }, 0);
                                 }
                             } catch (IOException e) {
-                                tobs.fireConnectionFailedEvent(p, e);
+                                logger.info("connection failed " + e.getMessage());
                                 con.close();
                                 item.getRateTimer().schedule(
                                     new TimerTask() {
