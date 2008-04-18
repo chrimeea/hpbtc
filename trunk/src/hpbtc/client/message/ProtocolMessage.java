@@ -4,6 +4,7 @@
  */
 package hpbtc.client.message;
 
+import hpbtc.client.Client;
 import java.nio.ByteBuffer;
 
 /**
@@ -25,7 +26,9 @@ public abstract class ProtocolMessage {
     public ProtocolMessage() {
     }
       
-    public abstract void process(ByteBuffer message);
+    public void process(ByteBuffer message, MessageProcessor processor) {
+        Client.getInstance().getObserver().fireProcessMessageEvent(this);
+    }
     
     public abstract ByteBuffer send();
 }

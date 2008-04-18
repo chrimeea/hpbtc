@@ -20,7 +20,7 @@ public class HandshakeMessage extends ProtocolMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message) {
+    public void process(ByteBuffer message,MessageProcessor processor) {
         TorrentObserver to = Client.getInstance().getObserver();
         to.fireProcessMessageEvent(this);
         message.limit(20);
@@ -31,6 +31,8 @@ public class HandshakeMessage extends ProtocolMessage {
             message.limit(48);
             message.position(28);
             infoHash = message;
+            processor.process(this);
+            super.process(message, processor);
         }
         //TODO process error if message not equal h
     }

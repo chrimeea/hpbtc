@@ -6,7 +6,6 @@ package hpbtc.client.message;
 
 import hpbtc.client.Client;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 
@@ -29,7 +28,7 @@ public class BitfieldMessage extends ProtocolMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message) {
+    public void process(ByteBuffer message, MessageProcessor processor) {
         int j = 0;
         int k = 0;
         int l = message.remaining();
@@ -46,7 +45,8 @@ public class BitfieldMessage extends ProtocolMessage {
                 //Might read more than the number of actual pieces
             }
         }
-        Client.getInstance().getObserver().fireProcessMessageEvent(this);
+        processor.process(this);
+        super.process(message, processor);
     }
     
     /* (non-Javadoc)

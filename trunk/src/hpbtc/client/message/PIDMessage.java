@@ -19,10 +19,11 @@ public class PIDMessage extends ProtocolMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message) {
-        Client.getInstance().getObserver().fireProcessMessageEvent(this);
+    public void process(ByteBuffer message,MessageProcessor processor) {
         message.limit(20);
         pid = message;
+        processor.process(this);
+        super.process(message, processor);
     }
     
     /* (non-Javadoc)
