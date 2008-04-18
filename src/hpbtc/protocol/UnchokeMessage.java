@@ -1,8 +1,8 @@
-/*
+ /*
  * Created on Mar 6, 2006
  *
  */
-package hpbtc.client.message;
+package hpbtc.protocol;
 
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
@@ -11,18 +11,18 @@ import java.util.logging.Logger;
  * @author chris
  *
  */
-public class NotInterestedMessage extends ProtocolMessage {
+public class UnchokeMessage extends ProtocolMessage {
 
-    private static Logger logger = Logger.getLogger(NotInterestedMessage.class.getName());
+    private static Logger logger = Logger.getLogger(UnchokeMessage.class.getName());
     
-    public NotInterestedMessage() {
+    public UnchokeMessage() {
     }
 
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message,MessageProcessor processor) {
+    public void process(ByteBuffer message, MessageProcessor processor) {
         processor.process(this);
         super.process(message, processor);
     }
@@ -32,7 +32,7 @@ public class NotInterestedMessage extends ProtocolMessage {
      */
     @Override
     public String toString() {
-        return "type NOT INTERESTED";
+        return "type UNCHOKE";
     }
     
     /* (non-Javadoc)
@@ -43,7 +43,7 @@ public class NotInterestedMessage extends ProtocolMessage {
         logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(5);
         bb.putInt(1);
-        bb.put(TYPE_INTERESTED);
+        bb.put(TYPE_UNCHOKE);
         return bb;
     }
 }

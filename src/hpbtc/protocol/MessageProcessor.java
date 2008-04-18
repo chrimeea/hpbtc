@@ -3,21 +3,21 @@
  * and open the template in the editor.
  */
 
-package hpbtc.client.message;
+package hpbtc.protocol;
 
-import hpbtc.client.message.BitfieldMessage;
-import hpbtc.client.message.CancelMessage;
-import hpbtc.client.message.ChokeMessage;
-import hpbtc.client.message.HandshakeMessage;
-import hpbtc.client.message.HaveMessage;
-import hpbtc.client.message.IdleMessage;
-import hpbtc.client.message.InterestedMessage;
-import hpbtc.client.message.NotInterestedMessage;
-import hpbtc.client.message.PIDMessage;
-import hpbtc.client.message.PieceMessage;
-import hpbtc.client.message.ProtocolMessage;
-import hpbtc.client.message.RequestMessage;
-import hpbtc.client.message.UnchokeMessage;
+import hpbtc.protocol.BitfieldMessage;
+import hpbtc.protocol.CancelMessage;
+import hpbtc.protocol.ChokeMessage;
+import hpbtc.protocol.HandshakeMessage;
+import hpbtc.protocol.HaveMessage;
+import hpbtc.protocol.IdleMessage;
+import hpbtc.protocol.InterestedMessage;
+import hpbtc.protocol.NotInterestedMessage;
+import hpbtc.protocol.PIDMessage;
+import hpbtc.protocol.PieceMessage;
+import hpbtc.protocol.ProtocolMessage;
+import hpbtc.protocol.RequestMessage;
+import hpbtc.protocol.UnchokeMessage;
 
 /**
  *

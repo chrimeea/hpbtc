@@ -5,10 +5,8 @@
 package hpbtc.client;
 
 import hpbtc.client.torrent.BTFile;
-import hpbtc.client.Client;
-import hpbtc.client.message.HaveMessage;
-import hpbtc.client.message.RequestMessage;
-import hpbtc.client.observer.TorrentObserver;
+import hpbtc.protocol.HaveMessage;
+import hpbtc.protocol.RequestMessage;
 import hpbtc.client.peer.LightPeer;
 import hpbtc.client.peer.Peer;
 import hpbtc.client.peer.PeerConnection;

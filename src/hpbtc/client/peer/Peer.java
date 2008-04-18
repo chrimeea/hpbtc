@@ -6,13 +6,13 @@ package hpbtc.client.peer;
 
 import hpbtc.client.Client;
 import hpbtc.client.DownloadItem;
-import hpbtc.client.message.CancelMessage;
-import hpbtc.client.message.ChokeMessage;
-import hpbtc.client.message.InterestedMessage;
-import hpbtc.client.message.NotInterestedMessage;
-import hpbtc.client.message.ProtocolMessage;
-import hpbtc.client.message.RequestMessage;
-import hpbtc.client.message.UnchokeMessage;
+import hpbtc.protocol.CancelMessage;
+import hpbtc.protocol.ChokeMessage;
+import hpbtc.protocol.InterestedMessage;
+import hpbtc.protocol.NotInterestedMessage;
+import hpbtc.protocol.ProtocolMessage;
+import hpbtc.protocol.RequestMessage;
+import hpbtc.protocol.UnchokeMessage;
 
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
