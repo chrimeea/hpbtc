@@ -2,9 +2,8 @@
  * Created on Mar 6, 2006
  *
  */
-package hpbtc.client.message;
+package hpbtc.protocol;
 
-import hpbtc.client.Client;
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 
@@ -12,11 +11,11 @@ import java.util.logging.Logger;
  * @author chris
  *
  */
-public class InterestedMessage extends ProtocolMessage {
+public class IdleMessage extends ProtocolMessage {
 
-    private static Logger logger = Logger.getLogger(InterestedMessage.class.getName());
+    private static Logger logger = Logger.getLogger(IdleMessage.class.getName());
     
-    public InterestedMessage() {
+    public IdleMessage() {
     }
 
     /* (non-Javadoc)
@@ -33,7 +32,7 @@ public class InterestedMessage extends ProtocolMessage {
      */
     @Override
     public String toString() {
-        return "type INTERESTED";
+        return "type IDLE";
     }
 
     /* (non-Javadoc)
@@ -42,9 +41,9 @@ public class InterestedMessage extends ProtocolMessage {
     @Override
     public ByteBuffer send() {
         logger.info("send message " + this);
-        ByteBuffer bb = ByteBuffer.allocate(5);
-        bb.putInt(1);
-        bb.put(TYPE_INTERESTED);
+        ByteBuffer bb = ByteBuffer.allocate(4);
+        bb.putInt(0);
         return bb;
     }
+
 }

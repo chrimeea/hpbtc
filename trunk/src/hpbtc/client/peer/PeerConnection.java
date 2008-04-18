@@ -3,12 +3,12 @@ package hpbtc.client.peer;
 import hpbtc.client.Client;
 import hpbtc.client.ClientMessageProcessor;
 import hpbtc.client.DownloadItem;
-import hpbtc.client.message.CancelMessage;
-import hpbtc.client.message.HandshakeMessage;
-import hpbtc.client.message.IdleMessage;
-import hpbtc.client.message.MessageFactory;
-import hpbtc.client.message.PIDMessage;
-import hpbtc.client.message.ProtocolMessage;
+import hpbtc.protocol.CancelMessage;
+import hpbtc.protocol.HandshakeMessage;
+import hpbtc.protocol.IdleMessage;
+import hpbtc.protocol.MessageFactory;
+import hpbtc.protocol.PIDMessage;
+import hpbtc.protocol.ProtocolMessage;
 import hpbtc.util.IOUtil;
 
 import java.io.IOException;

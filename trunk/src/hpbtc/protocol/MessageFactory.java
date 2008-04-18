@@ -2,7 +2,7 @@
  * Created on Mar 7, 2006
  *
  */
-package hpbtc.client.message;
+package hpbtc.protocol;
 
 /**
  * @author chris
