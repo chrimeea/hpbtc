@@ -1,8 +1,8 @@
 package hpbtc.client.piece;
 
 import hpbtc.client.Client;
-import hpbtc.client.download.BTFile;
-import hpbtc.client.download.DownloadItem;
+import hpbtc.client.torrent.BTFile;
+import hpbtc.client.DownloadItem;
 import hpbtc.client.message.CancelMessage;
 import hpbtc.client.message.PieceMessage;
 import hpbtc.client.message.RequestMessage;

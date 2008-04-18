@@ -5,10 +5,10 @@
 package hpbtc.client.message;
 
 import hpbtc.client.Client;
-import hpbtc.client.download.DownloadItem;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.BitSet;
 
 /**
  * @author chris
@@ -16,17 +16,20 @@ import java.nio.ByteBuffer;
  */
 public class BitfieldMessage extends ProtocolMessage {
 
+    private BitSet pieces;
+
     public BitfieldMessage() {
     }
-
+    
+    public BitfieldMessage(BitSet pieces) {
+        this.pieces = pieces;
+    }
+    
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process() {
-        Client client = Client.getInstance();
-        DownloadItem item = client.getDownloadItem();
-        peer.removePieces();
+    public void process(ByteBuffer message) {
         int j = 0;
         int k = 0;
         int l = message.remaining();
@@ -35,18 +38,15 @@ public class BitfieldMessage extends ProtocolMessage {
             byte c = (byte) 128;
             for (int p = 0; p < 8; p++) {
                 if ((bit & c) == c) {
-                    item.getPiece(j).addPeer(peer);
-                    peer.addPiece(j);
+                    pieces.set(j);
                     k++;
                 }
                 bit <<= 1;
                 j++;
-                if (j > item.getTotalPieces()) {
-                    break;
-                }
+                //Might read more than the number of actual pieces
             }
         }
-        client.getObserver().fireProcessMessageEvent(this);
+        Client.getInstance().getObserver().fireProcessMessageEvent(this);
     }
     
     /* (non-Javadoc)
@@ -54,18 +54,16 @@ public class BitfieldMessage extends ProtocolMessage {
      */
     @Override
     public String toString() {
-        return "type BITFIELD, peer " + peer.getIp();
+        return "type BITFIELD";
     }
 
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
-    public ByteBuffer send() throws IOException {
-        Client client = Client.getInstance();
-        DownloadItem item = client.getDownloadItem();
-        int n = 1 + item.getTotalPieces() / 8;
-        if (item.getTotalPieces() % 8 > 0) {
+    public ByteBuffer send() {
+        int n = 1 + pieces.size() / 8;
+        if (pieces.size() % 8 > 0) {
             n++;
         }
         ByteBuffer bb = ByteBuffer.allocate(n + 4);
@@ -73,13 +71,13 @@ public class BitfieldMessage extends ProtocolMessage {
         byte x = ProtocolMessage.TYPE_BITFIELD;
         byte y = (byte) -128;
         boolean hasp = false;
-        for (int i = 0; i < item.getTotalPieces(); i++) {
+        for (int i = 0; i < pieces.size(); i++) {
             if (i % 8 == 0) {
                 bb.put(x);
                 x = 0;
                 y = (byte) -128;
             }
-            if (item.getPiece(i).isComplete()) {
+            if (pieces.get(i)) {
                 x |= y;
                 hasp = true;
             }
@@ -92,9 +90,13 @@ public class BitfieldMessage extends ProtocolMessage {
             if (y != 0) {
                 bb.put(x);
             }
-            client.getObserver().fireSendMessageEvent(this);
+            Client.getInstance().getObserver().fireSendMessageEvent(this);
             return bb;
         }
         return ByteBuffer.allocate(0);
+    }
+    
+    public BitSet getBitfield() {
+        return pieces;
     }
 }

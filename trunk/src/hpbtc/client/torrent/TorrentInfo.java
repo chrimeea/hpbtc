@@ -7,7 +7,7 @@ import hpbtc.bencoding.element.BencodedInteger;
 import hpbtc.bencoding.element.BencodedList;
 import hpbtc.bencoding.element.BencodedString;
 import hpbtc.client.Client;
-import hpbtc.client.download.BTFile;
+import hpbtc.client.torrent.BTFile;
 import hpbtc.client.observer.TorrentObserver;
 import hpbtc.client.peer.Peer;
 import java.io.File;

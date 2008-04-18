@@ -5,12 +5,8 @@
 package hpbtc.client.message;
 
 import hpbtc.client.Client;
-import hpbtc.client.download.DownloadItem;
-import hpbtc.client.piece.Piece;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.TimerTask;
 
 /**
  * @author chris
@@ -18,34 +14,25 @@ import java.util.TimerTask;
  */
 public class PieceMessage extends BlockMessage {
     
+    private ByteBuffer piece;
+    
     public PieceMessage() {
     }
 
+    public PieceMessage(int begin, int index, int length, ByteBuffer piece) {
+        super(begin, index, length);
+        this.piece = piece;
+    }
+    
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process() {
+    public void process(ByteBuffer message) {
         index = message.getInt();
         begin = message.getInt();
         length = message.remaining();
-        Client client = Client.getInstance();
-        client.getObserver().fireProcessMessageEvent(this);
-        final DownloadItem item = client.getDownloadItem();
-        final Piece pe = item.getPiece(index);
-        if (pe.requestDone(this)) {
-            peer.requestDone();
-        }
-        if (!pe.haveAll(begin, length)) {
-            item.getRateTimer().schedule(new TimerTask() {
-                public void run() {
-                    if (pe.savePiece(begin, message)) {
-                        item.broadcastHave(index);
-                    }
-                    item.findNextPiece();
-                }
-            }, 0);
-        }
+        piece = message;
     }
 
     /* (non-Javadoc)
@@ -53,24 +40,25 @@ public class PieceMessage extends BlockMessage {
      */
     @Override
     public String toString() {
-        return "type PIECE, peer " + peer.getIp() + " index " + (index + 1) + " begin " + begin + " length " + length;
+        return "type PIECE";
     }
     
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
-    public ByteBuffer send() throws IOException {
+    public ByteBuffer send() {
         Client.getInstance().getObserver().fireSendMessageEvent(this);
         ByteBuffer bb = ByteBuffer.allocate(13 + length);
-        DownloadItem item = Client.getInstance().getDownloadItem();
         bb.putInt(9 + length);
         bb.put(ProtocolMessage.TYPE_PIECE);
         bb.putInt(index);
         bb.putInt(begin);
-        ByteBuffer x = item.getPiece(index).getPiece(begin, length);
-        x.rewind();
-        bb.put(x);
+        bb.put(piece);
         return bb;
+    }
+
+    public ByteBuffer getPiece() {
+        return piece;
     }
 }

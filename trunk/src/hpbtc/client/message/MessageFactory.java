@@ -10,9 +10,9 @@ package hpbtc.client.message;
  */
 public class MessageFactory {
     
-    public static ProtocolMessage createMessage(byte type) {
+    public static ProtocolMessage createMessage(byte current) {
         ProtocolMessage pm = null;
-        switch (type) {
+        switch (current) {
         case ProtocolMessage.TYPE_BITFIELD: pm = new BitfieldMessage();break;
         case ProtocolMessage.TYPE_CANCEL: pm =  new CancelMessage();break;
         case ProtocolMessage.TYPE_CHOKE: pm = new ChokeMessage();break;

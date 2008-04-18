@@ -8,61 +8,44 @@ public abstract class BlockMessage extends ProtocolMessage {
 
     public BlockMessage() {
     }
-
-    public void setBegin(int begin) {
-        this.begin = begin;
-    }
-
-    public void setIndex(int index) {
+    
+    public BlockMessage(int begin, int index, int length) {
         this.index = index;
-    }
-
-    public void setLength(int length) {
+        this.begin = begin;
         this.length = length;
     }
-    
-    /**
-     * @return
-     */
-    public int getIndex() {
-        return index;
-    }
-    
-    /**
-     * @return
-     */
-    public int getBegin() {
-        return begin;
-    }
-    
-    /**
-     * @return
-     */
-    public int getLength() {
-        return length;
-    }
-    
+        
     /* (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */
+    @Override
     public int hashCode() {
-        return (index + "#" + begin + "#" + length + "#" + peer.getId()).hashCode();
+        return (index + "#" + begin + "#" + length).hashCode();
     }
     
     /* (non-Javadoc)
      * @see java.lang.Object#equals(java.lang.Object)
      */
+    @Override
     public boolean equals(Object o) {
         if (o == null || !(o instanceof BlockMessage)) {
             return false;
         }
         BlockMessage rm = (BlockMessage) o;
-        if (index == rm.index &&
+        return index == rm.index &&
             begin == rm.begin &&
-            length == rm.length &&
-            ((peer == null && rm.peer == null) || (peer.equals(rm.peer)))) {
-                return true;
-        }
-        return false;
+            length == rm.length;
+    }
+
+    public int getBegin() {
+        return begin;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public int getLength() {
+        return length;
     }
 }

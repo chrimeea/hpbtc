@@ -6,7 +6,6 @@ package hpbtc.client.message;
 
 import hpbtc.client.Client;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -22,9 +21,8 @@ public class InterestedMessage extends ProtocolMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process() {
+    public void process(ByteBuffer message) {
         Client.getInstance().getObserver().fireProcessMessageEvent(this);
-        peer.setInterestedThere(true);
     }
     
     /* (non-Javadoc)
@@ -32,14 +30,14 @@ public class InterestedMessage extends ProtocolMessage {
      */
     @Override
     public String toString() {
-        return "type INTERESTED, peer " + peer.getIp();
+        return "type INTERESTED";
     }
 
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
-    public ByteBuffer send() throws IOException {
+    public ByteBuffer send() {
         Client.getInstance().getObserver().fireSendMessageEvent(this);
         ByteBuffer bb = ByteBuffer.allocate(5);
         bb.putInt(1);
