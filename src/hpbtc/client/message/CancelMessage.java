@@ -53,7 +53,7 @@ public class CancelMessage extends BlockMessage {
         Client.getInstance().getObserver().fireSendMessageEvent(this);
         ByteBuffer bb = ByteBuffer.allocate(17);
         bb.putInt(13);
-        bb.put(ProtocolMessage.TYPE_CANCEL);
+        bb.put(TYPE_CANCEL);
         bb.putInt(index);
         bb.putInt(begin);
         bb.putInt(length);

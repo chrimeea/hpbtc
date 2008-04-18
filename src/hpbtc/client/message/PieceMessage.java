@@ -53,7 +53,7 @@ public class PieceMessage extends BlockMessage {
         Client.getInstance().getObserver().fireSendMessageEvent(this);
         ByteBuffer bb = ByteBuffer.allocate(13 + length);
         bb.putInt(9 + length);
-        bb.put(ProtocolMessage.TYPE_PIECE);
+        bb.put(TYPE_PIECE);
         bb.putInt(index);
         bb.putInt(begin);
         bb.put(piece);

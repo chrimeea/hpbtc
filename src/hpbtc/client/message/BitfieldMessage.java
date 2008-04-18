@@ -68,7 +68,7 @@ public class BitfieldMessage extends ProtocolMessage {
         }
         ByteBuffer bb = ByteBuffer.allocate(n + 4);
         bb.putInt(n);
-        byte x = ProtocolMessage.TYPE_BITFIELD;
+        byte x = TYPE_BITFIELD;
         byte y = (byte) -128;
         boolean hasp = false;
         for (int i = 0; i < pieces.size(); i++) {

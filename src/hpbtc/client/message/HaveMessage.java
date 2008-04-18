@@ -49,7 +49,7 @@ public class HaveMessage extends ProtocolMessage {
         Client.getInstance().getObserver().fireSendMessageEvent(this);
         ByteBuffer bb = ByteBuffer.allocate(9);
         bb.putInt(5);
-        bb.put(ProtocolMessage.TYPE_HAVE);
+        bb.put(TYPE_HAVE);
         bb.putInt(index);
         return bb;
     }

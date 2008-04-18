@@ -45,7 +45,7 @@ public class RequestMessage extends BlockMessage implements Cloneable {
         Client.getInstance().getObserver().fireSendMessageEvent(this);
         ByteBuffer bb = ByteBuffer.allocate(17);
         bb.putInt(13);
-        bb.put(ProtocolMessage.TYPE_REQUEST);
+        bb.put(TYPE_REQUEST);
         bb.putInt(index);
         bb.putInt(begin);
         bb.putInt(length);
