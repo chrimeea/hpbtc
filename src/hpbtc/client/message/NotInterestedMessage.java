@@ -22,8 +22,9 @@ public class NotInterestedMessage extends ProtocolMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message) {
-        Client.getInstance().getObserver().fireProcessMessageEvent(this);
+    public void process(ByteBuffer message,MessageProcessor processor) {
+        processor.process(this);
+        super.process(message, processor);
     }
 
     /* (non-Javadoc)
