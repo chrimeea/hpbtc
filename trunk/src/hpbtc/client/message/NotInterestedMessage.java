@@ -6,7 +6,6 @@ package hpbtc.client.message;
 
 import hpbtc.client.Client;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -43,7 +42,7 @@ public class NotInterestedMessage extends ProtocolMessage {
         Client.getInstance().getObserver().fireSendMessageEvent(this);
         ByteBuffer bb = ByteBuffer.allocate(5);
         bb.putInt(1);
-        bb.put(ProtocolMessage.TYPE_INTERESTED);
+        bb.put(TYPE_INTERESTED);
         return bb;
     }
 }

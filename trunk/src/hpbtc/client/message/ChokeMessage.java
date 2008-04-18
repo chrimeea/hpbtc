@@ -43,7 +43,7 @@ public class ChokeMessage extends ProtocolMessage {
         Client.getInstance().getObserver().fireSendMessageEvent(this);
         ByteBuffer bb = ByteBuffer.allocate(5);
         bb.putInt(1);
-        bb.put(ProtocolMessage.TYPE_CHOKE);
+        bb.put(TYPE_CHOKE);
         return bb;
     }
 }
