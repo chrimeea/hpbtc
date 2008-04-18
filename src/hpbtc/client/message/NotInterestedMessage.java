@@ -22,9 +22,8 @@ public class NotInterestedMessage extends ProtocolMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process() {
+    public void process(ByteBuffer message) {
         Client.getInstance().getObserver().fireProcessMessageEvent(this);
-        peer.setInterestedThere(false);
     }
 
     /* (non-Javadoc)
@@ -32,14 +31,14 @@ public class NotInterestedMessage extends ProtocolMessage {
      */
     @Override
     public String toString() {
-        return "type NOT INTERESTED, peer " + peer.getIp();
+        return "type NOT INTERESTED";
     }
     
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
-    public ByteBuffer send() throws IOException {
+    public ByteBuffer send() {
         Client.getInstance().getObserver().fireSendMessageEvent(this);
         ByteBuffer bb = ByteBuffer.allocate(5);
         bb.putInt(1);

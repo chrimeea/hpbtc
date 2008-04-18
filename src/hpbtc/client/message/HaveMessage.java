@@ -5,9 +5,7 @@
 package hpbtc.client.message;
 
 import hpbtc.client.Client;
-import hpbtc.client.download.DownloadItem;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -20,25 +18,18 @@ public class HaveMessage extends ProtocolMessage {
     
     public HaveMessage() {
     }
-
-    public void setIndex(int i) {
-        index = i;
+    
+    public HaveMessage(int index) {
+        this.index = index;
     }
     
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process() {
-        Client client = Client.getInstance();
-        DownloadItem item = client.getDownloadItem();
+    public void process(ByteBuffer message) {
         index = message.getInt();
-        client.getObserver().fireProcessMessageEvent(this);
-        if (!peer.hasPiece(index)) {
-            item.getPiece(index).addPeer(peer);
-            peer.addPiece(index);
-        }
-        item.findAllPieces();
+        Client.getInstance().getObserver().fireProcessMessageEvent(this);
     }
     
     /* (non-Javadoc)
@@ -46,19 +37,23 @@ public class HaveMessage extends ProtocolMessage {
      */
     @Override
     public String toString() {
-        return "type HAVE, peer " + peer.getIp() + " piece " + (index + 1);
+        return "type HAVE";
     }
 
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
-    public ByteBuffer send() throws IOException {
+    public ByteBuffer send() {
         Client.getInstance().getObserver().fireSendMessageEvent(this);
         ByteBuffer bb = ByteBuffer.allocate(9);
         bb.putInt(5);
         bb.put(ProtocolMessage.TYPE_HAVE);
         bb.putInt(index);
         return bb;
+    }
+
+    public int getIndex() {
+        return index;
     }
 }

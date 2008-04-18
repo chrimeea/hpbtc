@@ -4,7 +4,7 @@
  */
 package hpbtc.client;
 
-import hpbtc.client.download.DownloadItem;
+import hpbtc.client.DownloadItem;
 import hpbtc.client.observer.TorrentObserver;
 import hpbtc.client.peer.Peer;
 import hpbtc.client.peer.PeerConnection;

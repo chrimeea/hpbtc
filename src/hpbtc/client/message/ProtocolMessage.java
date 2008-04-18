@@ -4,9 +4,6 @@
  */
 package hpbtc.client.message;
 
-import hpbtc.client.peer.Peer;
-
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -25,25 +22,10 @@ public abstract class ProtocolMessage {
     public static final byte TYPE_PIECE = 7;
     public static final byte TYPE_CANCEL = 8;
     
-    protected Peer peer;
-    protected ByteBuffer message;
-    
     public ProtocolMessage() {
     }
+      
+    public abstract void process(ByteBuffer message);
     
-    public void setMessage(ByteBuffer m) {
-        message = m;
-    }
-    
-    public Peer getPeer() {
-        return peer;
-    }
-    
-    public void setPeer(Peer p) {
-        peer = p;
-    }
-    
-    public abstract void process();
-    
-    public abstract ByteBuffer send() throws IOException;
+    public abstract ByteBuffer send();
 }

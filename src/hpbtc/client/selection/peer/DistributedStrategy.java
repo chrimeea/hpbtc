@@ -6,7 +6,7 @@ package hpbtc.client.selection.peer;
 
 import hpbtc.client.comparator.DownloadComparator;
 import hpbtc.client.comparator.TotalPiecesComparator;
-import hpbtc.client.download.DownloadItem;
+import hpbtc.client.DownloadItem;
 import hpbtc.client.peer.LightPeer;
 import hpbtc.client.piece.LightPiece;
 

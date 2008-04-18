@@ -17,14 +17,13 @@ public class ChokeMessage extends ProtocolMessage {
 
     public ChokeMessage() {
     }
-
+    
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process() {
+    public void process(ByteBuffer message) {
         Client.getInstance().getObserver().fireProcessMessageEvent(this);
-        peer.setChokedThere(true);
     }
     
     /* (non-Javadoc)
@@ -32,19 +31,18 @@ public class ChokeMessage extends ProtocolMessage {
      */
     @Override
     public String toString() {
-        return "type CHOKE, peer " + peer.getIp();
+        return "type CHOKE";
     }
 
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
-    public ByteBuffer send() throws IOException {
+    public ByteBuffer send() {
         Client.getInstance().getObserver().fireSendMessageEvent(this);
         ByteBuffer bb = ByteBuffer.allocate(5);
         bb.putInt(1);
         bb.put(ProtocolMessage.TYPE_CHOKE);
         return bb;
     }
-
 }

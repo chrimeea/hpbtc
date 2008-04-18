@@ -1,7 +1,7 @@
 package hpbtc.client.peer;
 
 import hpbtc.client.Client;
-import hpbtc.client.download.DownloadItem;
+import hpbtc.client.DownloadItem;
 import hpbtc.client.message.CancelMessage;
 import hpbtc.client.message.HandshakeMessage;
 import hpbtc.client.message.IdleMessage;
@@ -312,12 +312,10 @@ public class PeerConnection {
             } else {
                 pm = MessageFactory.createMessage(current.get());
             }
-            pm.setPeer(peer);
-            pm.setMessage(current);
             Client.getInstance().getDownloadItem().getRateTimer().schedule(
                 new TimerTask() {
                     public void run() {
-                        pm.process();
+                        pm.process(current);
                     }
                 }, 0);
             read = 0;

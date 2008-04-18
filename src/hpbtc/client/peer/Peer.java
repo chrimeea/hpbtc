@@ -5,7 +5,7 @@
 package hpbtc.client.peer;
 
 import hpbtc.client.Client;
-import hpbtc.client.download.DownloadItem;
+import hpbtc.client.DownloadItem;
 import hpbtc.client.message.CancelMessage;
 import hpbtc.client.message.ChokeMessage;
 import hpbtc.client.message.InterestedMessage;

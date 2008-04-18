@@ -14,22 +14,25 @@ import java.nio.ByteBuffer;
  *
  */
 public class CancelMessage extends BlockMessage {
-    
+
+    public CancelMessage() {
+    }
+
     /**
      * @param p
      */
-    public CancelMessage() {
+    public CancelMessage(int begin, int index, int length) {
+        super(begin, index, length);
     }
-    
+
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process() {
+    public void process(ByteBuffer message) {
         index = message.getInt();
         begin = message.getInt();
         length = message.getInt();
-        peer.getConnection().cancelRequestReceived(this);
         Client.getInstance().getObserver().fireProcessMessageEvent(this);
     }
 
@@ -38,14 +41,14 @@ public class CancelMessage extends BlockMessage {
      */
     @Override
     public String toString() {
-        return "type CANCEL, peer " + peer.getIp() + " index " + (index + 1) + " begin " + begin + " length" + length;
+        return "type CANCEL";
     }
-    
+
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
-    public ByteBuffer send() throws IOException {
+    public ByteBuffer send() {
         Client.getInstance().getObserver().fireSendMessageEvent(this);
         ByteBuffer bb = ByteBuffer.allocate(17);
         bb.putInt(13);
