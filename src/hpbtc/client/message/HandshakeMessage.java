@@ -1,12 +1,12 @@
 package hpbtc.client.message;
 
-import hpbtc.client.Client;
-import hpbtc.client.observer.TorrentObserver;
-
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 public class HandshakeMessage extends ProtocolMessage {
 
+    private static Logger logger = Logger.getLogger(HandshakeMessage.class.getName());
+    
     private ByteBuffer infoHash;
     
     public HandshakeMessage() {
@@ -21,8 +21,7 @@ public class HandshakeMessage extends ProtocolMessage {
      */
     @Override
     public void process(ByteBuffer message,MessageProcessor processor) {
-        TorrentObserver to = Client.getInstance().getObserver();
-        to.fireProcessMessageEvent(this);
+        logger.info("process message " + this);
         message.limit(20);
         ByteBuffer h = ByteBuffer.allocate(20);
         getProtocol(h);
@@ -50,7 +49,7 @@ public class HandshakeMessage extends ProtocolMessage {
      */
     @Override
     public ByteBuffer send() {
-        Client.getInstance().getObserver().fireSendMessageEvent(this);
+        logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(48);
         getProtocol(bb);
         for (int i = 0; i < 8; i++) {

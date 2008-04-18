@@ -4,10 +4,8 @@
  */
 package hpbtc.client.message;
 
-import hpbtc.client.Client;
-
-import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 /**
  * @author chris
@@ -15,6 +13,8 @@ import java.nio.ByteBuffer;
  */
 public class CancelMessage extends BlockMessage {
 
+    private static Logger logger = Logger.getLogger(CancelMessage.class.getName());
+    
     public CancelMessage() {
     }
 
@@ -50,7 +50,7 @@ public class CancelMessage extends BlockMessage {
      */
     @Override
     public ByteBuffer send() {
-        Client.getInstance().getObserver().fireSendMessageEvent(this);
+        logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(17);
         bb.putInt(13);
         bb.put(TYPE_CANCEL);

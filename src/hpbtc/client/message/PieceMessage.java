@@ -4,15 +4,16 @@
  */
 package hpbtc.client.message;
 
-import hpbtc.client.Client;
-
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 /**
  * @author chris
  *
  */
 public class PieceMessage extends BlockMessage {
+
+    private static Logger logger = Logger.getLogger(PieceMessage.class.getName());
     
     private ByteBuffer piece;
     
@@ -50,7 +51,7 @@ public class PieceMessage extends BlockMessage {
      */
     @Override
     public ByteBuffer send() {
-        Client.getInstance().getObserver().fireSendMessageEvent(this);
+        logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(13 + length);
         bb.putInt(9 + length);
         bb.put(TYPE_PIECE);

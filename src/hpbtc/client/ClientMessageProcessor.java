@@ -13,7 +13,6 @@ import hpbtc.client.message.PIDMessage;
 import hpbtc.client.message.PieceMessage;
 import hpbtc.client.message.RequestMessage;
 import hpbtc.client.message.UnchokeMessage;
-import hpbtc.client.observer.TorrentObserver;
 import hpbtc.client.peer.Peer;
 import hpbtc.client.peer.PeerConnection;
 import hpbtc.client.piece.Piece;
@@ -22,6 +21,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.TimerTask;
+import java.util.logging.Logger;
 
 /**
  *
@@ -29,6 +29,8 @@ import java.util.TimerTask;
  */
 public class ClientMessageProcessor implements MessageProcessor {
 
+    private static Logger logger = Logger.getLogger(ClientMessageProcessor.class.getName());
+    
     private DownloadItem item;
     private Peer peer;
 
@@ -57,9 +59,8 @@ public class ClientMessageProcessor implements MessageProcessor {
     }
 
     public void process(HandshakeMessage message) {
-        TorrentObserver to = Client.getInstance().getObserver();
         if (message.getInfoHash().equals(ByteBuffer.wrap(item.getInfoHash()))) {
-            to.fireHandshakeOKEvent(peer);
+            logger.info("handshake ok " + peer);
             PeerConnection pc = peer.getConnection();
             if (!pc.isHandshakeSent()) {
                 PIDMessage pm = new PIDMessage(Client.getInstance().getPIDBytes());
@@ -70,7 +71,7 @@ public class ClientMessageProcessor implements MessageProcessor {
             pc.close();
             return;
         }
-        to.fireHandshakeErrorEvent(peer);
+        logger.info("handshake error " + peer);
     }
 
     public void process(HaveMessage message) {
@@ -94,7 +95,6 @@ public class ClientMessageProcessor implements MessageProcessor {
     }
 
     public void process(PIDMessage message) {
-        TorrentObserver to = Client.getInstance().getObserver();
         PeerConnection pc = peer.getConnection();
         if (pc != null && pc.getPeer().getId() == null) {
             String pid;
@@ -117,13 +117,13 @@ public class ClientMessageProcessor implements MessageProcessor {
                 checked();
                 return;
             }
-            Client.getInstance().getObserver().firePIDErrorEvent(peer);
+            logger.info("pid error " + peer);
             pc.close();
         }
     }
 
     private void checked() {
-        Client.getInstance().getObserver().firePIDOKEvent(peer);
+        logger.info("pid ok " + peer);
         PeerConnection pc = peer.getConnection();
         pc.addUploadMessage(new BitfieldMessage());
         pc.startAllTimers();

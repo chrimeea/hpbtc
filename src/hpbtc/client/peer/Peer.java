@@ -129,7 +129,7 @@ public class Peer {
     public void setSnubbed(boolean s) {
         boolean old = snub.getAndSet(s);
         if (old != s) {
-            Client.getInstance().getObserver().fireSnubEvent(this, s);
+            logger.info("snub " + this);
         }
     }
 
@@ -139,11 +139,7 @@ public class Peer {
     public void cancelRequestSent(RequestMessage rm) {
         PeerConnection pc = con.get();
         if (pc != null) {
-            CancelMessage cm = new CancelMessage();
-            cm.setPeer(rm.getPeer());
-            cm.setIndex(rm.getIndex());
-            cm.setBegin(rm.getBegin());
-            cm.setLength(rm.getLength());
+            CancelMessage cm = new CancelMessage(rm.getBegin(), rm.getIndex(), rm.getLength());
             pc.addUploadMessage(cm);
             logger.fine("Peer " + ip + " has " + requestsSent.decrementAndGet() + " requests");
         } else {
@@ -191,7 +187,6 @@ public class Peer {
             PeerConnection pc = con.get();
             if (pc != null) {
                 ProtocolMessage cm = c ? new ChokeMessage() : new UnchokeMessage();
-                cm.setPeer(this);
                 pc.addUploadMessage(cm);
             }
         }
@@ -205,7 +200,6 @@ public class Peer {
             PeerConnection pc = con.get();
             if (pc != null) {
                 ProtocolMessage pm = i ? new InterestedMessage() : new NotInterestedMessage();
-                pm.setPeer(this);
                 con.get().addUploadMessage(pm);
             }
         }
@@ -335,5 +329,10 @@ public class Peer {
      */
     public int getPort() {
         return port;
+    }
+
+    @Override
+    public String toString() {
+        return ip;
     }
 }

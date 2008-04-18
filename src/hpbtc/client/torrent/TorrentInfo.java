@@ -6,9 +6,6 @@ import hpbtc.bencoding.element.BencodedElement;
 import hpbtc.bencoding.element.BencodedInteger;
 import hpbtc.bencoding.element.BencodedList;
 import hpbtc.bencoding.element.BencodedString;
-import hpbtc.client.Client;
-import hpbtc.client.torrent.BTFile;
-import hpbtc.client.observer.TorrentObserver;
 import hpbtc.client.peer.Peer;
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,6 +14,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  *
@@ -24,6 +22,8 @@ import java.util.Set;
  */
 public class TorrentInfo {
 
+    private static Logger logger = Logger.getLogger(TorrentInfo.class.getName());
+    
     private byte[] infoHash;
     private TrackerInfo trackers;
     private boolean multiple;
@@ -42,12 +42,11 @@ public class TorrentInfo {
         BencodedDictionary info = (BencodedDictionary) meta.get("info");
         infoHash = info.getDigest();
         trackers = new TrackerInfo(meta);
-        TorrentObserver to = Client.getInstance().getObserver();
-        to.fireSetTrackerURLEvent(trackers.getTrackers());
+        logger.info("set tracker url " + trackers.getTrackers());
         multiple = info.containsKey("files");
         fileName = ((BencodedString) info.get("name")).getValue();
         pieceLength = ((BencodedInteger) info.get("piece length")).getValue();
-        to.fireSetPieceLengthEvent(pieceLength);
+        logger.info("set piece length " + pieceLength);
         if (multiple) {
             BencodedList fls = (BencodedList) info.get("files");
             files = new ArrayList<BTFile>(fls.getSize());
@@ -93,12 +92,11 @@ public class TorrentInfo {
             }
             files.add(f);
         }
-        to.fireSetFilesEvent(files);
         nrPieces = fileLength / pieceLength;
         if (fileLength % pieceLength > 0) {
             nrPieces++;
         }
-        to.fireSetTotalPiecesEvent(nrPieces);
+        logger.info("total pieces " + nrPieces);
         pieceHash = ((BencodedString) info.get("pieces")).getBytes();
     }
 

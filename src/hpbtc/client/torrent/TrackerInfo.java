@@ -7,7 +7,6 @@ import hpbtc.bencoding.element.BencodedInteger;
 import hpbtc.bencoding.element.BencodedList;
 import hpbtc.bencoding.element.BencodedString;
 import hpbtc.client.Client;
-import hpbtc.client.observer.TorrentObserver;
 import hpbtc.client.peer.Peer;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -21,6 +20,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  *
@@ -28,6 +28,8 @@ import java.util.Set;
  */
 public class TrackerInfo {
 
+    private static Logger logger = Logger.getLogger(TrackerInfo.class.getName());
+    
     public static final int TOTAL_PEERS = 50;
     public static final int DEFAULT_INTERVAL = 15;
     
@@ -78,7 +80,7 @@ public class TrackerInfo {
                     ul.addFirst(tracker);
                     return lastPeers;
                 } catch (IOException e) {
-                    Client.getInstance().getObserver().fireTrackerNotAvailableEvent(tracker);
+                    logger.info(e.getMessage());
                 }
             }
         }
@@ -88,12 +90,11 @@ public class TrackerInfo {
     private Set<Peer> getTrackerPeers(String event, String tracker, int uploaded,
             int downloaded, byte[] infoHash, int bytesLeft) throws IOException {
         Client client = Client.getInstance();
-        TorrentObserver to = client.getObserver();
         long l = System.currentTimeMillis();
         long h = l - lastCheck;
         long w = minInterval * 1000;
         while (h < w) {
-            to.fireWaitTrackerEvent(w - h);
+            logger.info("Wait tracker " + (w - h));
             try {
                 wait(w - h);
             } catch (InterruptedException e) {
@@ -135,24 +136,24 @@ public class TrackerInfo {
         con.disconnect();
         Set<Peer> peers = new HashSet<Peer>();
         if (response.containsKey("failure reason")) {
-            to.fireTrackerFailureEvent(((BencodedString) response.get("failure reason")).getValue());
+            logger.info("tracker failure " + ((BencodedString) response.get("failure reason")).getValue());
         } else {
             if (response.containsKey("warning message")) {
-                to.fireTrackerWarningEvent(((BencodedString) response.get("warning message")).getValue());
+                logger.info("tracker warning " + ((BencodedString) response.get("warning message")).getValue());
             }
             interval = ((BencodedInteger) response.get("interval")).getValue();
-            to.fireSetTrackerIntervalEvent(interval);
+            logger.info("tracker interval " + interval);
             if (response.containsKey("min interval")) {
                 minInterval = ((BencodedInteger) response.get("min interval")).getValue();
-                to.fireSetTrackerMinIntervalEvent(minInterval);
+                logger.info("set tracker min interval " + minInterval);
             }
             if (response.containsKey("complete")) {
                 complete = ((BencodedInteger) response.get("complete")).getValue();
-                to.fireSetSeedersEvent(complete);
+                logger.info("set seeders " + complete);
             }
             if (response.containsKey("incomplete")) {
                 incomplete = ((BencodedInteger) response.get("incomplete")).getValue();
-                to.fireSetLeechersEvent(incomplete);
+                logger.info("set leechers " + incomplete);
             }
             if (response.containsKey("tracker id")) {
                 trackerId = ((BencodedString) response.get("tracker id")).getValue();
