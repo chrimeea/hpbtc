@@ -180,9 +180,7 @@ public class Client {
                             Socket s = chan.socket();
                             chan.configureBlocking(false);
                             Peer p = new Peer(s.getInetAddress().getHostAddress(), s.getPort(), null);
-                            PeerConnection pc = new PeerConnection(p);
-                            pc.setChannel(chan);
-                            chan.register(selector, SelectionKey.OP_READ, pc);
+                            chan.register(selector, SelectionKey.OP_READ, p);
                             logger.info("incoming connection " + s.getInetAddress().getHostAddress());
                         } else if (key.isConnectable()) {
                             try {
