@@ -2,7 +2,6 @@ package hpbtc.protocol;
 
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.client.peer.*;
-import hpbtc.protocol.Client;
 import hpbtc.client.ClientMessageProcessor;
 import hpbtc.client.DownloadItem;
 import hpbtc.protocol.message.CancelMessage;

@@ -4,7 +4,6 @@
  */
 package hpbtc.protocol;
 
-import hpbtc.client.DownloadItem;
 import hpbtc.protocol.torrent.Peer;
 
 import java.io.IOException;
@@ -21,7 +20,6 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.Random;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
@@ -34,23 +32,19 @@ public class Client {
     public static final int REQUEST_PIECE_LENGTH = 32768;
     public static final int MIN_PORT = 6881;
     public static final int MAX_PORT = 6999;
-    
     private static Logger logger = Logger.getLogger(Client.class.getName());
-    
-    private DownloadItem item;
     private ServerSocketChannel serverCh;
     private Selector selector;
-    private static Client instance;
     private byte[] peerId;
     private Random r;
     private Queue<RegisterOp> registered;
-    
-    private Client() throws IOException {
+
+    public Client() throws IOException {
         registered = new ConcurrentLinkedQueue<RegisterOp>();
         r = new Random();
         peerId = generateId();
     }
-    
+
     public void connect() throws IOException {
         int port = MIN_PORT;
         try {
@@ -62,7 +56,7 @@ public class Client {
         while (port <= MAX_PORT) {
             try {
                 InetSocketAddress isa = new InetSocketAddress(
-                    InetAddress.getLocalHost(), port);
+                        InetAddress.getLocalHost(), port);
                 serverCh.socket().bind(isa);
                 break;
             } catch (IOException e) {
@@ -77,7 +71,7 @@ public class Client {
             serverCh.configureBlocking(false);
             selector = Selector.open();
             serverCh.register(selector, SelectionKey.OP_ACCEPT, null);
-        }        
+        }
     }
 
     /**
@@ -86,7 +80,7 @@ public class Client {
     public byte[] getPIDBytes() {
         return peerId;
     }
-    
+
     private byte[] generateId() {
         byte[] pid = new byte[20];
         pid[0] = '-';
@@ -101,34 +95,6 @@ public class Client {
             pid[i] = (byte) (r.nextInt(256) - 128);
         }
         return pid;
-    }
-    
-    /**
-     * @return
-     */
-    public static Client getInstance() {
-        if (instance == null) {
-            try {
-                instance = new Client();
-            } catch (IOException e) {
-                logger.severe("Client not started " + e.getMessage());
-            }
-        }
-        return instance;
-    }
-
-    /**
-     * @return
-     */
-    public DownloadItem getDownloadItem() {
-        return item;
-    }
-
-    /**
-     * @param torrent
-     */
-    public void setDownload(String torrent) throws IOException {
-        item = new DownloadItem(torrent);
     }
 
     /**
@@ -145,7 +111,6 @@ public class Client {
     }
 
     public void listen() {
-        item.startDownload();
         while (true) {
             int n;
             try {
@@ -212,28 +177,12 @@ public class Client {
                         } else if (key.isConnectable()) {
                             try {
                                 if (con.getChannel().finishConnect()) {
-                                    TimerTask tt = con.getConTimer();
-                                    if (tt != null) {
-                                        tt.cancel();
-                                    }
                                     ch.register(selector, (key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT, con);
                                     con.finishConnect();
-                                    item.getRateTimer().schedule(
-                                        new TimerTask() {
-                                            public void run() {
-                                                item.initiateConnections(1);
-                                            }
-                                        }, 0);
                                 }
                             } catch (IOException e) {
                                 logger.info("connection failed " + e.getMessage());
                                 con.close();
-                                item.getRateTimer().schedule(
-                                    new TimerTask() {
-                                        public void run() {
-                                            item.initiateConnections(1);
-                                        }
-                                    }, 0);
                             }
                         }
                     }
@@ -247,21 +196,21 @@ public class Client {
             }
         }
     }
-    
+
     private class RegisterOp {
-        
+
         private PeerConnection pc;
         private int op;
-        
+
         private RegisterOp(PeerConnection pc, int op) {
             this.pc = pc;
             this.op = op;
         }
-        
+
         private PeerConnection getPeerConnection() {
             return pc;
         }
-        
+
         private int getOp() {
             return op;
         }
