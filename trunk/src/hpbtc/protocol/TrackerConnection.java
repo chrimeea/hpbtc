@@ -6,7 +6,7 @@ import hpbtc.bencoding.element.BencodedElement;
 import hpbtc.bencoding.element.BencodedInteger;
 import hpbtc.bencoding.element.BencodedList;
 import hpbtc.bencoding.element.BencodedString;
-import hpbtc.protocol.torrent.Peer;
+import hpbtc.protocol.Peer;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;

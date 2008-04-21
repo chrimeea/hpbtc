@@ -4,8 +4,10 @@
  */
 package hpbtc.protocol;
 
-import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.message.ProtocolMessage;
+import hpbtc.protocol.message.HandshakeMessage;
+import hpbtc.protocol.message.MessageFactory;
+import hpbtc.protocol.message.PIDMessage;
 
 import hpbtc.util.IOUtil;
 import java.io.IOException;
@@ -34,7 +36,6 @@ import java.util.logging.Logger;
  */
 public class Client {
 
-    public static final int REQUEST_PIECE_LENGTH = 32768;
     public static final int MIN_PORT = 6881;
     public static final int MAX_PORT = 6999;
     private static Logger logger = Logger.getLogger(Client.class.getName());
@@ -46,6 +47,13 @@ public class Client {
     private Map<Peer, Queue<ByteBuffer>> messagesUpload = new HashMap<Peer, Queue<ByteBuffer>>();
     private int uploaded;
     private int downloaded;
+    private Queue<ClientProtocolMessage> messagesDownload = new ConcurrentLinkedQueue<ClientProtocolMessage>();
+    private int length;
+    private boolean handshakeRead;
+    private boolean pidRead;
+    private int read;
+    private ByteBuffer head;
+    private ByteBuffer current;
 
     public Client() throws IOException {
         peerId = generateId();
@@ -157,7 +165,7 @@ public class Client {
                         if (key.isReadable()) {
                             if (ch.isConnected()) {
                                 ch.register(selector, key.interestOps() & ~SelectionKey.OP_READ, peer);
-                                con.readMessage();
+                                readMessage(ch);
                                 ch.register(selector, key.interestOps() | SelectionKey.OP_READ, peer);
                             }
                         }
@@ -180,7 +188,10 @@ public class Client {
                             try {
                                 if (ch.finishConnect()) {
                                     ch.register(selector, (key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT, peer);
-                                    con.finishConnect();
+                                    ProtocolMessage hm = new HandshakeMessage(infoHash);
+                                    addUploadMessage(hm, peer);
+                                    hm = new PIDMessage(peerId);
+                                    addUploadMessage(hm, peer);
                                 }
                             } catch (IOException e) {
                                 logger.info("connection failed " + e.getMessage());
@@ -201,6 +212,10 @@ public class Client {
 
     public boolean addUploadMessage(ProtocolMessage rm, Peer peer) {
         Queue q = messagesUpload.get(peer);
+        if (q == null) {
+            q = new ConcurrentLinkedQueue<ByteBuffer>();
+            messagesUpload.put(peer, q);
+        }
         boolean r = q.offer(rm.send());
         if (q.isEmpty() && r) {
             registerNow(peer, SelectionKey.OP_WRITE);
@@ -223,6 +238,60 @@ public class Client {
             ch.socket().close();
         }
         return !q.isEmpty();
+    }
+
+    private void startReading(SocketChannel ch) throws IOException {
+        int r = IOUtil.readFromSocket(ch, current);
+        downloaded += r;
+        read += r;
+        if (read == length) {
+            current.rewind();
+            ProtocolMessage pm;
+            if (!handshakeRead) {
+                pm = new HandshakeMessage();
+                handshakeRead = true;
+            } else if (!pidRead) {
+                pm = new PIDMessage();
+                pidRead = true;
+            } else {
+                pm = MessageFactory.createMessage(current.get());
+            }
+            read = 0;
+            length = 0;
+        }
+    }
+
+    private void readMessage(SocketChannel ch) {
+        try {
+            if (length == 0) {
+                if (!handshakeRead) {
+                    length = 48;
+                } else if (!pidRead) {
+                    length = 20;
+                } else {
+                    int r = IOUtil.readFromSocket(ch, head);
+                    downloaded += r;
+                    read += r;
+                    if (read == 4) {
+                        length = head.getInt(0);
+                        head.rewind();
+                        read = 0;
+                        if (length == 0) {
+                            return;
+                        }
+                    } else {
+                        return;
+                    }
+                }
+                current = ByteBuffer.allocate(length);
+            }
+            startReading(ch);
+        } catch (IOException e) {
+            InetAddress s = ch.socket().getInetAddress();
+            String addr = s == null ? "unknown" : s.getHostAddress();
+            logger.warning("Error while reading message from peer " + addr + " " + e.getMessage());
+            ch.socket().close();
+        }
     }
 
     private class RegisterOp {
