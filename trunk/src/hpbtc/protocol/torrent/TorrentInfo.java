@@ -1,4 +1,4 @@
-package hpbtc.client.torrent;
+package hpbtc.protocol.torrent;
 
 import hpbtc.bencoding.BencodingParser;
 import hpbtc.bencoding.element.BencodedDictionary;
@@ -6,14 +6,13 @@ import hpbtc.bencoding.element.BencodedElement;
 import hpbtc.bencoding.element.BencodedInteger;
 import hpbtc.bencoding.element.BencodedList;
 import hpbtc.bencoding.element.BencodedString;
-import hpbtc.client.peer.Peer;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -24,13 +23,12 @@ public class TorrentInfo {
 
     private static Logger logger = Logger.getLogger(TorrentInfo.class.getName());
     
+    private List<LinkedList<String>> trackers;
     private byte[] infoHash;
-    private TrackerInfo trackers;
     private boolean multiple;
     private int pieceLength;
     private List<BTFile> files;
     private int fileLength;
-    private boolean saved;
     private int nrPieces;
     private byte[] pieceHash;
 
@@ -41,8 +39,7 @@ public class TorrentInfo {
         fis.close();
         BencodedDictionary info = (BencodedDictionary) meta.get("info");
         infoHash = info.getDigest();
-        trackers = new TrackerInfo(meta);
-        logger.info("set tracker url " + trackers.getTrackers());
+        parseTrackers(meta);
         multiple = info.containsKey("files");
         fileName = ((BencodedString) info.get("name")).getValue();
         pieceLength = ((BencodedInteger) info.get("piece length")).getValue();
@@ -65,15 +62,12 @@ public class TorrentInfo {
                 }
                 Integer fl = ((BencodedInteger) fd.get("length")).getValue();
                 fileLength += fl;
-                BTFile f = new BTFile();
+                BTFile f = new BTFile(pieceLength);
                 f.setPath(sb.substring(0, sb.length() - 1).toString());
                 f.setLength(fl);
                 f.setPieceIndex(index);
                 f.setIndex(i++);
                 f.setOffset(off);
-                if (!f.create()) {
-                    saved = true;
-                }
                 files.add(f);
                 index = fileLength / pieceLength;
                 off = fileLength - index * pieceLength;
@@ -81,15 +75,12 @@ public class TorrentInfo {
         } else {
             files = new ArrayList<BTFile>(1);
             fileLength = ((BencodedInteger) info.get("length")).getValue();
-            BTFile f = new BTFile();
+            BTFile f = new BTFile(pieceLength);
             f.setPath(fileName);
             f.setLength(fileLength);
             f.setPieceIndex(0);
             f.setIndex(0);
             f.setOffset(0);
-            if (!f.create()) {
-                saved = true;
-            }
             files.add(f);
         }
         nrPieces = fileLength / pieceLength;
@@ -100,6 +91,29 @@ public class TorrentInfo {
         pieceHash = ((BencodedString) info.get("pieces")).getBytes();
     }
 
+    private void parseTrackers(BencodedDictionary meta) {
+        if (meta.containsKey("announce-list")) {
+            BencodedList bl = (BencodedList) meta.get("announce-list");
+            trackers = new ArrayList<LinkedList<String>>(bl.getSize());
+            for (BencodedElement ul : bl) {
+                BencodedList x = (BencodedList) ul;
+                LinkedList<String> z = new LinkedList<String>();
+                for (BencodedElement y : x) {
+                    String u = ((BencodedString) y).getValue();
+                    z.add(u);
+                }
+                Collections.shuffle(z);
+                trackers.add(z);
+            }
+        } else {
+            trackers = new ArrayList<LinkedList<String>>(1);
+            LinkedList<String> ul = new LinkedList<String>();
+            String u = ((BencodedString) meta.get("announce")).getValue();
+            ul.add(u);
+            trackers.add(ul);
+        }
+    }
+    
     public int getFileLength() {
         return fileLength;
     }
@@ -120,27 +134,15 @@ public class TorrentInfo {
         return pieceLength;
     }
 
-    public List<LinkedList<String>> getTrackerURL() {
-        return trackers.getTrackers();
-    }
-
     public boolean isMultiple() {
         return multiple;
-    }
-
-    public boolean isSaved() {
-        return saved;
     }
 
     public byte[] getPieceHash() {
         return pieceHash;
     }
-    
-    public int getInterval() {
-        return trackers.getInterval();
-    }
-    
-    public Set<Peer> tryGetTrackerPeers(String event, int uploaded, int downloaded, int bytesLeft) {
-        return trackers.tryGetTrackerPeers(event, uploaded, downloaded, infoHash, bytesLeft);
+
+    public List<LinkedList<String>> getTrackers() {
+        return trackers;
     }
 }

@@ -1,6 +1,4 @@
-package hpbtc.client.torrent;
-
-import hpbtc.client.Client;
+package hpbtc.protocol.torrent;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,6 +20,11 @@ public class BTFile {
     private int pieceIndex;
     private int index;
     private int offset;
+    private int pieceLength;
+    
+    public BTFile(int pieceLength) {
+        this.pieceLength = pieceLength;
+    }
 
     public boolean create() throws IOException {
         int i = path.lastIndexOf(File.separator);
@@ -137,7 +140,7 @@ public class BTFile {
         if (getPieceIndex() >= i) {
             throw new IllegalArgumentException();
         }
-        int s = Client.getInstance().getDownloadItem().getPieceLength();
+        int s = pieceLength;
         int d = s - getOffset();
         int j = getPieceIndex() + 1;
         while (i > j) {

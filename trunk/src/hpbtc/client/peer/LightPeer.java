@@ -4,6 +4,8 @@
  */
 package hpbtc.client.peer;
 
+import hpbtc.protocol.torrent.Peer;
+
 /**
  * @author chris
  *

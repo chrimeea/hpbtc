@@ -1,20 +1,21 @@
 package hpbtc.client;
 
-import hpbtc.protocol.MessageProcessor;
-import hpbtc.protocol.BitfieldMessage;
-import hpbtc.protocol.CancelMessage;
-import hpbtc.protocol.ChokeMessage;
-import hpbtc.protocol.HandshakeMessage;
-import hpbtc.protocol.HaveMessage;
-import hpbtc.protocol.IdleMessage;
-import hpbtc.protocol.InterestedMessage;
-import hpbtc.protocol.NotInterestedMessage;
-import hpbtc.protocol.PIDMessage;
-import hpbtc.protocol.PieceMessage;
-import hpbtc.protocol.RequestMessage;
-import hpbtc.protocol.UnchokeMessage;
-import hpbtc.client.peer.Peer;
-import hpbtc.client.peer.PeerConnection;
+import hpbtc.protocol.Client;
+import hpbtc.protocol.message.MessageProcessor;
+import hpbtc.protocol.message.BitfieldMessage;
+import hpbtc.protocol.message.CancelMessage;
+import hpbtc.protocol.message.ChokeMessage;
+import hpbtc.protocol.message.HandshakeMessage;
+import hpbtc.protocol.message.HaveMessage;
+import hpbtc.protocol.message.IdleMessage;
+import hpbtc.protocol.message.InterestedMessage;
+import hpbtc.protocol.message.NotInterestedMessage;
+import hpbtc.protocol.message.PIDMessage;
+import hpbtc.protocol.message.PieceMessage;
+import hpbtc.protocol.message.RequestMessage;
+import hpbtc.protocol.message.UnchokeMessage;
+import hpbtc.protocol.torrent.Peer;
+import hpbtc.protocol.PeerConnection;
 import hpbtc.client.piece.Piece;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -41,7 +42,6 @@ public class ClientMessageProcessor implements MessageProcessor {
     }
 
     public void process(BitfieldMessage message) {
-        peer.removePieces();
         BitSet bs = message.getBitfield();
         int total = item.getTotalPieces();
         for (int i = bs.nextSetBit(0); i >= 0 && i < total; i = bs.nextSetBit(i + 1)) {

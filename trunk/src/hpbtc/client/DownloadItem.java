@@ -4,12 +4,13 @@
  */
 package hpbtc.client;
 
-import hpbtc.client.torrent.BTFile;
-import hpbtc.protocol.HaveMessage;
-import hpbtc.protocol.RequestMessage;
+import hpbtc.protocol.Client;
+import hpbtc.protocol.torrent.BTFile;
+import hpbtc.protocol.message.HaveMessage;
+import hpbtc.protocol.message.RequestMessage;
 import hpbtc.client.peer.LightPeer;
-import hpbtc.client.peer.Peer;
-import hpbtc.client.peer.PeerConnection;
+import hpbtc.protocol.torrent.Peer;
+import hpbtc.protocol.PeerConnection;
 import hpbtc.client.piece.LightPiece;
 import hpbtc.client.piece.Piece;
 import hpbtc.client.selection.choking.ChokingStrategy;
@@ -23,7 +24,7 @@ import hpbtc.client.selection.piece.PieceSelectionStrategy;
 import hpbtc.client.selection.piece.RandomStrategy;
 import hpbtc.client.selection.piece.RarestFirstStrategy;
 
-import hpbtc.client.torrent.TorrentInfo;
+import hpbtc.protocol.torrent.TorrentInfo;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

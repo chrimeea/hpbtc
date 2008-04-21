@@ -1,13 +1,13 @@
 package hpbtc.client.piece;
 
-import hpbtc.client.Client;
-import hpbtc.client.torrent.BTFile;
+import hpbtc.protocol.Client;
+import hpbtc.protocol.torrent.BTFile;
 import hpbtc.client.DownloadItem;
-import hpbtc.protocol.CancelMessage;
-import hpbtc.protocol.PieceMessage;
-import hpbtc.protocol.RequestMessage;
+import hpbtc.protocol.message.CancelMessage;
+import hpbtc.protocol.message.PieceMessage;
+import hpbtc.protocol.message.RequestMessage;
 import hpbtc.client.peer.LightPeer;
-import hpbtc.client.peer.Peer;
+import hpbtc.protocol.torrent.Peer;
 import hpbtc.util.ComparatorUtil;
 import hpbtc.util.IOUtil;
 

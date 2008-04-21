@@ -1,8 +1,8 @@
- /*
+/*
  * Created on Mar 6, 2006
  *
  */
-package hpbtc.protocol;
+package hpbtc.protocol.message;
 
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
@@ -11,39 +11,39 @@ import java.util.logging.Logger;
  * @author chris
  *
  */
-public class UnchokeMessage extends ProtocolMessage {
+public class IdleMessage extends ProtocolMessage {
 
-    private static Logger logger = Logger.getLogger(UnchokeMessage.class.getName());
+    private static Logger logger = Logger.getLogger(IdleMessage.class.getName());
     
-    public UnchokeMessage() {
+    public IdleMessage() {
     }
 
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message, MessageProcessor processor) {
+    public void process(ByteBuffer message,MessageProcessor processor) {
         processor.process(this);
         super.process(message, processor);
     }
-
+    
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return "type UNCHOKE";
+        return "type IDLE";
     }
-    
+
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
     public ByteBuffer send() {
         logger.info("send message " + this);
-        ByteBuffer bb = ByteBuffer.allocate(5);
-        bb.putInt(1);
-        bb.put(TYPE_UNCHOKE);
+        ByteBuffer bb = ByteBuffer.allocate(4);
+        bb.putInt(0);
         return bb;
     }
+
 }

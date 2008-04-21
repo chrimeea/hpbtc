@@ -4,7 +4,7 @@
  */
 package hpbtc;
 
-import hpbtc.client.Client;
+import hpbtc.protocol.Client;
 import java.util.logging.Logger;
 import java.io.IOException;
 

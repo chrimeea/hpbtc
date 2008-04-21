@@ -1,14 +1,16 @@
-package hpbtc.client.peer;
+package hpbtc.protocol;
 
-import hpbtc.client.Client;
+import hpbtc.protocol.torrent.Peer;
+import hpbtc.client.peer.*;
+import hpbtc.protocol.Client;
 import hpbtc.client.ClientMessageProcessor;
 import hpbtc.client.DownloadItem;
-import hpbtc.protocol.CancelMessage;
-import hpbtc.protocol.HandshakeMessage;
-import hpbtc.protocol.IdleMessage;
-import hpbtc.protocol.MessageFactory;
-import hpbtc.protocol.PIDMessage;
-import hpbtc.protocol.ProtocolMessage;
+import hpbtc.protocol.message.CancelMessage;
+import hpbtc.protocol.message.HandshakeMessage;
+import hpbtc.protocol.message.IdleMessage;
+import hpbtc.protocol.message.MessageFactory;
+import hpbtc.protocol.message.PIDMessage;
+import hpbtc.protocol.message.ProtocolMessage;
 import hpbtc.util.IOUtil;
 
 import java.io.IOException;
@@ -325,6 +327,20 @@ public class PeerConnection {
      * 
      */
     public synchronized void readMessage() {
+        
+        //TODO: do not accept multiple connection from same peer
+        /*
+                                    if (!item.removePeerOrder(p)) {
+                                Peer pp = item.findPeer(p);
+                                if (pp != null) {
+                                    s.close();
+                                    continue;
+                                } else if (pp == null) {
+                                    item.addPeer(p);
+                                }
+                            }
+
+        */
         try {
             if (length == 0) {
                 if (!handshakeRead) {
