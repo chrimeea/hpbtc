@@ -1,4 +1,4 @@
-package hpbtc.protocol;
+package hpbtc.protocol.message;
 
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;

@@ -2,8 +2,9 @@
  * Created on Mar 6, 2006
  *
  */
-package hpbtc.protocol;
+package hpbtc.protocol.message;
 
+import hpbtc.client.Client;
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 
@@ -11,18 +12,18 @@ import java.util.logging.Logger;
  * @author chris
  *
  */
-public class IdleMessage extends ProtocolMessage {
+public class ChokeMessage extends ProtocolMessage {
 
-    private static Logger logger = Logger.getLogger(IdleMessage.class.getName());
+    private static Logger logger = Logger.getLogger(ChokeMessage.class.getName());
     
-    public IdleMessage() {
+    public ChokeMessage() {
     }
-
+    
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message,MessageProcessor processor) {
+    public void process(ByteBuffer message, MessageProcessor processor) {
         processor.process(this);
         super.process(message, processor);
     }
@@ -32,7 +33,7 @@ public class IdleMessage extends ProtocolMessage {
      */
     @Override
     public String toString() {
-        return "type IDLE";
+        return "type CHOKE";
     }
 
     /* (non-Javadoc)
@@ -41,9 +42,9 @@ public class IdleMessage extends ProtocolMessage {
     @Override
     public ByteBuffer send() {
         logger.info("send message " + this);
-        ByteBuffer bb = ByteBuffer.allocate(4);
-        bb.putInt(0);
+        ByteBuffer bb = ByteBuffer.allocate(5);
+        bb.putInt(1);
+        bb.put(TYPE_CHOKE);
         return bb;
     }
-
 }

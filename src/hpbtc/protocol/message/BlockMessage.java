@@ -1,4 +1,4 @@
-package hpbtc.protocol;
+package hpbtc.protocol.message;
 
 public abstract class BlockMessage extends ProtocolMessage {
 

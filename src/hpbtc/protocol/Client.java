@@ -2,13 +2,12 @@
  * Created on Jan 20, 2006
  *
  */
-package hpbtc.client;
+package hpbtc.protocol;
 
-import hpbtc.client.peer.Peer;
-import hpbtc.client.peer.PeerConnection;
+import hpbtc.client.DownloadItem;
+import hpbtc.protocol.torrent.Peer;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -88,20 +87,6 @@ public class Client {
         return peerId;
     }
     
-    /**
-     * @return
-     */
-    public String getPID() {
-        String s;
-        try {
-            s = new String(peerId, "ISO-8859-1");
-        } catch (UnsupportedEncodingException e) {
-            s = null;
-            logger.severe("ISO-8859-1 is not available");
-        }
-        return s;
-    }
-
     private byte[] generateId() {
         byte[] pid = new byte[20];
         pid[0] = '-';
@@ -220,21 +205,11 @@ public class Client {
                             Socket s = chan.socket();
                             chan.configureBlocking(false);
                             Peer p = new Peer(s.getInetAddress().getHostAddress(), s.getPort(), null);
-                            if (!item.removePeerOrder(p)) {
-                                Peer pp = item.findPeer(p);
-                                if (pp != null) {
-                                    s.close();
-                                    continue;
-                                } else if (pp == null) {
-                                    item.addPeer(p);
-                                }
-                            }
                             PeerConnection pc = new PeerConnection(p);
                             pc.setChannel(chan);
                             chan.register(selector, SelectionKey.OP_READ, pc);
                             logger.info("incoming connection " + s.getInetAddress().getHostAddress());
                         } else if (key.isConnectable()) {
-                            final Peer p = con.getPeer();
                             try {
                                 if (con.getChannel().finishConnect()) {
                                     TimerTask tt = con.getConTimer();

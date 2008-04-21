@@ -2,8 +2,9 @@
  * Created on Mar 6, 2006
  *
  */
-package hpbtc.protocol;
+package hpbtc.protocol.message;
 
+import hpbtc.client.Client;
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 
@@ -11,25 +12,18 @@ import java.util.logging.Logger;
  * @author chris
  *
  */
-public class HaveMessage extends ProtocolMessage {
+public class InterestedMessage extends ProtocolMessage {
 
-    private static Logger logger = Logger.getLogger(HaveMessage.class.getName());
+    private static Logger logger = Logger.getLogger(InterestedMessage.class.getName());
     
-    private int index;
-    
-    public HaveMessage() {
+    public InterestedMessage() {
     }
-    
-    public HaveMessage(int index) {
-        this.index = index;
-    }
-    
+
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
     public void process(ByteBuffer message,MessageProcessor processor) {
-        index = message.getInt();
         processor.process(this);
         super.process(message, processor);
     }
@@ -39,7 +33,7 @@ public class HaveMessage extends ProtocolMessage {
      */
     @Override
     public String toString() {
-        return "type HAVE";
+        return "type INTERESTED";
     }
 
     /* (non-Javadoc)
@@ -48,14 +42,9 @@ public class HaveMessage extends ProtocolMessage {
     @Override
     public ByteBuffer send() {
         logger.info("send message " + this);
-        ByteBuffer bb = ByteBuffer.allocate(9);
-        bb.putInt(5);
-        bb.put(TYPE_HAVE);
-        bb.putInt(index);
+        ByteBuffer bb = ByteBuffer.allocate(5);
+        bb.putInt(1);
+        bb.put(TYPE_INTERESTED);
         return bb;
-    }
-
-    public int getIndex() {
-        return index;
     }
 }

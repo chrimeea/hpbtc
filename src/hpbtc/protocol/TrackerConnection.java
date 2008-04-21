@@ -1,4 +1,8 @@
-package hpbtc.client.torrent;
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package hpbtc.protocol;
 
 import hpbtc.bencoding.BencodingParser;
 import hpbtc.bencoding.element.BencodedDictionary;
@@ -6,15 +10,13 @@ import hpbtc.bencoding.element.BencodedElement;
 import hpbtc.bencoding.element.BencodedInteger;
 import hpbtc.bencoding.element.BencodedList;
 import hpbtc.bencoding.element.BencodedString;
-import hpbtc.client.Client;
-import hpbtc.client.peer.Peer;
+import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -26,56 +28,37 @@ import java.util.logging.Logger;
  *
  * @author Cristian Mocanu
  */
-public class TrackerInfo {
+public class TrackerConnection {
 
-    private static Logger logger = Logger.getLogger(TrackerInfo.class.getName());
-    
     public static final int TOTAL_PEERS = 50;
     public static final int DEFAULT_INTERVAL = 15;
+    private static Logger logger = Logger.getLogger(TrackerConnection.class.getName());
     
-    private List<LinkedList<String>> trackers;
-    private long lastCheck;
-    private int minInterval;
-    private String trackerId;
-    private int interval = DEFAULT_INTERVAL;
     private int complete;
+    private int interval;
     private int incomplete;
+    private String trackerId;
+    private int minInterval;
+    private long lastCheck;
+    private byte[] infoHash;
+    private byte[] pid;
+    private int port;
+    private List<LinkedList<String>> trackers;
     
-    public TrackerInfo(BencodedDictionary meta) {
-        if (meta.containsKey("announce-list")) {
-            BencodedList bl = (BencodedList) meta.get("announce-list");
-            trackers = new ArrayList<LinkedList<String>>(bl.getSize());
-            for (BencodedElement ul : bl) {
-                BencodedList x = (BencodedList) ul;
-                LinkedList<String> z = new LinkedList<String>();
-                for (BencodedElement y : x) {
-                    String u = ((BencodedString) y).getValue();
-                    z.add(u);
-                }
-                Collections.shuffle(z);
-                trackers.add(z);
-            }
-        } else {
-            trackers = new ArrayList<LinkedList<String>>(1);
-            LinkedList<String> ul = new LinkedList<String>();
-            String u = ((BencodedString) meta.get("announce")).getValue();
-            ul.add(u);
-            trackers.add(ul);
-        }
+    public TrackerConnection(byte[] infoHash, byte[] pid, int port, List<LinkedList<String>> trackers) {
+        this.infoHash = infoHash;
+        this.pid = pid;
+        this.port = port;
+        this.trackers = trackers;
     }
 
-    public List<LinkedList<String>> getTrackers() {
-        return trackers;
-    }
-    
-    public Set<Peer> tryGetTrackerPeers(String event, int uploaded, int downloaded,
-            byte[] infoHash, int bytesLeft) {
+    public Set<Peer> getTrackerPeers(String event, int uploaded, int downloaded, int bytesLeft) {
         for (LinkedList<String> ul : trackers) {
             Iterator<String> i = ul.iterator();
             while (i.hasNext()) {
                 String tracker = i.next();
                 try {
-                    Set<Peer> lastPeers = getTrackerPeers(event, tracker, uploaded, downloaded, infoHash, bytesLeft);
+                    Set<Peer> lastPeers = getTrackerPeers(event, tracker, uploaded, downloaded, bytesLeft);
                     i.remove();
                     ul.addFirst(tracker);
                     return lastPeers;
@@ -88,8 +71,7 @@ public class TrackerInfo {
     }
 
     private Set<Peer> getTrackerPeers(String event, String tracker, int uploaded,
-            int downloaded, byte[] infoHash, int bytesLeft) throws IOException {
-        Client client = Client.getInstance();
+            int downloaded, int bytesLeft) throws IOException {
         long l = System.currentTimeMillis();
         long h = l - lastCheck;
         long w = minInterval * 1000;
@@ -106,9 +88,9 @@ public class TrackerInfo {
         req.append("?info_hash=");
         req.append(URLEncoder.encode(new String(infoHash, "ISO-8859-1"), "ISO-8859-1"));
         req.append("&peer_id=");
-        req.append(URLEncoder.encode(client.getPID(), "ISO-8859-1"));
+        req.append(URLEncoder.encode(getPID(pid), "ISO-8859-1"));
         req.append("&port=");
-        req.append(client.getPort());
+        req.append(port);
         req.append("&uploaded=");
         req.append(uploaded);
         req.append("&downloaded=");
@@ -163,7 +145,7 @@ public class TrackerInfo {
                 BencodedDictionary d = (BencodedDictionary) e;
                 BencodedString beid = (BencodedString) d.get("peer id");
                 String id = beid.getValue();
-                if (!Arrays.equals(client.getPIDBytes(), beid.getBytes())) {
+                if (!Arrays.equals(pid, beid.getBytes())) {
                     Peer p = new Peer(((BencodedString) d.get("ip")).getValue(),
                             ((BencodedInteger) d.get("port")).getValue(), id);
                     peers.add(p);
@@ -174,7 +156,17 @@ public class TrackerInfo {
         return peers;
     }
 
-    public int getInterval() {
-        return interval;
+    /**
+     * @return
+     */
+    private static String getPID(byte[] pid) {
+        String s;
+        try {
+            s = new String(pid, "ISO-8859-1");
+        } catch (UnsupportedEncodingException e) {
+            s = null;
+            logger.severe("ISO-8859-1 is not available");
+        }
+        return s;
     }
 }

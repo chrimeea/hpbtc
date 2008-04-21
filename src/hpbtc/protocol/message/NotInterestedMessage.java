@@ -2,9 +2,8 @@
  * Created on Mar 6, 2006
  *
  */
-package hpbtc.protocol;
+package hpbtc.protocol.message;
 
-import hpbtc.client.Client;
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 
@@ -12,11 +11,11 @@ import java.util.logging.Logger;
  * @author chris
  *
  */
-public class InterestedMessage extends ProtocolMessage {
+public class NotInterestedMessage extends ProtocolMessage {
 
-    private static Logger logger = Logger.getLogger(InterestedMessage.class.getName());
+    private static Logger logger = Logger.getLogger(NotInterestedMessage.class.getName());
     
-    public InterestedMessage() {
+    public NotInterestedMessage() {
     }
 
     /* (non-Javadoc)
@@ -27,15 +26,15 @@ public class InterestedMessage extends ProtocolMessage {
         processor.process(this);
         super.process(message, processor);
     }
-    
+
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
-        return "type INTERESTED";
+        return "type NOT INTERESTED";
     }
-
+    
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
