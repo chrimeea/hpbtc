@@ -118,7 +118,7 @@ public class Client {
         return serverCh.socket().getLocalPort();
     }
 
-    private void registerNow(Peer peer, int op, SocketChannel channel) {
+    private void registerNow(Peer peer, int op) {
         registered.add(new RegisterOp(peer, op, channel));
         selector.wakeup();
     }
