@@ -5,11 +5,14 @@
 package hpbtc.protocol;
 
 import hpbtc.protocol.torrent.Peer;
+import hpbtc.protocol.message.ProtocolMessage;
 
+import hpbtc.util.IOUtil;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ClosedSelectorException;
@@ -17,7 +20,9 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -36,12 +41,13 @@ public class Client {
     private ServerSocketChannel serverCh;
     private Selector selector;
     private byte[] peerId;
-    private Random r;
-    private Queue<RegisterOp> registered;
+    private Random rand = new Random();
+    private Queue<RegisterOp> registered = new ConcurrentLinkedQueue<RegisterOp>();
+    private Map<Peer, Queue<ByteBuffer>> messagesUpload = new HashMap<Peer, Queue<ByteBuffer>>();
+    private int uploaded;
+    private int downloaded;
 
     public Client() throws IOException {
-        registered = new ConcurrentLinkedQueue<RegisterOp>();
-        r = new Random();
         peerId = generateId();
     }
 
@@ -92,7 +98,7 @@ public class Client {
         pid[6] = '0';
         pid[7] = '-';
         for (int i = 8; i < 20; i++) {
-            pid[i] = (byte) (r.nextInt(256) - 128);
+            pid[i] = (byte) (rand.nextInt(256) - 128);
         }
         return pid;
     }
@@ -104,9 +110,8 @@ public class Client {
         return serverCh.socket().getLocalPort();
     }
 
-    public void registerNow(PeerConnection pc, int op) {
-        RegisterOp o = new RegisterOp(pc, op);
-        registered.add(o);
+    private void registerNow(Peer peer, int op, SocketChannel channel) {
+        registered.add(new RegisterOp(peer, op, channel));
         selector.wakeup();
     }
 
@@ -122,14 +127,14 @@ public class Client {
             }
             RegisterOp ro = registered.poll();
             while (ro != null) {
-                PeerConnection po = ro.getPeerConnection();
-                SocketChannel q = po.getChannel();
+                Peer po = ro.peer;
+                SocketChannel q = ro.channel;
                 SelectionKey w = q.keyFor(selector);
                 try {
                     if (w != null && w.isValid()) {
-                        q.register(selector, w.interestOps() | ro.getOp(), po);
+                        q.register(selector, w.interestOps() | ro.operation, po);
                     } else if (w == null) {
-                        q.register(selector, ro.getOp(), po);
+                        q.register(selector, ro.operation, po);
                     }
                 } catch (CancelledKeyException e) {
                     logger.warning("A key was unexpectedly canceled");
@@ -147,22 +152,19 @@ public class Client {
                 i.remove();
                 try {
                     if (key.isValid()) {
-                        PeerConnection con = (PeerConnection) key.attachment();
-                        SocketChannel ch = con == null ? null : con.getChannel();
+                        Peer peer = (Peer) key.attachment();
+                        SocketChannel ch = (SocketChannel) key.channel();
                         if (key.isReadable()) {
-                            if (con.getChannel().isConnected()) {
-                                ch.register(selector, key.interestOps() & ~SelectionKey.OP_READ, con);
+                            if (ch.isConnected()) {
+                                ch.register(selector, key.interestOps() & ~SelectionKey.OP_READ, peer);
                                 con.readMessage();
-                                ch.register(selector, key.interestOps() | SelectionKey.OP_READ, con);
+                                ch.register(selector, key.interestOps() | SelectionKey.OP_READ, peer);
                             }
                         }
                         if (key.isWritable()) {
-                            ch.register(selector, key.interestOps() & ~SelectionKey.OP_WRITE, con);
-                            if (!con.isUploadEmpty()) {
-                                con.writeNext();
-                                if (!con.isUploadEmpty()) {
-                                    ch.register(selector, key.interestOps() | SelectionKey.OP_WRITE, con);
-                                }
+                            ch.register(selector, key.interestOps() & ~SelectionKey.OP_WRITE, peer);
+                            if (writeNext(ch, peer)) {
+                                ch.register(selector, key.interestOps() | SelectionKey.OP_WRITE, peer);
                             }
                         }
                         if (key.isAcceptable()) {
@@ -176,13 +178,13 @@ public class Client {
                             logger.info("incoming connection " + s.getInetAddress().getHostAddress());
                         } else if (key.isConnectable()) {
                             try {
-                                if (con.getChannel().finishConnect()) {
-                                    ch.register(selector, (key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT, con);
+                                if (ch.finishConnect()) {
+                                    ch.register(selector, (key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT, peer);
                                     con.finishConnect();
                                 }
                             } catch (IOException e) {
                                 logger.info("connection failed " + e.getMessage());
-                                con.close();
+                                ch.socket().close();
                             }
                         }
                     }
@@ -197,22 +199,42 @@ public class Client {
         }
     }
 
+    public boolean addUploadMessage(ProtocolMessage rm, Peer peer) {
+        Queue q = messagesUpload.get(peer);
+        boolean r = q.offer(rm.send());
+        if (q.isEmpty() && r) {
+            registerNow(peer, SelectionKey.OP_WRITE);
+        }
+        return r;
+    }
+
+    private boolean writeNext(SocketChannel ch, Peer peer) {
+        Queue<ByteBuffer> q = messagesUpload.get(peer);
+        try {
+            ByteBuffer pm = q.peek();
+            if (pm != null && pm.hasRemaining()) {
+                uploaded += IOUtil.writeToSocket(ch, pm);
+                if (!pm.hasRemaining()) {
+                    q.remove();
+                }
+            }
+        } catch (IOException e) {
+            logger.warning("Error while sending message to peer " + peer.getIp() + " " + e.getMessage());
+            ch.socket().close();
+        }
+        return !q.isEmpty();
+    }
+
     private class RegisterOp {
 
-        private PeerConnection pc;
-        private int op;
+        private SocketChannel channel;
+        private Peer peer;
+        private int operation;
 
-        private RegisterOp(PeerConnection pc, int op) {
-            this.pc = pc;
-            this.op = op;
-        }
-
-        private PeerConnection getPeerConnection() {
-            return pc;
-        }
-
-        private int getOp() {
-            return op;
+        private RegisterOp(Peer peer, int op, SocketChannel channel) {
+            this.peer = peer;
+            this.operation = op;
+            this.channel = channel;
         }
     }
 }
