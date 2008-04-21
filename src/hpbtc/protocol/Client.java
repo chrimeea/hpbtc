@@ -188,10 +188,6 @@ public class Client {
                             try {
                                 if (ch.finishConnect()) {
                                     ch.register(selector, (key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT, peer);
-                                    ProtocolMessage hm = new HandshakeMessage(infoHash);
-                                    addUploadMessage(hm, peer);
-                                    hm = new PIDMessage(peerId);
-                                    addUploadMessage(hm, peer);
                                 }
                             } catch (IOException e) {
                                 logger.info("connection failed " + e.getMessage());
@@ -211,6 +207,28 @@ public class Client {
     }
 
     public boolean addUploadMessage(ProtocolMessage rm, Peer peer) {
+        //TODO: daca nu am deschis inca un canal cu acest peer
+        /*
+            ProtocolMessage hm = new HandshakeMessage(infoHash);
+            addUploadMessage(hm, peer);
+            hm = new PIDMessage(peerId);
+            addUploadMessage(hm, peer);
+
+        ch = SocketChannel.open();
+        ch.configureBlocking(false);
+        InetSocketAddress addr = new InetSocketAddress(peer.getIp(), peer.getPort());
+        final Client cl = Client.getInstance();
+        final DownloadItem item = cl.getDownloadItem();
+        try {
+            if (ch.connect(addr)) {
+                cl.registerNow(this, SelectionKey.OP_READ);
+                finishConnect();
+                item.initiateConnections(1);
+            } else {
+                cl.registerNow(this, SelectionKey.OP_CONNECT);
+            }
+
+         */
         Queue q = messagesUpload.get(peer);
         if (q == null) {
             q = new ConcurrentLinkedQueue<ByteBuffer>();
