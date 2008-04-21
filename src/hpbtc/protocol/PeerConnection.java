@@ -1,7 +1,5 @@
 package hpbtc.protocol;
 
-import hpbtc.protocol.torrent.Peer;
-import hpbtc.client.peer.*;
 import hpbtc.client.ClientMessageProcessor;
 import hpbtc.client.DownloadItem;
 import hpbtc.protocol.message.CancelMessage;
@@ -80,38 +78,8 @@ public class PeerConnection {
         }
     }
     
-    public void writeNext() {
-        try {
-            if (cUpload != null && cUpload.remaining() > 0) {
-                upload(cUpload);
-            } else {
-                ProtocolMessage pm = messagesUpload.poll();
-                if (pm != null) {
-                    cUpload = pm.send();
-                    upload(cUpload);
-                }
-            }
-        } catch (IOException e) {
-            logger.warning("Error while sending message to peer " + peer.getIp() + " " + e.getMessage());
-            close();
-        }
-    }
-    
     public void cancelRequestReceived(CancelMessage rm) {
         messagesUpload.remove(rm);
-    }
-    
-    public boolean addUploadMessage(ProtocolMessage rm) {
-        boolean r;
-        if (messagesUpload.isEmpty()) {
-            r = messagesUpload.offer(rm);
-            if (r) {
-                Client.getInstance().registerNow(this, SelectionKey.OP_WRITE);
-            }
-        } else {
-            r = messagesUpload.offer(rm);
-        }
-        return r;
     }
     
     public boolean isUploadEmpty() {
@@ -204,13 +172,6 @@ public class PeerConnection {
         return contimer;
     }
     
-    public void finishConnect() {
-        ProtocolMessage hm = new HandshakeMessage(Client.getInstance().getDownloadItem().getInfoHash());
-        peer.getConnection().addUploadMessage(hm);
-        hm = new PIDMessage(Client.getInstance().getPIDBytes());
-        peer.getConnection().addUploadMessage(hm);
-        setHandshakeSent(true);
-    }
 
     /**
      * @return
@@ -219,16 +180,6 @@ public class PeerConnection {
         return peer;
     }
     
-    public int download(ByteBuffer bb) throws IOException {
-        int r = IOUtil.readFromSocket(ch, bb);
-        downloaded.addAndGet(r);
-        return r;
-    }
-
-    public void upload(ByteBuffer bb) throws IOException {
-        bb.rewind();
-        uploaded.addAndGet(IOUtil.writeToSocket(ch, bb));
-    }
 
     public void startAllTimers() {
         startIdleTimer();
@@ -297,76 +248,4 @@ public class PeerConnection {
         handshakeSent = h;
     }
     
-    private void startReading() throws IOException {
-        read += download(current);
-        if (read == length) {
-            current.rewind();
-            final ProtocolMessage pm;
-            if (!handshakeRead) {
-                pm = new HandshakeMessage();
-                handshakeRead = true;
-            } else if (!pidRead) {
-                pm = new PIDMessage();
-                pidRead = true;
-            } else {
-                pm = MessageFactory.createMessage(current.get());
-            }
-            Client.getInstance().getDownloadItem().getRateTimer().schedule(
-                new TimerTask() {
-                    public void run() {
-                        pm.process(current, new ClientMessageProcessor(peer));
-                    }
-                }, 0);
-            read = 0;
-            length = 0;
-        }
-    }
-    
-    /**
-     * 
-     */
-    public synchronized void readMessage() {
-        
-        //TODO: do not accept multiple connection from same peer
-        /*
-                                    if (!item.removePeerOrder(p)) {
-                                Peer pp = item.findPeer(p);
-                                if (pp != null) {
-                                    s.close();
-                                    continue;
-                                } else if (pp == null) {
-                                    item.addPeer(p);
-                                }
-                            }
-
-        */
-        try {
-            if (length == 0) {
-                if (!handshakeRead) {
-                    length = 48;
-                } else if (!pidRead) {
-                    length = 20;
-                } else {
-                    read += download(head);
-                    if (read == 4) {
-                        length = head.getInt(0);
-                        head.rewind();
-                        read = 0;
-                        if (length == 0) {
-                            return;
-                        }
-                    } else {
-                        return;
-                    }
-                }
-                current = ByteBuffer.allocate(length);
-            }
-            startReading();
-        } catch (IOException e) {
-            InetAddress s = ch.socket().getInetAddress();
-            String addr = s == null ? "unknown" : s.getHostAddress();
-            logger.warning("Error while reading message from peer " + addr + " " + e.getMessage());
-            close();
-        }
-    }
 }

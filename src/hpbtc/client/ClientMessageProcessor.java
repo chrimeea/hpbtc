@@ -14,7 +14,7 @@ import hpbtc.protocol.message.PIDMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.RequestMessage;
 import hpbtc.protocol.message.UnchokeMessage;
-import hpbtc.protocol.torrent.Peer;
+import hpbtc.protocol.Peer;
 import hpbtc.protocol.PeerConnection;
 import hpbtc.client.piece.Piece;
 import java.io.IOException;

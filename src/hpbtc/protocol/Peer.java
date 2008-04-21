@@ -2,7 +2,7 @@
  * Created on Jan 20, 2006
  *
  */
-package hpbtc.protocol.torrent;
+package hpbtc.protocol;
 
 /**
  * @author chris

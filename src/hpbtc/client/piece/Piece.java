@@ -7,7 +7,7 @@ import hpbtc.protocol.message.CancelMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.RequestMessage;
 import hpbtc.client.peer.LightPeer;
-import hpbtc.protocol.torrent.Peer;
+import hpbtc.protocol.Peer;
 import hpbtc.util.ComparatorUtil;
 import hpbtc.util.IOUtil;
 
