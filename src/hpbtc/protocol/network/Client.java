@@ -266,7 +266,7 @@ public class Client {
         try {
             ByteBuffer pm = q.peek();
             if (pm != null && pm.hasRemaining()) {
-                uploaded += IOUtil.writeToSocket(ch, pm);
+                uploaded += IOUtil.writeToChannel(ch, pm);
                 if (!pm.hasRemaining()) {
                     q.remove();
                 }
@@ -279,7 +279,7 @@ public class Client {
     }
 
     private void startReading(SocketChannel ch, Peer peer) throws IOException {
-        int r = IOUtil.readFromSocket(ch, current);
+        int r = IOUtil.readFromChannel(ch, current);
         downloaded += r;
         read += r;
         if (read == length) {
@@ -308,7 +308,7 @@ public class Client {
                 } else if (!pidRead) {
                     length = 20;
                 } else {
-                    int r = IOUtil.readFromSocket(ch, head);
+                    int r = IOUtil.readFromChannel(ch, head);
                     downloaded += r;
                     read += r;
                     if (read == 4) {

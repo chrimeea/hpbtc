@@ -2,10 +2,14 @@
 <project name="hpbtc" default="compile" basedir=".">
     <property name="dir.src" value="src"/>
     <property name="dir.test" value="test"/>
+    <property name="dir.lib" value="lib"/>
     <property name="dir.build" value="classes"/>
     <property name="javac.source" value="1.5"/>
     <path id="cp.classpath">
         <pathelement location="${dir.build}"/>
+    	<fileset dir="${dir.lib}">
+            <include name="*.jar"/>
+        </fileset>
     </path>
     <target name="compile" description="compiles all source files">
         <mkdir dir="${dir.build}"/>
