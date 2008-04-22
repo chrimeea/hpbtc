@@ -14,13 +14,13 @@ import java.io.IOException;
  *
  */
 public class HPBTC {
-    
+
     private static Logger logger = Logger.getLogger(HPBTC.class.getName());
-    
+
     /**
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             logger.severe("Mandatory parameter missing");
         } else {
@@ -30,22 +30,13 @@ public class HPBTC {
             }
             TorrentInfo ti = new TorrentInfo(name);
             final Client client = new Client(ti.getInfoHash());
-            try {
-                client.connect();
-                Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                    /* (non-Javadoc)
-                     * @see java.lang.Runnable#run()
-                     */
-                    public void run() {
-                        client.getDownloadItem().stopDownload();
-                    }
+            client.connect();
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+                public void run() {
+                //downloadItem().stopDownload();
+                }
                 }, "Shutdown"));
-            } catch (IllegalStateException e) {
-                logger.warning("Can not register shutdown hook " + e.getMessage());
-            } catch (IOException e) {
-                logger.severe("Can not start server " + e.getMessage());
-                return;
-            }
             client.listen();
         }
     }
