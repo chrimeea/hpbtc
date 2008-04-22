@@ -1,4 +1,4 @@
-package hpbtc.protocol;
+package hpbtc.client;
 
 import hpbtc.protocol.torrent.BTFile;
 import java.io.File;
