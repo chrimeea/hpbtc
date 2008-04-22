@@ -1,19 +1,28 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project name="hpbtc" default="compile" basedir=".">
-  <property name="dir.src" value="src"/>
-  <property name="dir.test" value="test"/>
-  <property name="dir.build" value="classes"/>
-  <property name="javac.source" value="1.5"/>
-  <path id="cp.classpath">
-    <pathelement location="${dir.build}"/>
-  </path>
-  <target name="compile" description="compiles all source files">
-    <mkdir dir="${dir.build}"/>
-    <javac srcdir="${dir.src}" destdir="${dir.build}" classpathref="cp.classpath" source="${javac.source}">
-    <javac srcdir="${dir.test}" destdir="${dir.build}" classpathref="cp.classpath" source="${javac.source}">
-    </javac>
-  </target>
-  <target name="clean" description="deletes build directory">
-    <delete dir="${dir.build}"/>
-  </target>
+    <property name="dir.src" value="src"/>
+    <property name="dir.test" value="test"/>
+    <property name="dir.build" value="classes"/>
+    <property name="javac.source" value="1.5"/>
+    <path id="cp.classpath">
+        <pathelement location="${dir.build}"/>
+    </path>
+    <target name="compile" description="compiles all source files">
+        <mkdir dir="${dir.build}"/>
+        <javac srcdir="${dir.src}" destdir="${dir.build}" classpathref="cp.classpath" source="${javac.source}"/>
+        <javac srcdir="${dir.test}" destdir="${dir.build}" classpathref="cp.classpath" source="${javac.source}"/>
+    </target>
+    <target name="clean" description="deletes build directory">
+        <delete dir="${dir.build}"/>
+    </target>
+    <target name="test" description="run tests">
+        <junit printsummary="off" fork="yes" haltonfailure="on" showoutput="true">
+            <classpath refid="cp.classpath"/>
+            <formatter type="plain" usefile="false"/>
+            <batchtest fork="yes">
+                <fileset dir="${dir.build}" includes="**/*Test.class"/>
+            </batchtest>
+        </junit>
+    </target>
+    
 </project>
