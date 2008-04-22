@@ -9,18 +9,10 @@ import org.junit.Test;
 public class IOUtilTest {
     
     @Test
-    public void testReadFromSocket() {
+    public void testReadFromChannel() {
     }
-    
+        
     @Test
-    public void testReadFromFile() {
-    }
-    
-    @Test
-    public void testWriteToFile() {
-    }
-    
-    @Test
-    public void testWriteToSocket() {
+    public void testWriteToChannel() {
     }
 }
