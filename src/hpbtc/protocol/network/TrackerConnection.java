@@ -1,4 +1,4 @@
-package hpbtc.protocol;
+package hpbtc.protocol.network;
 
 import hpbtc.bencoding.BencodingParser;
 import hpbtc.bencoding.element.BencodedDictionary;
@@ -6,7 +6,7 @@ import hpbtc.bencoding.element.BencodedElement;
 import hpbtc.bencoding.element.BencodedInteger;
 import hpbtc.bencoding.element.BencodedList;
 import hpbtc.bencoding.element.BencodedString;
-import hpbtc.protocol.Peer;
+import hpbtc.protocol.network.Peer;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;

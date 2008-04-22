@@ -1,94 +1,19 @@
 package hpbtc.protocol.torrent;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.logging.Logger;
-
 /**
  * @author chris
  *
  */
 public class BTFile {
     
-    private static Logger logger = Logger.getLogger(BTFile.class.getName());
-    
     private String path;
-    private int length;
-    private int pieceIndex;
-    private int index;
-    private int offset;
-    private int pieceLength;
+    private long length;
     
-    public BTFile(int pieceLength) {
-        this.pieceLength = pieceLength;
+    public BTFile(String path, long length) {
+        this.path = path;
+        this.length = length;
     }
-
-    public boolean create() throws IOException {
-        int i = path.lastIndexOf(File.separator);
-        File f;
-        if (i > 0) {
-            String p = path.substring(0, i);
-            f = new File(p);
-            f.mkdirs();
-        }
-        f = new File(path);
-        if (!f.exists() || !(f.length() == length)) {
-            logger.info("file creation " + path);
-            f.createNewFile();
-            FileChannel fc = new FileOutputStream(f).getChannel();
-            fc.position(length - 1);
-            fc.write(ByteBuffer.allocate(1));
-            fc.close();
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param off
-     */
-    public void setOffset(int off) {
-        offset = off;
-    }
-    
-    /**
-     * @return
-     */
-    public int getOffset() {
-        return offset;
-    }
-    
-    /**
-     * @param p
-     */
-    public void setPath(String p) {
-        path = p;
-    }
-    
-    /**
-     * @param l
-     */
-    public void setLength(int l) {
-        length = l;
-    }
-    
-    /**
-     * @param i
-     */
-    public void setIndex(int i) {
-        index = i;
-    }
-    
-    /**
-     * @param i
-     */
-    public void setPieceIndex(int i) {
-        pieceIndex = i;
-    }
-    
+        
     /**
      * @return
      */
@@ -99,68 +24,7 @@ public class BTFile {
     /**
      * @return
      */
-    public int getIndex() {
-        return index;
-    }
-    
-    /**
-     * @return
-     */
-    public int getLength() {
+    public long getLength() {
         return length;
-    }
-    
-    /**
-     * @return
-     */
-    public int getPieceIndex() {
-        return pieceIndex;
-    }
-
-    /**
-     * @param s
-     * @return
-     */
-    public int getLastPieceIndex(int s) {
-        int d = s - getOffset();
-        int j = getPieceIndex() + 1;
-        while (d < getLength()) {
-            d += s;
-            j++;
-        }
-        return j - 1;
-    }
-
-    /**
-     * @param i
-     * @param s
-     * @return
-     */
-    public int getFileOffset(int i) {
-        if (getPieceIndex() >= i) {
-            throw new IllegalArgumentException();
-        }
-        int s = pieceLength;
-        int d = s - getOffset();
-        int j = getPieceIndex() + 1;
-        while (i > j) {
-            d += s;
-            j++;
-        }
-        return d;
-    }
-    
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || !(o instanceof BTFile)) {
-            return false;
-        }
-        BTFile f = (BTFile) o;
-        return index == f.getIndex();
-    }
-    
-    @Override
-    public int hashCode() {
-        return new Integer(index).hashCode();
     }
 }

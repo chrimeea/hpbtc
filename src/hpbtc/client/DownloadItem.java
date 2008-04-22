@@ -4,12 +4,12 @@
  */
 package hpbtc.client;
 
-import hpbtc.protocol.Client;
+import hpbtc.protocol.network.Client;
 import hpbtc.protocol.torrent.BTFile;
 import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.RequestMessage;
 import hpbtc.client.LightPeer;
-import hpbtc.protocol.Peer;
+import hpbtc.protocol.network.Peer;
 import hpbtc.protocol.PeerConnection;
 import hpbtc.client.piece.LightPiece;
 import hpbtc.client.piece.Piece;

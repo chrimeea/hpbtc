@@ -47,9 +47,6 @@ public class TorrentInfo {
         if (multiple) {
             BencodedList fls = (BencodedList) info.get("files");
             files = new ArrayList<BTFile>(fls.getSize());
-            int index = 0;
-            int i = 0;
-            int off = 0;
             fileLength = 0;
             for (BencodedElement d : fls) {
                 BencodedDictionary fd = (BencodedDictionary) d;
@@ -62,26 +59,12 @@ public class TorrentInfo {
                 }
                 Integer fl = ((BencodedInteger) fd.get("length")).getValue();
                 fileLength += fl;
-                BTFile f = new BTFile(pieceLength);
-                f.setPath(sb.substring(0, sb.length() - 1).toString());
-                f.setLength(fl);
-                f.setPieceIndex(index);
-                f.setIndex(i++);
-                f.setOffset(off);
-                files.add(f);
-                index = fileLength / pieceLength;
-                off = fileLength - index * pieceLength;
+                files.add(new BTFile(sb.substring(0, sb.length() - 1).toString(), fl));
             }
         } else {
             files = new ArrayList<BTFile>(1);
             fileLength = ((BencodedInteger) info.get("length")).getValue();
-            BTFile f = new BTFile(pieceLength);
-            f.setPath(fileName);
-            f.setLength(fileLength);
-            f.setPieceIndex(0);
-            f.setIndex(0);
-            f.setOffset(0);
-            files.add(f);
+            files.add(new BTFile(fileName, fileLength));
         }
         nrPieces = fileLength / pieceLength;
         if (fileLength % pieceLength > 0) {
