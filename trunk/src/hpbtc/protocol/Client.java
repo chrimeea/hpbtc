@@ -47,8 +47,8 @@ public class Client {
     private Random rand = new Random();
     private Queue<RegisterOp> registered = new ConcurrentLinkedQueue<RegisterOp>();
     private Map<Peer, Queue<ByteBuffer>> messagesUpload = new HashMap<Peer, Queue<ByteBuffer>>();
-    private int uploaded;
-    private int downloaded;
+    private long uploaded;
+    private long downloaded;
     private Queue<ClientProtocolMessage> messagesDownload = new ConcurrentLinkedQueue<ClientProtocolMessage>();
     private int length;
     private boolean handshakeRead;

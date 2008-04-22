@@ -5,6 +5,7 @@
 package hpbtc;
 
 import hpbtc.protocol.Client;
+import hpbtc.protocol.torrent.TorrentInfo;
 import java.util.logging.Logger;
 import java.io.IOException;
 
@@ -27,10 +28,10 @@ public class HPBTC {
             if (!name.endsWith(".torrent")) {
                 name += ".torrent";
             }
-            final Client client = Client.getInstance();
+            TorrentInfo ti = new TorrentInfo(name);
+            final Client client = new Client(ti.getInfoHash());
             try {
                 client.connect();
-                client.setDownload(name);
                 Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
                     /* (non-Javadoc)
                      * @see java.lang.Runnable#run()
