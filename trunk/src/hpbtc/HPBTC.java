@@ -4,7 +4,7 @@
  */
 package hpbtc;
 
-import hpbtc.protocol.Client;
+import hpbtc.protocol.network.Client;
 import hpbtc.protocol.torrent.TorrentInfo;
 import java.util.logging.Logger;
 import java.io.IOException;

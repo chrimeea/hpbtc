@@ -1,4 +1,4 @@
-package hpbtc.protocol;
+package hpbtc.protocol.network;
 
 import hpbtc.protocol.message.ProtocolMessage;
 

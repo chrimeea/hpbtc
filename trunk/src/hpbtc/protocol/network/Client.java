@@ -2,7 +2,7 @@
  * Created on Jan 20, 2006
  *
  */
-package hpbtc.protocol;
+package hpbtc.protocol.network;
 
 import hpbtc.protocol.message.ProtocolMessage;
 import hpbtc.protocol.message.HandshakeMessage;
