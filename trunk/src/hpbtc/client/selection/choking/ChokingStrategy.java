@@ -1,7 +1,7 @@
 package hpbtc.client.selection.choking;
 
 import hpbtc.client.DownloadItem;
-import hpbtc.client.peer.LightPeer;
+import hpbtc.client.LightPeer;
 
 import java.io.Serializable;
 import java.util.Collections;

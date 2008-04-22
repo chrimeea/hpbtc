@@ -4,7 +4,7 @@
  */
 package hpbtc.client.comparator;
 
-import hpbtc.client.peer.LightPeer;
+import hpbtc.client.LightPeer;
 import hpbtc.util.ComparatorUtil;
 
 import java.util.Comparator;

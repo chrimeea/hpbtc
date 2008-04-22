@@ -4,7 +4,7 @@
  */
 package hpbtc.client.selection.peer;
 
-import hpbtc.client.peer.LightPeer;
+import hpbtc.client.LightPeer;
 import hpbtc.client.piece.LightPiece;
 
 import java.io.Serializable;

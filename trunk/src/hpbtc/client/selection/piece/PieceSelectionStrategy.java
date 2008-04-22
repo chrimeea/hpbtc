@@ -1,7 +1,7 @@
 package hpbtc.client.selection.piece;
 
 import hpbtc.client.DownloadItem;
-import hpbtc.client.peer.LightPeer;
+import hpbtc.client.LightPeer;
 import hpbtc.client.piece.LightPiece;
 import hpbtc.client.piece.Piece;
 
