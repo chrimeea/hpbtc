@@ -6,15 +6,12 @@ package hpbtc.client;
 
 import hpbtc.protocol.torrent.TorrentInfo;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 /**
  * @author chris
  *
  */
 public class DownloadItem {
-    
-    private static Logger logger = Logger.getLogger(DownloadItem.class.getName());
 
     public static final String DOWNLOAD_STARTED = "started";
     public static final String DOWNLOAD_COMPLETED = "completed";
@@ -38,7 +35,6 @@ public class DownloadItem {
     }
 
     public void stopDownload() {
-        getTrackerPeers(DOWNLOAD_STOPPED);
     }
 
     public void startDownload() {
