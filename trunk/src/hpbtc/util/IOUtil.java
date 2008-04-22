@@ -6,8 +6,8 @@ package hpbtc.util;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * @author chris
@@ -21,7 +21,7 @@ public class IOUtil {
      * @return
      * @throws IOException
      */
-    public static int readFromSocket(SocketChannel s, ByteBuffer b) throws IOException {
+    public static int readFromChannel(ReadableByteChannel s, ByteBuffer b) throws IOException {
         int x = b.remaining();
         int c = s.read(b);
         int r = c;
@@ -31,33 +31,8 @@ public class IOUtil {
         }
         return c == -1 ? r + 1 : r;
     }
-    
-    /**
-     * @param s
-     * @param b
-     * @param z
-     * @return
-     * @throws IOException
-     */
-    public static int readFromFile(FileChannel s, ByteBuffer b, int z) throws IOException {
-        int r = s.read(b);
-        while (r < z && b.remaining() > 0) {
-            r += s.read(b);
-        }
-        s.close();
-        return r;
-    }
-    
-    public static int writeToFile(FileChannel s, ByteBuffer b) throws IOException {
-        int r = s.write(b);
-        while (r < b.limit()) {
-            r += s.write(b);
-        }
-        s.close();
-        return r;
-    }    
-    
-    public static int writeToSocket(SocketChannel s, ByteBuffer b) throws IOException {
+        
+    public static int writeToChannel(WritableByteChannel s, ByteBuffer b) throws IOException {
         int x = b.remaining();
         int c = s.write(b);
         int r = c;
