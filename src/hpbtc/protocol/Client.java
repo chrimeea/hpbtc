@@ -18,6 +18,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.CancelledKeyException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ClosedSelectorException;
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -27,6 +28,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
@@ -118,8 +120,18 @@ public class Client {
         return serverCh.socket().getLocalPort();
     }
 
+    private SelectableChannel getChannel(Peer peer) {
+        Set<SelectionKey> keys = selector.keys();
+        for (SelectionKey k: keys) {
+            if (peer.equals(k.attachment())) {
+                return k.channel();
+            }
+        }
+        return null;
+    }
+    
     private void registerNow(Peer peer, int op) {
-        registered.add(new RegisterOp(peer, op, channel));
+        registered.add(new RegisterOp(peer, op, getChannel(peer)));
         selector.wakeup();
     }
 
@@ -136,7 +148,7 @@ public class Client {
             RegisterOp ro = registered.poll();
             while (ro != null) {
                 Peer po = ro.peer;
-                SocketChannel q = ro.channel;
+                SelectableChannel q = ro.channel;
                 SelectionKey w = q.keyFor(selector);
                 try {
                     if (w != null && w.isValid()) {
@@ -251,7 +263,11 @@ public class Client {
             }
         } catch (IOException e) {
             logger.warning("Error while sending message to peer " + peer.getIp() + " " + e.getMessage());
-            ch.socket().close();
+            try {
+                ch.socket().close();
+            } catch (IOException ex) {
+                logger.warning(ex.getMessage());
+            }
         }
         return !q.isEmpty();
     }
@@ -312,11 +328,11 @@ public class Client {
 
     private class RegisterOp {
 
-        private SocketChannel channel;
+        private SelectableChannel channel;
         private Peer peer;
         private int operation;
 
-        private RegisterOp(Peer peer, int op, SocketChannel channel) {
+        private RegisterOp(Peer peer, int op, SelectableChannel channel) {
             this.peer = peer;
             this.operation = op;
             this.channel = channel;
