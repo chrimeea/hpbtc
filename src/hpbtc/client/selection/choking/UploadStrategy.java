@@ -1,7 +1,7 @@
 package hpbtc.client.selection.choking;
 
 import hpbtc.client.comparator.UploadComparator;
-import hpbtc.client.peer.LightPeer;
+import hpbtc.client.LightPeer;
 
 import java.util.Collections;
 import java.util.List;

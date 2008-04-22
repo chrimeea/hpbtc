@@ -1,6 +1,6 @@
 package hpbtc.client.selection.choking;
 
-import hpbtc.client.peer.LightPeer;
+import hpbtc.client.LightPeer;
 
 import java.util.List;
 import java.util.Random;

@@ -1,6 +1,6 @@
 package hpbtc.client.piece;
 
-import hpbtc.client.peer.LightPeer;
+import hpbtc.client.LightPeer;
 
 import java.util.List;
 

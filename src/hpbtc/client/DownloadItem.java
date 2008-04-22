@@ -8,7 +8,7 @@ import hpbtc.protocol.Client;
 import hpbtc.protocol.torrent.BTFile;
 import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.RequestMessage;
-import hpbtc.client.peer.LightPeer;
+import hpbtc.client.LightPeer;
 import hpbtc.protocol.Peer;
 import hpbtc.protocol.PeerConnection;
 import hpbtc.client.piece.LightPiece;
