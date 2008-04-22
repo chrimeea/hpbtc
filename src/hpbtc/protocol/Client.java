@@ -56,8 +56,10 @@ public class Client {
     private int read;
     private ByteBuffer head;
     private ByteBuffer current;
+    private byte[] infoHash;
 
-    public Client() throws IOException {
+    public Client(byte[] infoHash) {
+        this.infoHash = infoHash;
         peerId = generateId();
     }
 
@@ -120,19 +122,34 @@ public class Client {
         return serverCh.socket().getLocalPort();
     }
 
-    private SelectableChannel getChannel(Peer peer) {
+    private SelectableChannel getChannel(Peer peer) throws IOException {
         Set<SelectionKey> keys = selector.keys();
         for (SelectionKey k : keys) {
             if (peer.equals(k.attachment())) {
                 return k.channel();
             }
         }
-        return null;
+        SocketChannel ch = SocketChannel.open();
+        ch.configureBlocking(false);
+        InetSocketAddress addr = new InetSocketAddress(peer.getIp(), peer.getPort());
+        if (ch.connect(addr)) {
+            registerNow(peer, SelectionKey.OP_READ);
+            ProtocolMessage hm = new HandshakeMessage(infoHash);
+            addUploadMessage(hm, peer);
+            hm = new PIDMessage(peerId);
+            addUploadMessage(hm, peer);
+        } else {
+            registerNow(peer, SelectionKey.OP_CONNECT);
+        }
+        return ch;
     }
 
-    private void registerNow(Peer peer, int op) {
-        registered.add(new RegisterOp(peer, op, getChannel(peer)));
-        selector.wakeup();
+    private void registerNow(Peer peer, int op) throws IOException {
+        SelectableChannel ch = getChannel(peer);
+        if (ch != null) {
+            registered.add(new RegisterOp(peer, op, ch));
+            selector.wakeup();
+        }
     }
 
     public void listen() {
@@ -217,34 +234,19 @@ public class Client {
     }
 
     public boolean addUploadMessage(ProtocolMessage rm, Peer peer) {
-        //TODO: daca nu am deschis inca un canal cu acest peer
-        /*
-        ProtocolMessage hm = new HandshakeMessage(infoHash);
-        addUploadMessage(hm, peer);
-        hm = new PIDMessage(peerId);
-        addUploadMessage(hm, peer);
-        ch = SocketChannel.open();
-        ch.configureBlocking(false);
-        InetSocketAddress addr = new InetSocketAddress(peer.getIp(), peer.getPort());
-        final Client cl = Client.getInstance();
-        final DownloadItem item = cl.getDownloadItem();
-        try {
-        if (ch.connect(addr)) {
-        cl.registerNow(this, SelectionKey.OP_READ);
-        finishConnect();
-        item.initiateConnections(1);
-        } else {
-        cl.registerNow(this, SelectionKey.OP_CONNECT);
-        }
-         */
         Queue q = messagesUpload.get(peer);
         if (q == null) {
             q = new ConcurrentLinkedQueue<ByteBuffer>();
             messagesUpload.put(peer, q);
         }
+        boolean empty = q.isEmpty();
         boolean r = q.offer(rm.send());
-        if (q.isEmpty() && r) {
-            registerNow(peer, SelectionKey.OP_WRITE);
+        if (empty && r) {
+            try {
+                registerNow(peer, SelectionKey.OP_WRITE);
+            } catch (IOException e) {
+                q.clear();
+            }
         }
         return r;
     }
@@ -272,7 +274,7 @@ public class Client {
         } catch (IOException e) {
             logger.warning("Error while sending message to peer " + peer.getIp() + " " + e.getMessage());
             closeChannel(ch, peer);
-       }
+        }
         return !q.isEmpty();
     }
 
@@ -284,7 +286,7 @@ public class Client {
             current.rewind();
             ProtocolMessage pm;
             if (!handshakeRead) {
-                pm = new HandshakeMessage();
+                pm = new HandshakeMessage(infoHash);
                 handshakeRead = true;
             } else if (!pidRead) {
                 pm = new PIDMessage();
