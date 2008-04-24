@@ -97,12 +97,19 @@ public class BencodedString extends BencodedElement implements Comparable<Bencod
     /* (non-Javadoc)
      * @see java.lang.Object#equals(java.lang.Object)
      */
+    @Override
     public boolean equals(Object s) {
         byte[] x = null;
         if (s instanceof BencodedString) {
             x = ((BencodedString) s).element;
         } else if (s instanceof byte[]) {
             x = (byte[]) s;
+        } else if (s instanceof String) {
+            try {
+                x = ((String) s).getBytes("ISO-8859-1");
+            } catch (UnsupportedEncodingException e) {
+                return false;
+            }
         } else {
             return false;
         }
@@ -112,6 +119,7 @@ public class BencodedString extends BencodedElement implements Comparable<Bencod
     /* (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */
+    @Override
     public int hashCode() {
         return Arrays.hashCode(element);
     }
