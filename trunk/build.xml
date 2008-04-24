@@ -7,20 +7,24 @@
     <property name="javac.source" value="1.5"/>
     <path id="cp.classpath">
         <pathelement location="${dir.build}"/>
-    	<fileset dir="${dir.lib}">
+        <fileset dir="${dir.lib}">
             <include name="*.jar"/>
         </fileset>
     </path>
     <target name="compile" description="compiles all source files">
         <mkdir dir="${dir.build}"/>
+        <assertions enableSystemAssertions="true" />
         <javac srcdir="${dir.src}" destdir="${dir.build}" classpathref="cp.classpath" source="${javac.source}"/>
         <javac srcdir="${dir.test}" destdir="${dir.build}" classpathref="cp.classpath" source="${javac.source}"/>
     </target>
     <target name="clean" description="deletes build directory">
         <delete dir="${dir.build}"/>
     </target>
-    <target name="test" description="run tests">
+    <target name="test" description="run tests" depends="compile">
         <junit printsummary="off" fork="yes" haltonfailure="on" showoutput="true">
+            <assertions>
+                <enable/>
+            </assertions>
             <classpath refid="cp.classpath"/>
             <formatter type="plain" usefile="false"/>
             <batchtest fork="yes">
