@@ -9,7 +9,7 @@ import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.MessageFactory;
 import hpbtc.protocol.message.PIDMessage;
 
-import hpbtc.util.IOUtil;
+import util.IOUtil;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
