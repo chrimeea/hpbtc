@@ -62,7 +62,7 @@ public class BencodedString extends BencodedElement implements Comparable<Bencod
         try {
             s = new String(element, "ISO-8859-1");
         } catch (UnsupportedEncodingException e) {
-            logger.severe("ISO-8859-1 is not available");
+            logger.severe(e.getMessage());
         }
         return s;
     }
@@ -127,6 +127,7 @@ public class BencodedString extends BencodedElement implements Comparable<Bencod
     /* (non-Javadoc)
      * @see java.lang.Object#toString()
      */
+    @Override
     public String toString() {
         return this.element == null ? null : new String(this.element);
     }
