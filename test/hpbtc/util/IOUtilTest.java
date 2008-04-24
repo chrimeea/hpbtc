@@ -69,7 +69,6 @@ public class IOUtilTest {
         } catch (IOException e) {
             assert false : e.getMessage();
         }
-        reset(mockReadable);
     }
 
     @Test
@@ -86,7 +85,6 @@ public class IOUtilTest {
         } catch (IOException e) {
             assert false : e.getMessage();
         }
-        reset(mockReadable);
     }
     
     @Test
