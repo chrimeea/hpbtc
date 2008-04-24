@@ -30,7 +30,7 @@ public class BencodingParser {
         }
     }
     
-    public int readNextNumber(char terminator) throws IOException {
+    private int readNextNumber(char terminator) throws IOException {
         int c = is.read();
         if (c == terminator) {
             throw new BencodingException("Parse error !");
