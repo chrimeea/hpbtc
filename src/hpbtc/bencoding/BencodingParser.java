@@ -23,10 +23,10 @@ public class BencodingParser {
     private BufferedInputStream is;
     
     public BencodingParser(InputStream is) {
-        if (!(is instanceof BufferedInputStream)) {
-            this.is = new BufferedInputStream(is);
-        } else {
+        if (is instanceof BufferedInputStream) {
             this.is = (BufferedInputStream) is;
+        } else {
+            this.is = new BufferedInputStream(is);
         }
     }
     
