@@ -27,30 +27,63 @@ public class IOUtilTest {
     public void testReadNothingFromChannel() {
         ByteBuffer b = ByteBuffer.allocate(1);
         try {
+            reset(mockReadable);
             expect(mockReadable.read(b)).andReturn(-1);
             replay(mockReadable);
             int rep = IOUtil.readFromChannel(mockReadable, b);
             verify(mockReadable);
-            assert rep == 0;
+            assert rep == 0 : "Incorrect bytes read";
+            assert b.remaining() == 1 : "Incorrect buffer state";
         } catch (IOException e) {
-            e.printStackTrace();
-            assert false;
+            assert false : e.getMessage();
+        }
+    }
+
+    @Test
+    public void testReadUntilEndChannel() {
+        ByteBuffer b = ByteBuffer.allocate(15);
+        try {
+            reset(mockReadable);
+            expect(mockReadable.read(b)).andReturn(4).andReturn(6).andReturn(-1);
+            replay(mockReadable);
+            int rep = IOUtil.readFromChannel(mockReadable, b);
+            verify(mockReadable);
+            assert rep == 10 : "Incorrect bytes read";
+            assert b.remaining() == 5 : "Incorrect buffer state";
+        } catch (IOException e) {
+            assert false : e.getMessage();
+        }
+    }
+
+    @Test
+    public void testReadUntilEndBuffer() {
+        ByteBuffer b = ByteBuffer.allocate(10);
+        try {
+            reset(mockReadable);
+            expect(mockReadable.read(b)).andReturn(4).andReturn(8);
+            replay(mockReadable);
+            int rep = IOUtil.readFromChannel(mockReadable, b);
+            verify(mockReadable);
+            assert rep == 10 : "Incorrect bytes read ";
+            assert b.remaining() == 0 : "Incorrect buffer state";
+        } catch (IOException e) {
+            assert false : e.getMessage();
         }
         reset(mockReadable);
     }
 
     @Test
-    public void testReadFromChannel() {
-        ByteBuffer b = ByteBuffer.allocate(15);
+    public void testReadBufferEmpty() {
+        ByteBuffer b = ByteBuffer.allocate(0);
         try {
-            expect(mockReadable.read(b)).andReturn(4).andReturn(6).andReturn(-1);
+            reset(mockReadable);
             replay(mockReadable);
             int rep = IOUtil.readFromChannel(mockReadable, b);
             verify(mockReadable);
-            assert rep == 10;
+            assert rep == 0 : "Incorrect bytes read";
+            assert b.remaining() == 0 : "Incorrect buffer state";
         } catch (IOException e) {
-            e.printStackTrace();
-            assert false;
+            assert false : e.getMessage();
         }
         reset(mockReadable);
     }
