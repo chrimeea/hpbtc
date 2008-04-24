@@ -22,7 +22,10 @@ public class BencodedString extends BencodedElement implements Comparable<Bencod
      * 
      */
     public BencodedString() {
-        element = null;
+    }
+    
+    public BencodedString(byte[] s) {
+        this.element = s;
     }
     
     /**
@@ -64,13 +67,6 @@ public class BencodedString extends BencodedElement implements Comparable<Bencod
         return s;
     }
     
-    /**
-     * @param v
-     */
-    public void setValue(byte[] v) {
-        element = v;
-    }
-
     /* (non-Javadoc)
      * @see hpbtc.bencoding.element.BencodedElement#getEncodedSize()
      */
