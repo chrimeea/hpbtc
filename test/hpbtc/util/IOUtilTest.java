@@ -24,20 +24,39 @@ public class IOUtilTest {
     }
 
     @Test
-    public void testReadFromChannel() {
+    public void testReadNothingFromChannel() {
         ByteBuffer b = ByteBuffer.allocate(1);
         try {
             expect(mockReadable.read(b)).andReturn(-1);
             replay(mockReadable);
             int rep = IOUtil.readFromChannel(mockReadable, b);
+            verify(mockReadable);
             assert rep == 0;
             assert b.remaining() == 1;
         } catch (IOException e) {
             e.printStackTrace();
             assert false;
         }
+        reset(mockReadable);
     }
 
+    @Test
+    public void testReadFromChannel() {
+        ByteBuffer b = ByteBuffer.allocate(15);
+        try {
+            expect(mockReadable.read(b)).andReturn(4).andReturn(6).andReturn(-1);
+            replay(mockReadable);
+            int rep = IOUtil.readFromChannel(mockReadable, b);
+            verify(mockReadable);
+            assert rep == 10;
+            assert b.remaining() == 5;
+        } catch (IOException e) {
+            e.printStackTrace();
+            assert false;
+        }
+        reset(mockReadable);
+    }
+    
     @Test
     public void testWriteToChannel() {
     }
