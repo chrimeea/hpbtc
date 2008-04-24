@@ -15,12 +15,6 @@ import java.nio.channels.WritableByteChannel;
  */
 public class IOUtil {
 
-    /**
-     * @param s
-     * @param b
-     * @return
-     * @throws IOException
-     */
     public static int readFromChannel(ReadableByteChannel s, ByteBuffer b) throws IOException {
         int x = b.remaining();
         int c = s.read(b);
