@@ -3,7 +3,6 @@ package hpbtc.util;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import org.junit.Test;
 import org.junit.Before;
 import static org.easymock.EasyMock.*;
@@ -15,12 +14,10 @@ import static org.easymock.EasyMock.*;
 public class IOUtilTest {
 
     private ReadableByteChannel mockReadable;
-    private WritableByteChannel mockWritable;
 
     @Before
     public void setUp() {
         mockReadable = createMock(ReadableByteChannel.class);
-        mockWritable = createMock(WritableByteChannel.class);
     }
 
     @Test
