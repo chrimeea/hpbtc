@@ -70,16 +70,15 @@ public class BencodingParser {
         if (n < 0) {
             throw new BencodingException("Found string element with negative length");
         }
-        BencodedString bs = new BencodedString("");
         if (n > 0) {
             byte[] dst = new byte[n];
             int s = 0;
             while (s < n) {
                 s += is.read(dst, s, n - s);
             }
-            bs.setValue(dst);
+            return new BencodedString(dst);
         }
-        return bs;
+        return new BencodedString();
     }
     
     public BencodedInteger readNextInteger() throws IOException {
