@@ -43,11 +43,11 @@ public class IOUtilTest {
     public void testReadUntilEndChannel() {
         ByteBuffer b = ByteBuffer.allocate(15);
         try {
-            reset(mockReadable);
             expect(mockReadable.read(b)).andReturn(4).andReturn(6).andReturn(-1);
             replay(mockReadable);
             int rep = IOUtil.readFromChannel(mockReadable, b);
             verify(mockReadable);
+            reset(mockReadable);
             assert rep == 10 : "Incorrect bytes read";
             assert b.remaining() == 5 : "Incorrect buffer state";
         } catch (IOException e) {
@@ -59,11 +59,11 @@ public class IOUtilTest {
     public void testReadUntilEndBuffer() {
         ByteBuffer b = ByteBuffer.allocate(10);
         try {
-            reset(mockReadable);
             expect(mockReadable.read(b)).andReturn(4).andReturn(8);
             replay(mockReadable);
             int rep = IOUtil.readFromChannel(mockReadable, b);
             verify(mockReadable);
+            reset(mockReadable);
             assert rep == 10 : "Incorrect bytes read ";
             assert b.remaining() == 0 : "Incorrect buffer state";
         } catch (IOException e) {
@@ -76,10 +76,11 @@ public class IOUtilTest {
     public void testReadBufferEmpty() {
         ByteBuffer b = ByteBuffer.allocate(0);
         try {
-            reset(mockReadable);
+            expect(mockReadable.read(b)).andReturn(0);
             replay(mockReadable);
             int rep = IOUtil.readFromChannel(mockReadable, b);
             verify(mockReadable);
+            reset(mockReadable);
             assert rep == 0 : "Incorrect bytes read";
             assert b.remaining() == 0 : "Incorrect buffer state";
         } catch (IOException e) {
