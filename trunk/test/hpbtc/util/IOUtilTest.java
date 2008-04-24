@@ -32,7 +32,6 @@ public class IOUtilTest {
             int rep = IOUtil.readFromChannel(mockReadable, b);
             verify(mockReadable);
             assert rep == 0;
-            assert b.remaining() == 1;
         } catch (IOException e) {
             e.printStackTrace();
             assert false;
@@ -49,7 +48,6 @@ public class IOUtilTest {
             int rep = IOUtil.readFromChannel(mockReadable, b);
             verify(mockReadable);
             assert rep == 10;
-            assert b.remaining() == 5;
         } catch (IOException e) {
             e.printStackTrace();
             assert false;
