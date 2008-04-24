@@ -51,4 +51,8 @@ public class ChannelStub implements ReadableByteChannel, WritableByteChannel {
     public boolean isOpen() {
         return true;
     }
+    
+    protected int remaining() {
+        return ch.remaining();
+    }
 }
