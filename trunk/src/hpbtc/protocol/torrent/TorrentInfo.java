@@ -1,6 +1,6 @@
 package hpbtc.protocol.torrent;
 
-import hpbtc.bencoding.BencodingParser;
+import hpbtc.bencoding.BencodingReader;
 import hpbtc.bencoding.element.BencodedDictionary;
 import hpbtc.bencoding.element.BencodedElement;
 import hpbtc.bencoding.element.BencodedInteger;
@@ -39,7 +39,7 @@ public class TorrentInfo {
     private String encoding;
 
     public TorrentInfo(InputStream is) throws IOException, NoSuchAlgorithmException {
-        BencodingParser parser = new BencodingParser(is);
+        BencodingReader parser = new BencodingReader(is);
         BencodedDictionary meta = parser.readNextDictionary();
         BencodedDictionary info = (BencodedDictionary) meta.get("info");
         infoHash = info.getDigest();
