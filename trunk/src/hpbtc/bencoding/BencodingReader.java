@@ -17,17 +17,23 @@ import java.util.Map;
  *
  */
 public class BencodingReader {
-    
+
+    private String encoding;
     private InputStream is;
-    
-    public BencodingReader(InputStream is) {
+
+    public BencodingReader(InputStream is, String encoding) {
         if (is.markSupported()) {
             this.is = is;
         } else {
             this.is = new BufferedInputStream(is);
         }
+        this.encoding = encoding;
     }
-    
+
+    public BencodingReader(InputStream is) {
+        this(is, "UTF-8");
+    }
+
     private long readNextNumber(char terminator) throws IOException {
         int c = is.read();
         if (c == terminator) {
@@ -45,7 +51,7 @@ public class BencodingReader {
                 is.reset();
             }
             sign = 1;
-            n = c - 48;     
+            n = c - 48;
         }
         c = is.read();
         while (c != terminator) {
@@ -62,7 +68,7 @@ public class BencodingReader {
         n *= sign;
         return n;
     }
-    
+
     public String readNextString() throws IOException {
         int n = (int) readNextNumber(':');
         if (n < 0) {
@@ -74,11 +80,11 @@ public class BencodingReader {
             while (s < n) {
                 s += is.read(dst, s, n - s);
             }
-            return new String(dst, "ISO-8859-1");
+            return new String(dst, encoding);
         }
         return null;
     }
-    
+
     public Long readNextInteger() throws IOException {
         int c = is.read();
         if (c != 'i') {
@@ -86,7 +92,7 @@ public class BencodingReader {
         }
         return new Long(readNextNumber('e'));
     }
-    
+
     public List<Object> readNextList() throws IOException {
         List<Object> r = new LinkedList<Object>();
         int c = is.read();
@@ -103,7 +109,7 @@ public class BencodingReader {
         }
         return r;
     }
-    
+
     public Map<String, Object> readNextDictionary() throws IOException {
         Map<String, Object> r = new HashMap<String, Object>();
         int c = is.read();
@@ -122,7 +128,7 @@ public class BencodingReader {
         }
         return r;
     }
-    
+
     private Object readNextElement() throws IOException {
         Object r;
         is.mark(1);

@@ -23,7 +23,6 @@ public class TrackerConnection {
 
     public static final int TOTAL_PEERS = 50;
     private static Logger logger = Logger.getLogger(TrackerConnection.class.getName());
-    
     private long complete;
     private long interval;
     private long incomplete;
@@ -34,7 +33,7 @@ public class TrackerConnection {
     private byte[] pid;
     private int port;
     private List<LinkedList<String>> trackers;
-    
+
     public TrackerConnection(byte[] infoHash, byte[] pid, int port, List<LinkedList<String>> trackers) {
         this.infoHash = infoHash;
         this.pid = pid;
@@ -75,9 +74,9 @@ public class TrackerConnection {
         }
         StringBuilder req = new StringBuilder(tracker);
         req.append("?info_hash=");
-        req.append(URLEncoder.encode(new String(infoHash, "ISO-8859-1"), "ISO-8859-1"));
+        req.append(URLEncoder.encode(new String(infoHash, "UTF-8"), "UTF-8"));
         req.append("&peer_id=");
-        req.append(URLEncoder.encode(getPID(pid), "ISO-8859-1"));
+        req.append(URLEncoder.encode(new String(pid, "UTF-8"), "UTF-8"));
         req.append("&port=");
         req.append(port);
         req.append("&uploaded=");
@@ -94,7 +93,7 @@ public class TrackerConnection {
         }
         if (trackerId != null) {
             req.append("trackerid");
-            req.append(URLEncoder.encode(trackerId, "ISO-8859-1"));
+            req.append(URLEncoder.encode(trackerId, "UTF-8"));
         }
         URL track = new URL(req.toString());
         HttpURLConnection con = (HttpURLConnection) track.openConnection();
@@ -128,7 +127,7 @@ public class TrackerConnection {
             List<Map<String, Object>> prs = (List<Map<String, Object>>) response.get("peers");
             for (Map<String, Object> d : prs) {
                 String id = (String) d.get("peer id");
-                if (!Arrays.equals(pid, id.getBytes("ISO-8859-1"))) {
+                if (!Arrays.equals(pid, id.getBytes("UTF-8"))) {
                     Peer p = new Peer((String) d.get("ip"),
                             ((Long) d.get("port")).intValue(), id);
                     peers.add(p);
@@ -137,19 +136,5 @@ public class TrackerConnection {
         }
         lastCheck = l;
         return peers;
-    }
-
-    /**
-     * @return
-     */
-    private static String getPID(byte[] pid) {
-        String s;
-        try {
-            s = new String(pid, "ISO-8859-1");
-        } catch (UnsupportedEncodingException e) {
-            s = null;
-            logger.severe("ISO-8859-1 is not available");
-        }
-        return s;
     }
 }

@@ -86,7 +86,7 @@ public class TorrentInfo {
         if (fileLength % pieceLength > 0) {
             nrPieces++;
         }
-        pieceHash = ((String) info.get("pieces")).getBytes("ISO-8859-1");
+        pieceHash = ((String) info.get("pieces")).getBytes("UTF-8");
     }
 
     private static byte[] computeInfoHash(Map<String, Object> info) throws NoSuchAlgorithmException, IOException {
