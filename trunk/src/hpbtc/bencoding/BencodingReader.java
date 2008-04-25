@@ -4,15 +4,13 @@
  */
 package hpbtc.bencoding;
 
-import hpbtc.bencoding.element.BencodedDictionary;
-import hpbtc.bencoding.element.BencodedElement;
-import hpbtc.bencoding.element.BencodedInteger;
-import hpbtc.bencoding.element.BencodedList;
-import hpbtc.bencoding.element.BencodedString;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author chris
@@ -65,7 +63,7 @@ public class BencodingReader {
         return n;
     }
     
-    public BencodedString readNextString() throws IOException {
+    public String readNextString() throws IOException {
         int n = (int) readNextNumber(':');
         if (n < 0) {
             throw new BencodingException("Found string element with negative length");
@@ -76,21 +74,21 @@ public class BencodingReader {
             while (s < n) {
                 s += is.read(dst, s, n - s);
             }
-            return new BencodedString(dst);
+            return new String(dst, "ISO-8859-1");
         }
-        return new BencodedString();
+        return null;
     }
     
-    public BencodedInteger readNextInteger() throws IOException {
+    public Long readNextInteger() throws IOException {
         int c = is.read();
         if (c != 'i') {
             throw new BencodingException("Found char: '" + (char) c + "', required: 'i'");
         }
-        return new BencodedInteger(readNextNumber('e'));
+        return new Long(readNextNumber('e'));
     }
     
-    public BencodedList readNextList() throws IOException {
-        BencodedList r = new BencodedList();
+    public List<Object> readNextList() throws IOException {
+        List<Object> r = new LinkedList<Object>();
         int c = is.read();
         if (c != 'l') {
             throw new BencodingException("Found char: '" + (char) c + "', required: 'l'");
@@ -99,16 +97,15 @@ public class BencodingReader {
         c = is.read();
         while (c != 'e') {
             is.reset();
-            BencodedElement o = readNextElement();
-            r.addElement(o);
+            r.add(readNextElement());
             is.mark(1);
             c = is.read();
         }
         return r;
     }
     
-    public BencodedDictionary readNextDictionary() throws IOException {
-        BencodedDictionary r = new BencodedDictionary();
+    public Map<String, Object> readNextDictionary() throws IOException {
+        Map<String, Object> r = new HashMap<String, Object>();
         int c = is.read();
         if (c != 'd') {
             throw new BencodingException("Found char: '" + (char) c + "', required: 'd'");
@@ -117,8 +114,8 @@ public class BencodingReader {
         c = is.read();
         while (c != 'e') {
             is.reset();
-            BencodedString key = readNextString();
-            BencodedElement value = readNextElement();
+            String key = readNextString();
+            Object value = readNextElement();
             r.put(key, value);
             is.mark(1);
             c = is.read();
@@ -126,8 +123,8 @@ public class BencodingReader {
         return r;
     }
     
-    public BencodedElement readNextElement() throws IOException {
-        BencodedElement r;
+    private Object readNextElement() throws IOException {
+        Object r;
         is.mark(1);
         int c = is.read();
         is.reset();
