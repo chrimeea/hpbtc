@@ -34,7 +34,7 @@ public class BencodedDictionary extends BencodedElement {
      * @param key
      * @param e
      */
-    public void addKeyValuePair(BencodedString key, BencodedElement e) {
+    public void put(BencodedString key, BencodedElement e) {
         element.put(key, e);
     }
     

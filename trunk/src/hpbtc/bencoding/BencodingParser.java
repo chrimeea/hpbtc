@@ -119,7 +119,7 @@ public class BencodingParser {
             is.reset();
             BencodedString key = readNextString();
             BencodedElement value = readNextElement();
-            r.addKeyValuePair(key, value);
+            r.put(key, value);
             is.mark(1);
             c = is.read();
         }
