@@ -1,12 +1,6 @@
 package hpbtc.protocol.network;
 
 import hpbtc.bencoding.BencodingReader;
-import hpbtc.bencoding.element.BencodedDictionary;
-import hpbtc.bencoding.element.BencodedElement;
-import hpbtc.bencoding.element.BencodedInteger;
-import hpbtc.bencoding.element.BencodedList;
-import hpbtc.bencoding.element.BencodedString;
-import hpbtc.protocol.network.Peer;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -17,6 +11,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -27,7 +22,6 @@ import java.util.logging.Logger;
 public class TrackerConnection {
 
     public static final int TOTAL_PEERS = 50;
-    public static final int DEFAULT_INTERVAL = 15;
     private static Logger logger = Logger.getLogger(TrackerConnection.class.getName());
     
     private long complete;
@@ -59,7 +53,7 @@ public class TrackerConnection {
                     ul.addFirst(tracker);
                     return lastPeers;
                 } catch (IOException e) {
-                    logger.info(e.getMessage());
+                    logger.warning(e.getMessage());
                 }
             }
         }
@@ -72,7 +66,6 @@ public class TrackerConnection {
         long h = l - lastCheck;
         long w = minInterval * 1000;
         while (h < w) {
-            logger.info("Wait tracker " + (w - h));
             try {
                 wait(w - h);
             } catch (InterruptedException e) {
@@ -110,40 +103,34 @@ public class TrackerConnection {
         con.setDoOutput(false);
         con.connect();
         BencodingReader parser = new BencodingReader(con.getInputStream());
-        BencodedDictionary response = parser.readNextDictionary();
+        Map<String, Object> response = parser.readNextDictionary();
         con.disconnect();
         Set<Peer> peers = new HashSet<Peer>();
         if (response.containsKey("failure reason")) {
-            logger.info("tracker failure " + ((BencodedString) response.get("failure reason")).getValue());
+            logger.warning("tracker failure " + (String) response.get("failure reason"));
         } else {
             if (response.containsKey("warning message")) {
-                logger.info("tracker warning " + ((BencodedString) response.get("warning message")).getValue());
+                logger.warning("tracker warning " + (String) response.get("warning message"));
             }
-            interval = ((BencodedInteger) response.get("interval")).getValue();
-            logger.info("tracker interval " + interval);
+            interval = (Long) response.get("interval");
             if (response.containsKey("min interval")) {
-                minInterval = ((BencodedInteger) response.get("min interval")).getValue();
-                logger.info("set tracker min interval " + minInterval);
+                minInterval = (Long) response.get("min interval");
             }
             if (response.containsKey("complete")) {
-                complete = ((BencodedInteger) response.get("complete")).getValue();
-                logger.info("set seeders " + complete);
+                complete = (Long) response.get("complete");
             }
             if (response.containsKey("incomplete")) {
-                incomplete = ((BencodedInteger) response.get("incomplete")).getValue();
-                logger.info("set leechers " + incomplete);
+                incomplete = (Long) response.get("incomplete");
             }
             if (response.containsKey("tracker id")) {
-                trackerId = ((BencodedString) response.get("tracker id")).getValue();
+                trackerId = (String) response.get("tracker id");
             }
-            BencodedList prs = (BencodedList) response.get("peers");
-            for (BencodedElement e : prs) {
-                BencodedDictionary d = (BencodedDictionary) e;
-                BencodedString beid = (BencodedString) d.get("peer id");
-                String id = beid.getValue();
-                if (!Arrays.equals(pid, beid.getBytes())) {
-                    Peer p = new Peer(((BencodedString) d.get("ip")).getValue(),
-                            ((BencodedInteger) d.get("port")).getValue().intValue(), id);
+            List<Map<String, Object>> prs = (List<Map<String, Object>>) response.get("peers");
+            for (Map<String, Object> d : prs) {
+                String id = (String) d.get("peer id");
+                if (!Arrays.equals(pid, id.getBytes("ISO-8859-1"))) {
+                    Peer p = new Peer((String) d.get("ip"),
+                            ((Long) d.get("port")).intValue(), id);
                     peers.add(p);
                 }
             }

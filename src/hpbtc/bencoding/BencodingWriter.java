@@ -45,7 +45,7 @@ public class BencodingWriter {
         os.write((int) 'e');
     }
     
-    public void write(Map m)  throws IOException {
+    public void write(Map<String, Object> m)  throws IOException {
         os.write((int) 'd');
         TreeSet<String> s = new TreeSet<String>(m.keySet());
         for (String key: s) {
@@ -63,7 +63,7 @@ public class BencodingWriter {
         } else if (o instanceof List) {
             write((List) o);
         } else if (o instanceof Map) {
-            write((Map) o);
+            write((Map<String, Object>) o);
         } else {
             throw new BencodingException("Wrong type");
         }
