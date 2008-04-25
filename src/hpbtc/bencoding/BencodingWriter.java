@@ -12,10 +12,16 @@ import java.util.TreeSet;
  */
 public class BencodingWriter {
 
+    private String encoding;
     private OutputStream os;
     
-    public BencodingWriter(OutputStream os) {
+    public BencodingWriter(OutputStream os, String encoding) {
         this.os = os;
+        this.encoding = encoding;
+    }
+    
+    public BencodingWriter(OutputStream os) {
+        this(os, "UTF-8");
     }
     
     public void write(Number n) throws IOException {
@@ -23,7 +29,7 @@ public class BencodingWriter {
         if (n == null) {
             os.write((int) '0');
         } else {
-            os.write(n.toString().getBytes("ISO-8859-1"));
+            os.write(n.toString().getBytes(encoding));
         }
         os.write((int) 'e');
     }
@@ -33,7 +39,7 @@ public class BencodingWriter {
             os.write((int) '0');
             os.write((int) ':');
         } else {
-            os.write((s.length() + ":" + s).getBytes("ISO-8859-1"));
+            os.write((s.length() + ":" + s).getBytes(encoding));
         }
     }
     
