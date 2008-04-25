@@ -20,11 +20,11 @@ import java.io.InputStream;
  */
 public class BencodingParser {
     
-    private BufferedInputStream is;
+    private InputStream is;
     
     public BencodingParser(InputStream is) {
-        if (is instanceof BufferedInputStream) {
-            this.is = (BufferedInputStream) is;
+        if (is.markSupported()) {
+            this.is = is;
         } else {
             this.is = new BufferedInputStream(is);
         }
