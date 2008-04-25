@@ -20,8 +20,6 @@ import java.util.logging.Logger;
  * @author Cristian Mocanu
  */
 public class TorrentInfo {
-
-    private static Logger logger = Logger.getLogger(TorrentInfo.class.getName());
     
     private List<LinkedList<String>> trackers;
     private byte[] infoHash;
