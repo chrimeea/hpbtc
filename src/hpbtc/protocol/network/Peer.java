@@ -12,14 +12,14 @@ public class Peer {
 
     private String peerId;
     private String ip;
-    private long port;
+    private int port;
     
     /**
      * @param i
      * @param p
      * @param id
      */
-    public Peer(String i, long p, String id) {
+    public Peer(String i, int p, String id) {
         peerId = id;
         ip = i;
         port = p;
@@ -74,7 +74,7 @@ public class Peer {
     /**
      * @return Returns the port.
      */
-    public long getPort() {
+    public int getPort() {
         return port;
     }
 
