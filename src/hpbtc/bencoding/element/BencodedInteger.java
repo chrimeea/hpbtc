@@ -43,7 +43,7 @@ public class BencodedInteger extends BencodedElement {
     /* (non-Javadoc)
      * @see hpbtc.bencoding.element.BencodedElement#getEncodedSize()
      */
-    public int getEncodedSize() {
+    protected int getEncodedSize() {
         if (element == null) {
             return 2;
         }

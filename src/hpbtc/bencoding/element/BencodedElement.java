@@ -19,7 +19,7 @@ public abstract class BencodedElement {
     /**
      * @return
      */
-    public abstract int getEncodedSize();
+    protected abstract int getEncodedSize();
     
     /**
      * @return
