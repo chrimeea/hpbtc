@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -27,11 +28,15 @@ public class TorrentInfo {
     private List<LinkedList<String>> trackers;
     private byte[] infoHash;
     private boolean multiple;
-    private int pieceLength;
+    private long pieceLength;
     private List<BTFile> files;
-    private int fileLength;
-    private int nrPieces;
+    private long fileLength;
+    private long nrPieces;
     private byte[] pieceHash;
+    private Date creationDate;
+    private String comment;
+    private String createdBy;
+    private String encoding;
 
     public TorrentInfo(InputStream is) throws IOException, NoSuchAlgorithmException {
         BencodingParser parser = new BencodingParser(is);
@@ -39,6 +44,18 @@ public class TorrentInfo {
         BencodedDictionary info = (BencodedDictionary) meta.get("info");
         infoHash = info.getDigest();
         parseTrackers(meta);
+        if (meta.containsKey("creation date")) {
+            creationDate = new Date(((BencodedInteger) meta.get("creation date")).getValue() * 1000);
+        }
+        if (meta.containsKey("comment")) {
+            comment = ((BencodedString) meta.get("comment")).getValue();
+        }
+        if (meta.containsKey("created by")) {
+            createdBy = ((BencodedString) meta.get("created by")).getValue();
+        }
+        if (meta.containsKey("encoding")) {
+            encoding = ((BencodedString) meta.get("encoding")).getValue();
+        }
         multiple = info.containsKey("files");
         String fileName = ((BencodedString) info.get("name")).getValue();
         pieceLength = ((BencodedInteger) info.get("piece length")).getValue();
@@ -56,7 +73,7 @@ public class TorrentInfo {
                     sb.append(dir);
                     sb.append(File.separator);
                 }
-                Integer fl = ((BencodedInteger) fd.get("length")).getValue();
+                long fl = ((BencodedInteger) fd.get("length")).getValue();
                 fileLength += fl;
                 files.add(new BTFile(sb.substring(0, sb.length() - 1).toString(), fl));
             }
@@ -96,7 +113,7 @@ public class TorrentInfo {
         }
     }
     
-    public int getFileLength() {
+    public long getFileLength() {
         return fileLength;
     }
 
@@ -108,11 +125,11 @@ public class TorrentInfo {
         return infoHash;
     }
 
-    public int getNrPieces() {
+    public long getNrPieces() {
         return nrPieces;
     }
 
-    public int getPieceLength() {
+    public long getPieceLength() {
         return pieceLength;
     }
 
@@ -126,5 +143,21 @@ public class TorrentInfo {
 
     public List<LinkedList<String>> getTrackers() {
         return trackers;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public Date getCreationDate() {
+        return creationDate;
+    }
+
+    public String getEncoding() {
+        return encoding;
     }
 }

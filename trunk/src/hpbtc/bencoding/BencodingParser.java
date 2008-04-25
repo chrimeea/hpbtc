@@ -30,13 +30,13 @@ public class BencodingParser {
         }
     }
     
-    private int readNextNumber(char terminator) throws IOException {
+    private long readNextNumber(char terminator) throws IOException {
         int c = is.read();
         if (c == terminator) {
             throw new BencodingException("Parse error !");
         }
         int sign = -1;
-        int n = 0;
+        long n = 0;
         if (c != '-') {
             if (c == '0') {
                 is.mark(1);
@@ -66,7 +66,7 @@ public class BencodingParser {
     }
     
     public BencodedString readNextString() throws IOException {
-        int n = readNextNumber(':');
+        int n = (int) readNextNumber(':');
         if (n < 0) {
             throw new BencodingException("Found string element with negative length");
         }

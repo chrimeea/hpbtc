@@ -30,18 +30,18 @@ public class TrackerConnection {
     public static final int DEFAULT_INTERVAL = 15;
     private static Logger logger = Logger.getLogger(TrackerConnection.class.getName());
     
-    private int complete;
-    private int interval;
-    private int incomplete;
+    private long complete;
+    private long interval;
+    private long incomplete;
     private String trackerId;
-    private int minInterval;
+    private long minInterval;
     private long lastCheck;
     private byte[] infoHash;
     private byte[] pid;
-    private int port;
+    private long port;
     private List<LinkedList<String>> trackers;
     
-    public TrackerConnection(byte[] infoHash, byte[] pid, int port, List<LinkedList<String>> trackers) {
+    public TrackerConnection(byte[] infoHash, byte[] pid, long port, List<LinkedList<String>> trackers) {
         this.infoHash = infoHash;
         this.pid = pid;
         this.port = port;
