@@ -9,6 +9,7 @@ import hpbtc.bencoding.element.BencodedString;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -32,7 +33,7 @@ public class TorrentInfo {
     private int nrPieces;
     private byte[] pieceHash;
 
-    public TorrentInfo(String fileName) throws IOException {
+    public TorrentInfo(String fileName) throws IOException, NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
         BencodingParser parser = new BencodingParser(fis);
         BencodedDictionary meta = parser.readNextDictionary();

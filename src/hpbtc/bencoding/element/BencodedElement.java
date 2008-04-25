@@ -13,28 +13,23 @@ import java.util.logging.Logger;
  *
  */
 public abstract class BencodedElement {
-    
+
     private static Logger logger = Logger.getLogger(BencodedElement.class.getName());
-    
+
     /**
      * @return
      */
     protected abstract int getEncodedSize();
-    
+
     /**
      * @return
      */
-    public byte[] getDigest() {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA1");
-            md.update(getEncoded());
-            return md.digest();
-        } catch (NoSuchAlgorithmException e) {
-            logger.severe("SHA1 is not available");
-        }
-        return null;
+    public byte[] getDigest() throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA1");
+        md.update(getEncoded());
+        return md.digest();
     }
-    
+
     /**
      * @return
      */
