@@ -38,7 +38,7 @@ public class HPBTC {
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
                 public void run() {
-                //downloadItem().stopDownload();
+                //TODO: stop download
                 }
                 }, "Shutdown"));
             client.listen();
