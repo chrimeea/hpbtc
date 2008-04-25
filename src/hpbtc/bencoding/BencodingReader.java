@@ -18,11 +18,11 @@ import java.io.InputStream;
  * @author chris
  *
  */
-public class BencodingParser {
+public class BencodingReader {
     
     private InputStream is;
     
-    public BencodingParser(InputStream is) {
+    public BencodingReader(InputStream is) {
         if (is.markSupported()) {
             this.is = is;
         } else {

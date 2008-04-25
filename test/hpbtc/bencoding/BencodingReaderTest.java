@@ -16,13 +16,13 @@ import org.junit.Test;
  *
  * @author Cristian Mocanu
  */
-public class BencodingParserTest {
+public class BencodingReaderTest {
 
     @Test
     public void testReadNextString() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("4:test".getBytes("ISO-8859-1"));
-            BencodingParser parser = new BencodingParser(is);
+            BencodingReader parser = new BencodingReader(is);
             BencodedString string = parser.readNextString();
             assert string.equals("test") : "String is incorrect";
         } catch (UnsupportedEncodingException e) {
@@ -34,7 +34,7 @@ public class BencodingParserTest {
     public void testReadNextStringWithWrongLength() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("4a:test".getBytes("ISO-8859-1"));
-            BencodingParser parser = new BencodingParser(is);
+            BencodingReader parser = new BencodingReader(is);
             parser.readNextString();
             assert false : "String is incorrect";
         } catch (UnsupportedEncodingException e) {
@@ -46,7 +46,7 @@ public class BencodingParserTest {
     public void testReadNextInteger() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("i89e".getBytes("ISO-8859-1"));
-            BencodingParser parser = new BencodingParser(is);
+            BencodingReader parser = new BencodingReader(is);
             BencodedInteger i = parser.readNextInteger();
             assert i.getValue() == 89 : "Integer is incorrect";
         } catch (UnsupportedEncodingException e) {
@@ -58,7 +58,7 @@ public class BencodingParserTest {
     public void testReadNextIntegerWithoutEnding() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("i89".getBytes("ISO-8859-1"));
-            BencodingParser parser = new BencodingParser(is);
+            BencodingReader parser = new BencodingReader(is);
             parser.readNextInteger();
             assert false : "Integer is incorrect";
         } catch (UnsupportedEncodingException e) {
@@ -70,7 +70,7 @@ public class BencodingParserTest {
     public void testReadNextIntegerWithZeroPrefix() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("i05e".getBytes("ISO-8859-1"));
-            BencodingParser parser = new BencodingParser(is);
+            BencodingReader parser = new BencodingReader(is);
             parser.readNextInteger();
             assert false : "Integer is incorrect";
         } catch (UnsupportedEncodingException e) {
@@ -82,7 +82,7 @@ public class BencodingParserTest {
     public void testReadNextList() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("l5:gammai-13ee".getBytes("ISO-8859-1"));
-            BencodingParser parser = new BencodingParser(is);
+            BencodingReader parser = new BencodingReader(is);
             BencodedList list = parser.readNextList();
             Iterator<BencodedElement> it = list.iterator();
             BencodedString elString = (BencodedString) it.next();
@@ -99,7 +99,7 @@ public class BencodingParserTest {
     public void testReadNextListWithTwoLists() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("lli1eeie".getBytes("ISO-8859-1"));
-            BencodingParser parser = new BencodingParser(is);
+            BencodingReader parser = new BencodingReader(is);
             parser.readNextList();
             assert false : "Incorrect list";
         } catch (UnsupportedEncodingException e) {
@@ -111,7 +111,7 @@ public class BencodingParserTest {
     public void readNextDictionary() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("d3:cow3:moo4:spami60ee".getBytes("ISO-8859-1"));
-            BencodingParser parser = new BencodingParser(is);
+            BencodingReader parser = new BencodingReader(is);
             BencodedDictionary dict = parser.readNextDictionary();
             Iterator<BencodedString> keys = dict.getKeys().iterator();
             BencodedString elStringKey = keys.next();
@@ -132,7 +132,7 @@ public class BencodingParserTest {
     public void readNextDictionaryWithError() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("di8e3:vale".getBytes("ISO-8859-1"));
-            BencodingParser parser = new BencodingParser(is);
+            BencodingReader parser = new BencodingReader(is);
             parser.readNextDictionary();
             assert false : "Incorrect dictionary";
         } catch (UnsupportedEncodingException e) {
@@ -144,16 +144,16 @@ public class BencodingParserTest {
     public void readNextElement() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("10:calculator".getBytes("ISO-8859-1"));
-            BencodingParser parser = new BencodingParser(is);
+            BencodingReader parser = new BencodingReader(is);
             assert parser.readNextString() instanceof BencodedString;
             is = new ByteArrayInputStream("i-9e".getBytes("ISO-8859-1"));
-            parser = new BencodingParser(is);
+            parser = new BencodingReader(is);
             assert parser.readNextElement() instanceof BencodedInteger;
             is = new ByteArrayInputStream("li55el1:qd2:pp1:kee3:abce".getBytes("ISO-8859-1"));
-            parser = new BencodingParser(is);
+            parser = new BencodingReader(is);
             assert parser.readNextElement() instanceof BencodedList;
             is = new ByteArrayInputStream("d1:w2:ab1:yli1eee".getBytes("ISO-8859-1"));
-            parser = new BencodingParser(is);
+            parser = new BencodingReader(is);
             assert parser.readNextElement() instanceof BencodedDictionary;
         } catch (UnsupportedEncodingException e) {
             assert false : e.getMessage();

@@ -1,6 +1,6 @@
 package hpbtc.protocol.network;
 
-import hpbtc.bencoding.BencodingParser;
+import hpbtc.bencoding.BencodingReader;
 import hpbtc.bencoding.element.BencodedDictionary;
 import hpbtc.bencoding.element.BencodedElement;
 import hpbtc.bencoding.element.BencodedInteger;
@@ -109,7 +109,7 @@ public class TrackerConnection {
         con.setDoInput(true);
         con.setDoOutput(false);
         con.connect();
-        BencodingParser parser = new BencodingParser(con.getInputStream());
+        BencodingReader parser = new BencodingReader(con.getInputStream());
         BencodedDictionary response = parser.readNextDictionary();
         con.disconnect();
         Set<Peer> peers = new HashSet<Peer>();
