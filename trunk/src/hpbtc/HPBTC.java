@@ -6,6 +6,7 @@ package hpbtc;
 
 import hpbtc.protocol.network.Client;
 import hpbtc.protocol.torrent.TorrentInfo;
+import java.io.FileInputStream;
 import java.util.logging.Logger;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -29,7 +30,9 @@ public class HPBTC {
             if (!name.endsWith(".torrent")) {
                 name += ".torrent";
             }
-            TorrentInfo ti = new TorrentInfo(name);
+            FileInputStream fis = new FileInputStream(name);
+            TorrentInfo ti = new TorrentInfo(fis);
+            fis.close();
             final Client client = new Client(ti.getInfoHash());
             client.connect();
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
