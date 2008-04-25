@@ -47,7 +47,7 @@ public class BencodedList extends BencodedElement implements Iterable<BencodedEl
     /* (non-Javadoc)
      * @see hpbtc.bencoding.element.BencodedElement#getEncodedSize()
      */
-    public int getEncodedSize() {
+    protected int getEncodedSize() {
         if (element == null) {
             return 2;
         }

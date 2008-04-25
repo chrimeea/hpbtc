@@ -1,7 +1,5 @@
 package util;
 
-import hpbtc.util.*;
-import util.ChannelStub;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import org.junit.Test;
