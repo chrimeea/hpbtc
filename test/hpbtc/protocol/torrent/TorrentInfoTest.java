@@ -3,6 +3,9 @@ package hpbtc.protocol.torrent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import org.junit.Test;
 
 /**
@@ -22,5 +25,16 @@ public class TorrentInfoTest {
         assert info.getEncoding().equals("UTF-8");
         assert info.getPieceLength() == 65536;
         assert info.getNrPieces() == 1;
+        List<LinkedList<String>> trackers = info.getTrackers();
+        assert trackers.size() == 1;
+        List<String> l = trackers.get(0);
+        assert l.size() == 1;
+        assert l.get(0).equals("http://www.test.ro/announce");
+        List<BTFile> files = info.getFiles();
+        assert files.size() == 1;
+        BTFile f = files.get(0);
+        assert f.getLength() == 85;
+        assert f.getPath().equals("manifest.mf");
+        assert Arrays.equals(info.getPieceHash(), "12345678901234567890".getBytes("ISO-8859-1"));
     }
 }
