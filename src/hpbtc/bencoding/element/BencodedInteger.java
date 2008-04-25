@@ -10,7 +10,7 @@ package hpbtc.bencoding.element;
  */
 public class BencodedInteger extends BencodedElement {
     
-    private Integer element;
+    private Long element;
     
     /**
      * 
@@ -22,21 +22,21 @@ public class BencodedInteger extends BencodedElement {
     /**
      * @param n
      */
-    public BencodedInteger(int n) {
+    public BencodedInteger(long n) {
         element = n;
     }
     
     /**
      * @return
      */
-    public Integer getValue() {
+    public Long getValue() {
         return element;
     }
     
     /**
      * @param v
      */
-    public void setValue(Integer v) {
+    public void setValue(Long v) {
         element = v;
     }
     
