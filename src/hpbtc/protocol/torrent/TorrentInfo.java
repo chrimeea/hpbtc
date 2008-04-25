@@ -7,8 +7,8 @@ import hpbtc.bencoding.element.BencodedInteger;
 import hpbtc.bencoding.element.BencodedList;
 import hpbtc.bencoding.element.BencodedString;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,16 +33,14 @@ public class TorrentInfo {
     private int nrPieces;
     private byte[] pieceHash;
 
-    public TorrentInfo(String fileName) throws IOException, NoSuchAlgorithmException {
-        FileInputStream fis = new FileInputStream(fileName);
-        BencodingParser parser = new BencodingParser(fis);
+    public TorrentInfo(InputStream is) throws IOException, NoSuchAlgorithmException {
+        BencodingParser parser = new BencodingParser(is);
         BencodedDictionary meta = parser.readNextDictionary();
-        fis.close();
         BencodedDictionary info = (BencodedDictionary) meta.get("info");
         infoHash = info.getDigest();
         parseTrackers(meta);
         multiple = info.containsKey("files");
-        fileName = ((BencodedString) info.get("name")).getValue();
+        String fileName = ((BencodedString) info.get("name")).getValue();
         pieceLength = ((BencodedInteger) info.get("piece length")).getValue();
         logger.info("set piece length " + pieceLength);
         if (multiple) {
