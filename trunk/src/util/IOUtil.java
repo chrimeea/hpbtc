@@ -5,8 +5,11 @@
 package util;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.SocketChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**
@@ -14,6 +17,11 @@ import java.nio.channels.WritableByteChannel;
  *
  */
 public class IOUtil {
+
+    public static InetSocketAddress getAddress(SocketChannel c) {
+        Socket s = c.socket();
+        return new InetSocketAddress(s.getInetAddress(), s.getPort());
+    }
 
     public static int readFromChannel(ReadableByteChannel s, ByteBuffer b) throws IOException {
         int x = b.remaining();
@@ -25,7 +33,7 @@ public class IOUtil {
         }
         return c == -1 ? r + 1 : r;
     }
-        
+
     public static int writeToChannel(WritableByteChannel s, ByteBuffer b) throws IOException {
         int x = b.remaining();
         int c = s.write(b);
