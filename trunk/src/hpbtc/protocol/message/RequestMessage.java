@@ -11,7 +11,8 @@ public class RequestMessage extends BlockMessage implements Cloneable {
 
     private static Logger logger = Logger.getLogger(RequestMessage.class.getName());
     
-    public RequestMessage() {
+    public RequestMessage(ByteBuffer message) {
+        super(message);
     }
 
     public RequestMessage(int begin, int index, int length) {
@@ -22,10 +23,7 @@ public class RequestMessage extends BlockMessage implements Cloneable {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message, MessageProcessor processor) {
-        index = message.getInt();
-        begin = message.getInt();
-        length = message.getInt();
+    public void process(MessageProcessor processor) {
         processor.process(this);
     }
     

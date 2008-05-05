@@ -289,10 +289,10 @@ public class Client {
                 pm = new HandshakeMessage(infoHash);
                 handshakeRead = true;
             } else if (!pidRead) {
-                pm = new PIDMessage();
+                pm = new PIDMessage(current.duplicate());
                 pidRead = true;
             } else {
-                pm = MessageFactory.createMessage(current.get());
+                pm = MessageFactory.createMessage(current.duplicate());
             }
             read = 0;
             length = 0;

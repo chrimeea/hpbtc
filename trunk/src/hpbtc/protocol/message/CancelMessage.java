@@ -14,10 +14,11 @@ import java.util.logging.Logger;
 public class CancelMessage extends BlockMessage {
 
     private static Logger logger = Logger.getLogger(CancelMessage.class.getName());
-    
-    public CancelMessage() {
-    }
 
+    public CancelMessage(ByteBuffer message) {
+        super(message);
+    }
+    
     /**
      * @param p
      */
@@ -29,10 +30,7 @@ public class CancelMessage extends BlockMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message, MessageProcessor processor) {
-        index = message.getInt();
-        begin = message.getInt();
-        length = message.getInt();
+    public void process(MessageProcessor processor) {
         processor.process(this);
     }
 

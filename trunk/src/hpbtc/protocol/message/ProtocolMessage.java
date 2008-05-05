@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
  * @author chris
  *
  */
-public abstract class ProtocolMessage {
+public interface ProtocolMessage {
     
     public static final byte TYPE_CHOKE = 0;
     public static final byte TYPE_UNCHOKE = 1;
@@ -21,11 +21,8 @@ public abstract class ProtocolMessage {
     public static final byte TYPE_REQUEST = 6;
     public static final byte TYPE_PIECE = 7;
     public static final byte TYPE_CANCEL = 8;
-    
-    public ProtocolMessage() {
-    }
       
-    public abstract void process(ByteBuffer message, MessageProcessor processor);
+    void process(MessageProcessor processor);
     
-    public abstract ByteBuffer send();
+    ByteBuffer send();
 }

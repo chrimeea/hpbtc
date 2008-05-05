@@ -11,7 +11,7 @@ import java.util.logging.Logger;
  * @author chris
  *
  */
-public class InterestedMessage extends ProtocolMessage {
+public class InterestedMessage implements ProtocolMessage {
 
     private static Logger logger = Logger.getLogger(InterestedMessage.class.getName());
     
@@ -22,7 +22,7 @@ public class InterestedMessage extends ProtocolMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message,MessageProcessor processor) {
+    public void process(MessageProcessor processor) {
         processor.process(this);
     }
     

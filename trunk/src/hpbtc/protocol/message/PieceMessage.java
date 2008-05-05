@@ -17,7 +17,9 @@ public class PieceMessage extends BlockMessage {
     
     private ByteBuffer piece;
     
-    public PieceMessage() {
+    public PieceMessage(ByteBuffer message) {
+        super(message.getInt(), message.getInt(), message.remaining());
+        piece = message;
     }
 
     public PieceMessage(int begin, int index, int length, ByteBuffer piece) {
@@ -29,11 +31,7 @@ public class PieceMessage extends BlockMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message,MessageProcessor processor) {
-        index = message.getInt();
-        begin = message.getInt();
-        length = message.remaining();
-        piece = message;
+    public void process(MessageProcessor processor) {
         processor.process(this);
     }
 
