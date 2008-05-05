@@ -47,7 +47,6 @@ public class BitfieldMessage extends ProtocolMessage {
             }
         }
         processor.process(this);
-        super.process(message, processor);
     }
     
     /* (non-Javadoc)

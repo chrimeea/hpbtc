@@ -24,7 +24,6 @@ public class PIDMessage extends ProtocolMessage {
         message.limit(20);
         pid = message;
         processor.process(this);
-        super.process(message, processor);
     }
     
     /* (non-Javadoc)

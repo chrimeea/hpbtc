@@ -31,7 +31,6 @@ public class HaveMessage extends ProtocolMessage {
     public void process(ByteBuffer message,MessageProcessor processor) {
         index = message.getInt();
         processor.process(this);
-        super.process(message, processor);
     }
     
     /* (non-Javadoc)

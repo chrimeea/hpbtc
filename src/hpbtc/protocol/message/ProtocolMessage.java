@@ -5,15 +5,12 @@
 package hpbtc.protocol.message;
 
 import java.nio.ByteBuffer;
-import java.util.logging.Logger;
 
 /**
  * @author chris
  *
  */
-public class ProtocolMessage {
-
-    private static Logger logger = Logger.getLogger(ProtocolMessage.class.getName());
+public abstract class ProtocolMessage {
     
     public static final byte TYPE_CHOKE = 0;
     public static final byte TYPE_UNCHOKE = 1;
@@ -28,12 +25,7 @@ public class ProtocolMessage {
     public ProtocolMessage() {
     }
       
-    public void process(ByteBuffer message, MessageProcessor processor) {
-        logger.info("process message " + this);
-    }
+    public abstract void process(ByteBuffer message, MessageProcessor processor);
     
-    public ByteBuffer send() {
-        logger.info("send message " + this);
-        return null;
-    }
+    public abstract ByteBuffer send();
 }

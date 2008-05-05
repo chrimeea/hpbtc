@@ -24,7 +24,6 @@ public class ChokeMessage extends ProtocolMessage {
     @Override
     public void process(ByteBuffer message, MessageProcessor processor) {
         processor.process(this);
-        super.process(message, processor);
     }
     
     /* (non-Javadoc)
