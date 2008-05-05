@@ -1,12 +1,9 @@
 package hpbtc.protocol.message;
 
 import java.nio.ByteBuffer;
-import java.util.logging.Logger;
 
 public class HandshakeMessage implements ProtocolMessage {
 
-    private static Logger logger = Logger.getLogger(HandshakeMessage.class.getName());
-    
     private ByteBuffer infoHash;
     
     public HandshakeMessage(ByteBuffer message) {
@@ -33,21 +30,12 @@ public class HandshakeMessage implements ProtocolMessage {
     public void process(MessageProcessor processor) {
         processor.process(this);
     }
-
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "type HANDSHAKE";
-    }
     
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
     public ByteBuffer send() {
-        logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(48);
         getProtocol(bb);
         for (int i = 0; i < 8; i++) {

@@ -5,7 +5,6 @@
 package hpbtc.protocol.message;
 
 import java.nio.ByteBuffer;
-import java.util.logging.Logger;
 
 /**
  * @author chris
@@ -13,7 +12,6 @@ import java.util.logging.Logger;
  */
 public class PieceMessage extends BlockMessage {
 
-    private static Logger logger = Logger.getLogger(PieceMessage.class.getName());
     public static final byte TYPE_DISCRIMINATOR = 7;
     
     private ByteBuffer piece;
@@ -35,21 +33,12 @@ public class PieceMessage extends BlockMessage {
     public void process(MessageProcessor processor) {
         processor.process(this);
     }
-
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "type PIECE";
-    }
     
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
     public ByteBuffer send() {
-        logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(13 + length);
         bb.putInt(9 + length);
         bb.put(TYPE_DISCRIMINATOR);
