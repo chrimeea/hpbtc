@@ -35,7 +35,6 @@ public class PieceMessage extends BlockMessage {
         length = message.remaining();
         piece = message;
         processor.process(this);
-        super.process(message, processor);
     }
 
     /* (non-Javadoc)

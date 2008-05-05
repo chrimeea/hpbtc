@@ -31,7 +31,6 @@ public class HandshakeMessage extends ProtocolMessage {
             message.position(28);
             infoHash = message;
             processor.process(this);
-            super.process(message, processor);
         }
         //TODO process error if message not equal h
     }

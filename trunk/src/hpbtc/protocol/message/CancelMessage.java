@@ -34,7 +34,6 @@ public class CancelMessage extends BlockMessage {
         begin = message.getInt();
         length = message.getInt();
         processor.process(this);
-        super.process(message, processor);
     }
 
     /* (non-Javadoc)
