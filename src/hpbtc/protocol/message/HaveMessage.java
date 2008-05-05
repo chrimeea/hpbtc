@@ -5,7 +5,6 @@
 package hpbtc.protocol.message;
 
 import java.nio.ByteBuffer;
-import java.util.logging.Logger;
 
 /**
  * @author chris
@@ -13,7 +12,6 @@ import java.util.logging.Logger;
  */
 public class HaveMessage implements ProtocolMessage {
 
-    private static Logger logger = Logger.getLogger(HaveMessage.class.getName());
     public static final byte TYPE_DISCRIMINATOR = 4;
     
     private int index;
@@ -33,21 +31,12 @@ public class HaveMessage implements ProtocolMessage {
     public void process(MessageProcessor processor) {
         processor.process(this);
     }
-    
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "type HAVE";
-    }
 
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
     public ByteBuffer send() {
-        logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(9);
         bb.putInt(5);
         bb.put(TYPE_DISCRIMINATOR);

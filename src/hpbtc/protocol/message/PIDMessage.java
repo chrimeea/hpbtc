@@ -1,13 +1,10 @@
 package hpbtc.protocol.message;
 
 import java.nio.ByteBuffer;
-import java.util.logging.Logger;
 
 public class PIDMessage implements ProtocolMessage {
 
-    private static Logger logger = Logger.getLogger(PIDMessage.class.getName());
-    
-    ByteBuffer pid;
+    private ByteBuffer pid;
     
     public PIDMessage(ByteBuffer message) {
         message.limit(20);
@@ -27,19 +24,10 @@ public class PIDMessage implements ProtocolMessage {
     }
     
     /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return "type PID";
-    }
-    
-    /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
     public ByteBuffer send() {
-        logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(20);
         bb.put(pid);
         return bb;
