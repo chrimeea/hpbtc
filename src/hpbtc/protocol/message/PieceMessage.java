@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 public class PieceMessage extends BlockMessage {
 
     private static Logger logger = Logger.getLogger(PieceMessage.class.getName());
+    public static final byte TYPE_DISCRIMINATOR = 7;
     
     private ByteBuffer piece;
     
@@ -51,7 +52,7 @@ public class PieceMessage extends BlockMessage {
         logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(13 + length);
         bb.putInt(9 + length);
-        bb.put(TYPE_PIECE);
+        bb.put(TYPE_DISCRIMINATOR);
         bb.putInt(index);
         bb.putInt(begin);
         bb.put(piece);

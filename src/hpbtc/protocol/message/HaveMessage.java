@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 public class HaveMessage implements ProtocolMessage {
 
     private static Logger logger = Logger.getLogger(HaveMessage.class.getName());
+    public static final byte TYPE_DISCRIMINATOR = 4;
     
     private int index;
     
@@ -49,7 +50,7 @@ public class HaveMessage implements ProtocolMessage {
         logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(9);
         bb.putInt(5);
-        bb.put(TYPE_HAVE);
+        bb.put(TYPE_DISCRIMINATOR);
         bb.putInt(index);
         return bb;
     }

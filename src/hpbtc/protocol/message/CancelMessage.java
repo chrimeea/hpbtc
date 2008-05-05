@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 public class CancelMessage extends BlockMessage {
 
     private static Logger logger = Logger.getLogger(CancelMessage.class.getName());
+    public static final byte TYPE_DISCRIMINATOR = 8;
 
     public CancelMessage(ByteBuffer message) {
         super(message);
@@ -50,7 +51,7 @@ public class CancelMessage extends BlockMessage {
         logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(17);
         bb.putInt(13);
-        bb.put(TYPE_CANCEL);
+        bb.put(TYPE_DISCRIMINATOR);
         bb.putInt(index);
         bb.putInt(begin);
         bb.putInt(length);

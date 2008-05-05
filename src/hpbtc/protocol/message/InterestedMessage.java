@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 public class InterestedMessage implements ProtocolMessage {
 
     private static Logger logger = Logger.getLogger(InterestedMessage.class.getName());
+    public static final byte TYPE_DISCRIMINATOR = 2;
     
     public InterestedMessage() {
     }
@@ -42,7 +43,7 @@ public class InterestedMessage implements ProtocolMessage {
         logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(5);
         bb.putInt(1);
-        bb.put(TYPE_INTERESTED);
+        bb.put(TYPE_DISCRIMINATOR);
         return bb;
     }
 }
