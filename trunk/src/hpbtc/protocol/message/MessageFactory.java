@@ -16,15 +16,15 @@ public class MessageFactory {
         ProtocolMessage pm = null;
         byte current = message.get();
         switch (current) {
-        case ProtocolMessage.TYPE_BITFIELD: pm = new BitfieldMessage(message);break;
-        case ProtocolMessage.TYPE_CANCEL: pm =  new CancelMessage(message);break;
-        case ProtocolMessage.TYPE_CHOKE: pm = new ChokeMessage();break;
-        case ProtocolMessage.TYPE_HAVE: pm = new HaveMessage(message);break;
-        case ProtocolMessage.TYPE_INTERESTED: pm = new InterestedMessage();break;
-        case ProtocolMessage.TYPE_NOT_INTERESTED: pm = new NotInterestedMessage();break;
-        case ProtocolMessage.TYPE_PIECE: pm = new PieceMessage(message);break;
-        case ProtocolMessage.TYPE_REQUEST: pm = new RequestMessage(message);break;
-        case ProtocolMessage.TYPE_UNCHOKE: pm = new UnchokeMessage();
+        case BitfieldMessage.TYPE_DISCRIMINATOR: pm = new BitfieldMessage(message);break;
+        case CancelMessage.TYPE_DISCRIMINATOR: pm =  new CancelMessage(message);break;
+        case ChokeMessage.TYPE_DISCRIMINATOR: pm = new ChokeMessage();break;
+        case HaveMessage.TYPE_DISCRIMINATOR: pm = new HaveMessage(message);break;
+        case InterestedMessage.TYPE_DISCRIMINATOR: pm = new InterestedMessage();break;
+        case NotInterestedMessage.TYPE_DISCRIMINATOR: pm = new NotInterestedMessage();break;
+        case PieceMessage.TYPE_DISCRIMINATOR: pm = new PieceMessage(message);break;
+        case RequestMessage.TYPE_DISCRIMINATOR: pm = new RequestMessage(message);break;
+        case UnchokeMessage.TYPE_DISCRIMINATOR: pm = new UnchokeMessage();
         }
         return pm;
     }

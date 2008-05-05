@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 public class RequestMessage extends BlockMessage implements Cloneable {
 
     private static Logger logger = Logger.getLogger(RequestMessage.class.getName());
+    public static final byte TYPE_DISCRIMINATOR = 6;
     
     public RequestMessage(ByteBuffer message) {
         super(message);
@@ -43,7 +44,7 @@ public class RequestMessage extends BlockMessage implements Cloneable {
         logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(17);
         bb.putInt(13);
-        bb.put(TYPE_REQUEST);
+        bb.put(TYPE_DISCRIMINATOR);
         bb.putInt(index);
         bb.putInt(begin);
         bb.putInt(length);

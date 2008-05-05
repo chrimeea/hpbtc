@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 public class BitfieldMessage implements ProtocolMessage {
     
     private static Logger logger = Logger.getLogger(BitfieldMessage.class.getName());
+    public static final byte TYPE_DISCRIMINATOR = 5;
     
     private BitSet pieces;
 
@@ -69,7 +70,7 @@ public class BitfieldMessage implements ProtocolMessage {
         }
         ByteBuffer bb = ByteBuffer.allocate(n + 4);
         bb.putInt(n);
-        byte x = TYPE_BITFIELD;
+        byte x = TYPE_DISCRIMINATOR;
         byte y = (byte) -128;
         boolean hasp = false;
         for (int i = 0; i < pieces.size(); i++) {

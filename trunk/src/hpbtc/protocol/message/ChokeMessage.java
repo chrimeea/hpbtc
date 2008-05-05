@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 public class ChokeMessage implements ProtocolMessage {
 
     private static Logger logger = Logger.getLogger(ChokeMessage.class.getName());
+    public static final byte TYPE_DISCRIMINATOR = 0;
     
     public ChokeMessage() {
     }
@@ -42,7 +43,7 @@ public class ChokeMessage implements ProtocolMessage {
         logger.info("send message " + this);
         ByteBuffer bb = ByteBuffer.allocate(5);
         bb.putInt(1);
-        bb.put(TYPE_CHOKE);
+        bb.put(TYPE_DISCRIMINATOR);
         return bb;
     }
 }
