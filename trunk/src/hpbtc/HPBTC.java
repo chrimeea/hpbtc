@@ -33,7 +33,7 @@ public class HPBTC {
             FileInputStream fis = new FileInputStream(name);
             TorrentInfo ti = new TorrentInfo(fis);
             fis.close();
-            final Client client = new Client(ti.getInfoHash());
+            final Client client = new Client();
             client.connect();
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
