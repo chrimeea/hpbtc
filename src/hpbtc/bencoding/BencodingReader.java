@@ -147,4 +147,8 @@ public class BencodingReader {
         }
         return r;
     }
+    
+    public String getEncoding() {
+        return encoding;
+    }
 }

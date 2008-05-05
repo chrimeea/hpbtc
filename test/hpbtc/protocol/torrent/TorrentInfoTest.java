@@ -35,6 +35,6 @@ public class TorrentInfoTest {
         BTFile f = files.get(0);
         assert f.getLength() == 85;
         assert f.getPath().equals("manifest.mf");
-        assert Arrays.equals(info.getPieceHash(), "12345678901234567890".getBytes("UTF-8"));
+        assert info.getPieceHash().equals("12345678901234567890");
     }
 }

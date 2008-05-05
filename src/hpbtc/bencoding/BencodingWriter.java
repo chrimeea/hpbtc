@@ -74,4 +74,8 @@ public class BencodingWriter {
             throw new BencodingException("Wrong type");
         }
     }
+    
+    public String getEncoding() {
+        return encoding;
+    }
 }
