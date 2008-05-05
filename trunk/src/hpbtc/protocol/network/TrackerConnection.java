@@ -2,7 +2,6 @@ package hpbtc.protocol.network;
 
 import hpbtc.bencoding.BencodingReader;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -21,7 +20,6 @@ import java.util.logging.Logger;
  */
 public class TrackerConnection {
 
-    public static final int TOTAL_PEERS = 50;
     private static Logger logger = Logger.getLogger(TrackerConnection.class.getName());
     private long complete;
     private long interval;
@@ -33,12 +31,16 @@ public class TrackerConnection {
     private byte[] pid;
     private int port;
     private List<LinkedList<String>> trackers;
+    private String encoding;
+    private int totalPeers;
 
     public TrackerConnection(byte[] infoHash, byte[] pid, int port, List<LinkedList<String>> trackers) {
         this.infoHash = infoHash;
         this.pid = pid;
         this.port = port;
         this.trackers = trackers;
+        this.encoding = "ISO-8859-1";
+        this.totalPeers = 50;
     }
 
     public Set<Peer> getTrackerPeers(String event, int uploaded, int downloaded, int bytesLeft) {
@@ -74,9 +76,9 @@ public class TrackerConnection {
         }
         StringBuilder req = new StringBuilder(tracker);
         req.append("?info_hash=");
-        req.append(URLEncoder.encode(new String(infoHash, "UTF-8"), "UTF-8"));
+        req.append(infoHash);
         req.append("&peer_id=");
-        req.append(URLEncoder.encode(new String(pid, "UTF-8"), "UTF-8"));
+        req.append(pid);
         req.append("&port=");
         req.append(port);
         req.append("&uploaded=");
@@ -86,14 +88,14 @@ public class TrackerConnection {
         req.append("&left=");
         req.append(bytesLeft);
         req.append("&numwant=");
-        req.append(TOTAL_PEERS);
+        req.append(totalPeers);
         if (event != null) {
             req.append("&event=");
             req.append(event);
         }
         if (trackerId != null) {
             req.append("trackerid");
-            req.append(URLEncoder.encode(trackerId, "UTF-8"));
+            req.append(URLEncoder.encode(trackerId, encoding));
         }
         URL track = new URL(req.toString());
         HttpURLConnection con = (HttpURLConnection) track.openConnection();
@@ -127,11 +129,9 @@ public class TrackerConnection {
             List<Map<String, Object>> prs = (List<Map<String, Object>>) response.get("peers");
             for (Map<String, Object> d : prs) {
                 String id = (String) d.get("peer id");
-                if (!Arrays.equals(pid, id.getBytes("UTF-8"))) {
-                    Peer p = new Peer((String) d.get("ip"),
-                            ((Long) d.get("port")).intValue(), id);
-                    peers.add(p);
-                }
+                Peer p = new Peer((String) d.get("ip"),
+                        ((Long) d.get("port")).intValue(), id);
+                peers.add(p);
             }
         }
         lastCheck = l;

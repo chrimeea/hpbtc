@@ -19,7 +19,7 @@ public class BencodedWriterTest {
         ByteArrayOutputStream os = new ByteArrayOutputStream(10);
         BencodingWriter w = new BencodingWriter(os);
         w.write("penelopa");
-        assert os.toString("UTF-8").equals("8:penelopa") : "Error encoded string";        
+        assert os.toString(w.getEncoding()).equals("8:penelopa") : "Error encoded string";        
     }
     
     @Test
@@ -27,7 +27,7 @@ public class BencodedWriterTest {
         ByteArrayOutputStream os = new ByteArrayOutputStream(8);
         BencodingWriter w = new BencodingWriter(os);
         w.write(-12908);
-        assert os.toString("UTF-8").equals("i-12908e") : "Error encoded integer";
+        assert os.toString(w.getEncoding()).equals("i-12908e") : "Error encoded integer";
     }
     
     @Test
@@ -41,7 +41,7 @@ public class BencodedWriterTest {
         ByteArrayOutputStream os = new ByteArrayOutputStream(24);
         BencodingWriter w = new BencodingWriter(os);
         w.write(l);
-        assert os.toString("UTF-8").equals("li4527120e3:dvdl4:nemoee") : "Error encoded list";
+        assert os.toString(w.getEncoding()).equals("li4527120e3:dvdl4:nemoee") : "Error encoded list";
     }
     
     @Test
@@ -54,6 +54,6 @@ public class BencodedWriterTest {
         ByteArrayOutputStream os = new ByteArrayOutputStream(44);
         BencodingWriter w = new BencodingWriter(os);
         w.write(m);
-        assert os.toString("UTF-8").equals("d7:another7:myvalue5:mykeyd6:second5:valueee") : "Error encoded map";
+        assert os.toString(w.getEncoding()).equals("d7:another7:myvalue5:mykeyd6:second5:valueee") : "Error encoded map";
     }
 }
