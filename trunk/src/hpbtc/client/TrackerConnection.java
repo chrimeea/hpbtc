@@ -1,11 +1,11 @@
-package hpbtc.protocol.network;
+package hpbtc.client;
 
 import hpbtc.bencoding.BencodingReader;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -128,10 +128,8 @@ public class TrackerConnection {
             }
             List<Map<String, Object>> prs = (List<Map<String, Object>>) response.get("peers");
             for (Map<String, Object> d : prs) {
-                String id = (String) d.get("peer id");
-                Peer p = new Peer((String) d.get("ip"),
-                        ((Long) d.get("port")).intValue(), id);
-                peers.add(p);
+                peers.add(new Peer(new InetSocketAddress((String) d.get("ip"),
+                        ((Long) d.get("port")).intValue()), (String) d.get("peer id")));
             }
         }
         lastCheck = l;

@@ -13,7 +13,6 @@ import hpbtc.protocol.message.PIDMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.RequestMessage;
 import hpbtc.protocol.message.UnchokeMessage;
-import hpbtc.protocol.network.Peer;
 
 /**
  *
