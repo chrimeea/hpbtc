@@ -1,12 +1,17 @@
 package hpbtc.protocol.message;
 
-public abstract class BlockMessage extends ProtocolMessage {
+import java.nio.ByteBuffer;
+
+public abstract class BlockMessage implements ProtocolMessage {
 
     protected int index;
     protected int begin;
     protected int length;
-
-    public BlockMessage() {
+    
+    public BlockMessage(ByteBuffer message) {
+        index = message.getInt();
+        begin = message.getInt();
+        length = message.getInt();
     }
     
     public BlockMessage(int begin, int index, int length) {

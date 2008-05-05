@@ -3,13 +3,23 @@ package hpbtc.protocol.message;
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 
-public class HandshakeMessage extends ProtocolMessage {
+public class HandshakeMessage implements ProtocolMessage {
 
     private static Logger logger = Logger.getLogger(HandshakeMessage.class.getName());
     
     private ByteBuffer infoHash;
     
-    public HandshakeMessage() {
+    public HandshakeMessage(ByteBuffer message) {
+        message.limit(20);
+        ByteBuffer h = ByteBuffer.allocate(20);
+        getProtocol(h);
+        h.rewind();
+        if (message.equals(h)) {
+            message.limit(48);
+            message.position(28);
+            infoHash = message;
+        }
+        //TODO process error if message not equal h
     }
     
     public HandshakeMessage(byte[] infoHash) {
@@ -20,19 +30,8 @@ public class HandshakeMessage extends ProtocolMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message,MessageProcessor processor) {
-        logger.info("process message " + this);
-        message.limit(20);
-        ByteBuffer h = ByteBuffer.allocate(20);
-        getProtocol(h);
-        h.rewind();
-        if (message.equals(h)) {
-            message.limit(48);
-            message.position(28);
-            infoHash = message;
-            processor.process(this);
-        }
-        //TODO process error if message not equal h
+    public void process(MessageProcessor processor) {
+        processor.process(this);
     }
 
     /* (non-Javadoc)

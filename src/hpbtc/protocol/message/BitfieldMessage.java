@@ -12,24 +12,13 @@ import java.util.logging.Logger;
  * @author chris
  *
  */
-public class BitfieldMessage extends ProtocolMessage {
+public class BitfieldMessage implements ProtocolMessage {
     
     private static Logger logger = Logger.getLogger(BitfieldMessage.class.getName());
     
     private BitSet pieces;
 
-    public BitfieldMessage() {
-    }
-    
-    public BitfieldMessage(BitSet pieces) {
-        this.pieces = pieces;
-    }
-    
-    /* (non-Javadoc)
-     * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
-     */
-    @Override
-    public void process(ByteBuffer message, MessageProcessor processor) {
+    public BitfieldMessage(ByteBuffer message) {
         int j = 0;
         int k = 0;
         int l = message.remaining();
@@ -46,6 +35,17 @@ public class BitfieldMessage extends ProtocolMessage {
                 //Might read more than the number of actual pieces
             }
         }
+    }
+    
+    public BitfieldMessage(BitSet pieces) {
+        this.pieces = pieces;
+    }
+    
+    /* (non-Javadoc)
+     * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
+     */
+    @Override
+    public void process(MessageProcessor processor) {
         processor.process(this);
     }
     

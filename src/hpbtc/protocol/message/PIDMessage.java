@@ -3,13 +3,15 @@ package hpbtc.protocol.message;
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
 
-public class PIDMessage extends ProtocolMessage {
+public class PIDMessage implements ProtocolMessage {
 
     private static Logger logger = Logger.getLogger(PIDMessage.class.getName());
     
     ByteBuffer pid;
     
-    public PIDMessage() {
+    public PIDMessage(ByteBuffer message) {
+        message.limit(20);
+        pid = message;
     }
 
     public PIDMessage(byte[] pid) {
@@ -20,9 +22,7 @@ public class PIDMessage extends ProtocolMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message,MessageProcessor processor) {
-        message.limit(20);
-        pid = message;
+    public void process(MessageProcessor processor) {
         processor.process(this);
     }
     

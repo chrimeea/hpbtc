@@ -11,13 +11,14 @@ import java.util.logging.Logger;
  * @author chris
  *
  */
-public class HaveMessage extends ProtocolMessage {
+public class HaveMessage implements ProtocolMessage {
 
     private static Logger logger = Logger.getLogger(HaveMessage.class.getName());
     
     private int index;
     
-    public HaveMessage() {
+    public HaveMessage(ByteBuffer message) {
+        index = message.getInt();
     }
     
     public HaveMessage(int index) {
@@ -28,8 +29,7 @@ public class HaveMessage extends ProtocolMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message,MessageProcessor processor) {
-        index = message.getInt();
+    public void process(MessageProcessor processor) {
         processor.process(this);
     }
     

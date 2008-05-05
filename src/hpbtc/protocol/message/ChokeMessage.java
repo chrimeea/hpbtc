@@ -11,7 +11,7 @@ import java.util.logging.Logger;
  * @author chris
  *
  */
-public class ChokeMessage extends ProtocolMessage {
+public class ChokeMessage implements ProtocolMessage {
 
     private static Logger logger = Logger.getLogger(ChokeMessage.class.getName());
     
@@ -22,7 +22,7 @@ public class ChokeMessage extends ProtocolMessage {
      * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
      */
     @Override
-    public void process(ByteBuffer message, MessageProcessor processor) {
+    public void process(MessageProcessor processor) {
         processor.process(this);
     }
     
