@@ -80,6 +80,10 @@ public class Client {
                 }
                 try {
                     selector.close();
+                } catch (IOException e) {
+                    logger.warning(e.getLocalizedMessage());
+                }
+                try {
                     serverCh.close();
                 } catch (IOException e) {
                     logger.warning(e.getLocalizedMessage());
