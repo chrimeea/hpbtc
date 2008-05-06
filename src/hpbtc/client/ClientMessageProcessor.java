@@ -1,5 +1,6 @@
 package hpbtc.client;
 
+import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.message.MessageProcessor;
 import hpbtc.protocol.message.BitfieldMessage;
 import hpbtc.protocol.message.CancelMessage;

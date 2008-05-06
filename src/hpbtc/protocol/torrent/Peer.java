@@ -1,4 +1,4 @@
-package hpbtc.client;
+package hpbtc.protocol.torrent;
 
 import java.net.InetSocketAddress;
 
