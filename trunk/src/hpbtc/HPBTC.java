@@ -34,14 +34,13 @@ public class HPBTC {
             TorrentInfo ti = new TorrentInfo(fis);
             fis.close();
             final Client client = new Client();
-            client.connect();
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
                 public void run() {
                 //TODO: stop download
                 }
                 }, "Shutdown"));
-            client.listen();
+            client.connect();
         }
     }
 }

@@ -14,8 +14,8 @@
     <target name="compile" description="compiles all source files">
         <mkdir dir="${dir.build}"/>
         <assertions enableSystemAssertions="true" />
-        <javac srcdir="${dir.src}" destdir="${dir.build}" classpathref="cp.classpath" source="${javac.source}"/>
-        <javac srcdir="${dir.test}" destdir="${dir.build}" classpathref="cp.classpath" source="${javac.source}"/>
+        <javac srcdir="${dir.src}" destdir="${dir.build}" classpathref="cp.classpath" debug="true" source="${javac.source}"/>
+        <javac srcdir="${dir.test}" destdir="${dir.build}" classpathref="cp.classpath" debug="true" source="${javac.source}"/>
     </target>
     <target name="clean" description="deletes build directory">
         <delete dir="${dir.build}"/>
