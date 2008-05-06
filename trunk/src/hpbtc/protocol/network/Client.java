@@ -137,26 +137,32 @@ public class Client {
         }
     }
 
-    private void readMessage(SocketChannel ch) throws IOException {
+    private void readMessage(SocketChannel ch) {
+        int i;
         try {
-            int i = IOUtil.readFromChannel(ch, current);
-            if (i > 0) {
-                byte[] b = new byte[i];
-                current.rewind();
-                current.get(b);
-                current.clear();
-                messagesReceived.add(new ClientProtocolMessage(IOUtil.getAddress(ch), b));
-                synchronized (this) {
-                    notify();
-                }
-            }
+            i = IOUtil.readFromChannel(ch, current);
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
-            ch.close();
+            i = current.position();
+            try {
+                ch.close();
+            } catch (IOException x) {
+                logger.warning(x.getLocalizedMessage());
+            }
+        }
+        if (i > 0) {
+            byte[] b = new byte[i];
+            current.rewind();
+            current.get(b);
+            current.clear();
+            messagesReceived.add(new ClientProtocolMessage(IOUtil.getAddress(ch), b));
+            synchronized (this) {
+                notify();
+            }
         }
     }
 
-    private void writeNext(SocketChannel ch) throws IOException {
+    private void writeNext(SocketChannel ch) {
         Queue<ByteBuffer> q = messagesToSend.get(IOUtil.getAddress(ch));
         ByteBuffer b;
         try {
@@ -166,7 +172,11 @@ public class Client {
             } while (b.remaining() == 0 && !q.isEmpty());
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
-            ch.close();
+            try {
+                ch.close();
+            } catch (IOException x) {
+                logger.warning(x.getLocalizedMessage());
+            }
         }
     }
 
