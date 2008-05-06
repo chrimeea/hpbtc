@@ -13,10 +13,10 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
@@ -36,14 +36,12 @@ public class Client {
     private Queue<RegisterOp> registered;
     private Map<InetSocketAddress, Queue<ByteBuffer>> messagesToSend;
     private Queue<ClientProtocolMessage> messagesReceived;
-    private Map<InetSocketAddress, SocketChannel> openChannels;
     private ByteBuffer current;
     private boolean isRunning;
 
     public Client() {
         messagesReceived = new ConcurrentLinkedQueue<ClientProtocolMessage>();
         messagesToSend = new ConcurrentHashMap<InetSocketAddress, Queue<ByteBuffer>>();
-        openChannels = new HashMap<InetSocketAddress, SocketChannel>();
         registered = new ConcurrentLinkedQueue<RegisterOp>();
         current = ByteBuffer.allocate(16384);
     }
@@ -89,7 +87,6 @@ public class Client {
                     logger.warning(e.getLocalizedMessage());
                 }
             }
-            
         }).start();
     }
 
@@ -108,8 +105,22 @@ public class Client {
         return serverCh.socket().getLocalPort();
     }
 
+    private SocketChannel findByAddress(InetSocketAddress peer) {
+        Set<SelectionKey> keys = selector.keys();
+        for (SelectionKey k : keys) {
+            SelectableChannel ch = k.channel();
+            if (ch instanceof SocketChannel) {
+                SocketChannel sc = (SocketChannel) ch;
+                if (((InetSocketAddress) sc.socket().getRemoteSocketAddress()).equals(peer)) {
+                    return sc;
+                }
+            }
+        }
+        return null;
+    }
+
     private void registerNow(InetSocketAddress peer, int op) throws IOException {
-        SocketChannel ch = openChannels.get(peer);
+        SocketChannel ch = findByAddress(peer);
         if (ch != null) {
             if ((ch.keyFor(selector).interestOps() & op) == 0) {
                 registered.add(new RegisterOp(op, ch));
@@ -119,7 +130,6 @@ public class Client {
             ch = SocketChannel.open();
             ch.configureBlocking(false);
             if (ch.connect(peer)) {
-                openChannels.put(peer, ch);
                 registerNow(peer, op);
             } else {
                 registerNow(peer, SelectionKey.OP_CONNECT | op);
@@ -140,14 +150,19 @@ public class Client {
             }
         }
     }
-    
+
     private void writeNext(SocketChannel ch) throws IOException {
         Queue<ByteBuffer> q = messagesToSend.get(IOUtil.getAddress(ch));
         ByteBuffer b;
-        do {
-            b = q.poll();
-            IOUtil.writeToChannel(ch, b);
-        } while (b.remaining() == 0 && !q.isEmpty());
+        try {
+            do {
+                b = q.poll();
+                IOUtil.writeToChannel(ch, b);
+            } while (b.remaining() == 0 && !q.isEmpty());
+        } catch (IOException e) {
+            logger.warning(e.getLocalizedMessage());
+            ch.close();
+        }
     }
 
     public ClientProtocolMessage takeMessage() {
@@ -189,12 +204,10 @@ public class Client {
                     if (key.isAcceptable()) {
                         SocketChannel chan = serverCh.accept();
                         chan.configureBlocking(false);
-                        openChannels.put(IOUtil.getAddress(chan), chan);
                         chan.register(selector, SelectionKey.OP_READ);
                     } else {
                         SocketChannel ch = (SocketChannel) key.channel();
                         if (key.isConnectable() && ch.finishConnect()) {
-                            openChannels.put(IOUtil.getAddress(ch), ch);
                             ch.register(selector, (key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT);
                         } else {
                             if (key.isReadable()) {
