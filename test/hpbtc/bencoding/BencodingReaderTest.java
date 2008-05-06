@@ -22,7 +22,7 @@ public class BencodingReaderTest {
             String string = parser.readNextString();
             assert string.equals("test") : "String is incorrect";
         } catch (UnsupportedEncodingException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
 
@@ -34,7 +34,7 @@ public class BencodingReaderTest {
             parser.readNextString();
             assert false : "String is incorrect";
         } catch (UnsupportedEncodingException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
 
@@ -46,7 +46,7 @@ public class BencodingReaderTest {
             long i = parser.readNextInteger();
             assert i == 89L : "Integer is incorrect";
         } catch (UnsupportedEncodingException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
 
@@ -58,7 +58,7 @@ public class BencodingReaderTest {
             parser.readNextInteger();
             assert false : "Integer is incorrect";
         } catch (UnsupportedEncodingException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
 
@@ -70,7 +70,7 @@ public class BencodingReaderTest {
             parser.readNextInteger();
             assert false : "Integer is incorrect";
         } catch (UnsupportedEncodingException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
 
@@ -87,7 +87,7 @@ public class BencodingReaderTest {
             assert elInteger == -13L : "Incorrect list";
             assert !it.hasNext() : "Incorrect list";
         } catch (UnsupportedEncodingException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
 
@@ -99,7 +99,7 @@ public class BencodingReaderTest {
             parser.readNextList();
             assert false : "Incorrect list";
         } catch (UnsupportedEncodingException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
     
@@ -120,7 +120,7 @@ public class BencodingReaderTest {
             assert elIntValue == 60L : "Incorrect dictionary";
             assert !keys.hasNext() : "Incorrect dictionary";
         } catch (UnsupportedEncodingException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
 
@@ -132,7 +132,7 @@ public class BencodingReaderTest {
             parser.readNextDictionary();
             assert false : "Incorrect dictionary";
         } catch (UnsupportedEncodingException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
 }

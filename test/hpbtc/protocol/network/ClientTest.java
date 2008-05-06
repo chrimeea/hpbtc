@@ -22,8 +22,7 @@ public class ClientTest {
             public void run() {
                 try {
                     c.connect();
-                } catch (IOException e) {
-                }
+                } catch (IOException e) {}
             }
         }).start();
         while (!c.isConnected());

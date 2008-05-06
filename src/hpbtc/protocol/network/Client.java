@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Logger;
 import util.IOUtil;
 
 /**
@@ -29,6 +30,7 @@ public class Client {
 
     public static final int MIN_PORT = 6881;
     public static final int MAX_PORT = 6999;
+    private static Logger logger = Logger.getLogger(Client.class.getName());
     private ServerSocketChannel serverCh;
     private Selector selector;
     private Queue<RegisterOp> registered;
@@ -66,7 +68,25 @@ public class Client {
             selector = Selector.open();
             serverCh.register(selector, SelectionKey.OP_ACCEPT);
         }
-        listen();
+        isRunning = true;
+        new Thread(new Runnable() {
+
+            public void run() {
+                try {
+                    listen();
+                } catch (IOException e) {
+                    isRunning = false;
+                    logger.warning(e.getLocalizedMessage());
+                }
+                try {
+                    selector.close();
+                    serverCh.close();
+                } catch (IOException e) {
+                    logger.warning(e.getLocalizedMessage());
+                }
+            }
+            
+        }).start();
     }
 
     public boolean isConnected() {
@@ -141,7 +161,6 @@ public class Client {
     }
 
     private void listen() throws IOException {
-        isRunning = true;
         while (isRunning) {
             int n = selector.select();
             RegisterOp ro = registered.poll();
@@ -191,8 +210,6 @@ public class Client {
                 }
             }
         }
-        selector.close();
-        serverCh.close();
     }
 
     private class RegisterOp {

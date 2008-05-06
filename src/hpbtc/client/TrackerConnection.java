@@ -54,7 +54,7 @@ public class TrackerConnection {
                     ul.addFirst(tracker);
                     return lastPeers;
                 } catch (IOException e) {
-                    logger.warning(e.getMessage());
+                    logger.warning(e.getLocalizedMessage());
                 }
             }
         }

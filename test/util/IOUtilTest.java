@@ -18,7 +18,7 @@ public class IOUtilTest {
             assert rep == 0 : "Incorrect bytes read";
             assert b.remaining() == 1 : "Incorrect buffer state";
         } catch (IOException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
 
@@ -32,7 +32,7 @@ public class IOUtilTest {
             assert ch.remaining() == 0 : "Incorrect channel state";
             assert b.remaining() == 5 : "Incorrect buffer state";
         } catch (IOException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
 
@@ -46,7 +46,7 @@ public class IOUtilTest {
             assert ch.remaining() == 2 : "Incorrect channel state";
             assert b.remaining() == 0 : "Incorrect buffer state";
         } catch (IOException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
 
@@ -58,7 +58,7 @@ public class IOUtilTest {
             assert rep == 0 : "Incorrect bytes read";
             assert ch.remaining() == 1 : "Incorrect channel state";
         } catch (IOException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
     
@@ -70,7 +70,7 @@ public class IOUtilTest {
             assert rep == 0 : "Incorrect bytes read";
             assert ch.remaining() == 1 : "Incorrect channel state";
         } catch (IOException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
     
@@ -84,7 +84,7 @@ public class IOUtilTest {
             assert ch.remaining() == 0 : "Incorrect channel state";
             assert b.remaining() == 5 : "Incorrect buffer state";
         } catch (IOException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
     
@@ -98,7 +98,7 @@ public class IOUtilTest {
             assert ch.remaining() == 2 : "Incorrect channel state";
             assert b.remaining() == 0 : "Incorrect buffer state";
         } catch (IOException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
     
@@ -110,7 +110,7 @@ public class IOUtilTest {
             assert rep == 0 : "Incorrect bytes read";
             assert ch.remaining() == 1 : "Incorrect buffer state";
         } catch (IOException e) {
-            assert false : e.getMessage();
+            assert false : e.getLocalizedMessage();
         }
     }
 }
