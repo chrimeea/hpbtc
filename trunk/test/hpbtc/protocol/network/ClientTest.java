@@ -17,21 +17,16 @@ public class ClientTest {
     @Test
     public void testClientIncomingConnection() throws IOException, UnsupportedEncodingException {
         final Client c = new Client();
-        new Thread(new Runnable() {
-
-            public void run() {
-                try {
-                    c.connect();
-                } catch (IOException e) {}
-            }
-        }).start();
+        c.connect();
         while (!c.isConnected());
         final SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.getLocalHost(), c.getPort()));
         ch.write(ByteBuffer.wrap("test client".getBytes("US-ASCII")));
         synchronized (c) {
-            try {
-                c.wait();
-            } catch (InterruptedException e) {}
+            do {
+                try {
+                    c.wait();
+                } catch (InterruptedException e) {}
+            } while (!c.hasUnreadMessages());
         }
         ClientProtocolMessage m = c.takeMessage();
         assert m.getPeer().getAddress().equals(ch.socket().getLocalAddress());
