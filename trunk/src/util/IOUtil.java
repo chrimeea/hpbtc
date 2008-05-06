@@ -19,8 +19,7 @@ import java.nio.channels.WritableByteChannel;
 public class IOUtil {
 
     public static InetSocketAddress getAddress(SocketChannel c) {
-        Socket s = c.socket();
-        return new InetSocketAddress(s.getInetAddress(), s.getPort());
+        return (InetSocketAddress) c.socket().getRemoteSocketAddress();
     }
 
     public static int readFromChannel(ReadableByteChannel s, ByteBuffer b) throws IOException {
