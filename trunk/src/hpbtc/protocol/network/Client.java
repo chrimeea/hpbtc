@@ -120,23 +120,23 @@ public class Client {
         if (ch != null) {
             if ((ch.keyFor(selector).interestOps() & op) == 0) {
                 registered.add(new RegisterOp(op, ch));
-                selector.wakeup();
             }
         } else {
             ch = SocketChannel.open();
             ch.configureBlocking(false);
             if (ch.connect(peer)) {
-                registerNow(peer, op);
+                registered.add(new RegisterOp(op, ch));
             } else {
-                registerNow(peer, SelectionKey.OP_CONNECT | op);
+                registered.add(new RegisterOp(SelectionKey.OP_CONNECT | op, ch));
             }
         }
+        selector.wakeup();
     }
 
     public boolean hasUnreadMessages() {
         return !messagesReceived.isEmpty();
     }
-    
+
     private void readMessage(SocketChannel ch) {
         int i;
         try {
@@ -164,12 +164,13 @@ public class Client {
 
     private void writeNext(SocketChannel ch) {
         Queue<ByteBuffer> q = messagesToSend.get(IOUtil.getAddress(ch));
-        ByteBuffer b;
         try {
             do {
-                b = q.poll();
-                IOUtil.writeToChannel(ch, b);
-            } while (b.remaining() == 0 && !q.isEmpty());
+                ByteBuffer b = q.poll();
+                do {
+                    IOUtil.writeToChannel(ch, b);
+                } while (b.remaining() == 0);
+            } while (!q.isEmpty());
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
             try {

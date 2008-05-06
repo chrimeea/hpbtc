@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import org.junit.Test;
@@ -16,9 +18,9 @@ public class ClientTest {
 
     @Test
     public void testClientIncomingConnection() throws IOException, UnsupportedEncodingException {
-        final Client c = new Client();
+        Client c = new Client();
         c.connect();
-        final SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.getLocalHost(), c.getPort()));
+        SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.getLocalHost(), c.getPort()));
         ch.write(ByteBuffer.wrap("test client".getBytes("US-ASCII")));
         synchronized (c) {
             do {
@@ -33,5 +35,21 @@ public class ClientTest {
         assert new String(m.getMessage(), "US-ASCII").equals("test client");
         ch.close();
         c.disconnect();
+    }
+    
+    @Test
+    public void testClientConnect() throws IOException {
+        ServerSocket ch = new ServerSocket(0);
+        Client c = new Client();
+        c.connect();
+        InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(), ch.getLocalPort());
+        c.postMessage(a, ByteBuffer.wrap("bit torrent".getBytes("US-ASCII")));
+        Socket s = ch.accept();
+        byte[] b = new byte[15];
+        int i = s.getInputStream().read(b);
+        c.disconnect();
+        ch.close();
+        assert i == 11;
+        assert "bit torrent".equals(new String(b, 0, i, "US-ASCII"));
     }
 }
