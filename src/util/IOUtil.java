@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.WritableByteChannel;
@@ -30,7 +31,10 @@ public class IOUtil {
             c = s.read(b);
             r += c;
         }
-        return c == -1 ? r + 1 : r;
+        if (c == -1) {
+            throw new ClosedChannelException();
+        }
+        return r;
     }
 
     public static int writeToChannel(WritableByteChannel s, ByteBuffer b) throws IOException {

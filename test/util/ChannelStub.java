@@ -24,9 +24,6 @@ public class ChannelStub implements ReadableByteChannel, WritableByteChannel {
     }
     
     public int read(ByteBuffer destination) throws IOException {
-        if (ch.remaining() == 0) {
-            return -1;
-        }
         int s = 0;
         while (ch.hasRemaining() && destination.hasRemaining() && s < chunk) {
             destination.put(ch.get());
