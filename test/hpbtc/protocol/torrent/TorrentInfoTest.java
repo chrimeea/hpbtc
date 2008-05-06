@@ -3,7 +3,6 @@ package hpbtc.protocol.torrent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import org.junit.Test;

@@ -36,6 +36,7 @@ public class Client {
     private Queue<ClientProtocolMessage> messagesReceived;
     private Map<InetSocketAddress, SocketChannel> openChannels;
     private ByteBuffer current;
+    private boolean isRunning;
 
     public Client() {
         messagesReceived = new ConcurrentLinkedQueue<ClientProtocolMessage>();
@@ -63,8 +64,17 @@ public class Client {
         } else {
             serverCh.configureBlocking(false);
             selector = Selector.open();
-            serverCh.register(selector, SelectionKey.OP_ACCEPT, null);
+            serverCh.register(selector, SelectionKey.OP_ACCEPT);
         }
+        listen();
+    }
+
+    public boolean isConnected() {
+        return isRunning;
+    }
+
+    public void disconnect() throws IOException {
+        isRunning = false;
     }
 
     /**
@@ -95,13 +105,18 @@ public class Client {
 
     private void readMessage(SocketChannel ch) throws IOException {
         int i = IOUtil.readFromChannel(ch, current);
-        byte[] b = new byte[i];
-        current.get(b);
-        current.clear();
-        messagesReceived.add(new ClientProtocolMessage(IOUtil.getAddress(ch), b));
-        notify();
+        if (i > 0) {
+            byte[] b = new byte[i];
+            current.rewind();
+            current.get(b);
+            current.clear();
+            messagesReceived.add(new ClientProtocolMessage(IOUtil.getAddress(ch), b));
+            synchronized (this) {
+                notify();
+            }
+        }
     }
-
+    
     private void writeNext(SocketChannel ch) throws IOException {
         Queue<ByteBuffer> q = messagesToSend.get(IOUtil.getAddress(ch));
         ByteBuffer b;
@@ -125,8 +140,9 @@ public class Client {
         registerNow(peer, SelectionKey.OP_WRITE);
     }
 
-    public void listen() throws IOException {
-        while (true) {
+    private void listen() throws IOException {
+        isRunning = true;
+        while (isRunning) {
             int n = selector.select();
             RegisterOp ro = registered.poll();
             while (ro != null) {
@@ -147,33 +163,36 @@ public class Client {
                 SelectionKey key = i.next();
                 i.remove();
                 if (key.isValid()) {
-                    SocketChannel ch = (SocketChannel) key.channel();
-                    if (key.isReadable()) {
-                        if (ch.isConnected()) {
-                            ch.register(selector, key.interestOps() & ~SelectionKey.OP_READ);
-                            readMessage(ch);
-                            ch.register(selector, key.interestOps() | SelectionKey.OP_READ);
-                        }
-                    }
-                    if (key.isWritable()) {
-                        ch.register(selector, key.interestOps() & ~SelectionKey.OP_WRITE);
-                        writeNext(ch);
-                        if (!messagesToSend.isEmpty()) {
-                            ch.register(selector, key.interestOps() | SelectionKey.OP_WRITE);
-                        }
-                    }
                     if (key.isAcceptable()) {
                         SocketChannel chan = serverCh.accept();
                         chan.configureBlocking(false);
                         openChannels.put(IOUtil.getAddress(chan), chan);
                         chan.register(selector, SelectionKey.OP_READ);
-                    } else if (key.isConnectable() && ch.finishConnect()) {
-                        openChannels.put(IOUtil.getAddress(ch), ch);
-                        ch.register(selector, (key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT);
+                    } else {
+                        SocketChannel ch = (SocketChannel) key.channel();
+                        if (key.isConnectable() && ch.finishConnect()) {
+                            openChannels.put(IOUtil.getAddress(ch), ch);
+                            ch.register(selector, (key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT);
+                        } else {
+                            if (key.isReadable()) {
+                                ch.register(selector, key.interestOps() & ~SelectionKey.OP_READ);
+                                readMessage(ch);
+                                ch.register(selector, key.interestOps() | SelectionKey.OP_READ);
+                            }
+                            if (key.isWritable()) {
+                                ch.register(selector, key.interestOps() & ~SelectionKey.OP_WRITE);
+                                writeNext(ch);
+                                if (!messagesToSend.isEmpty()) {
+                                    ch.register(selector, key.interestOps() | SelectionKey.OP_WRITE);
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+        selector.close();
+        serverCh.close();
     }
 
     private class RegisterOp {
