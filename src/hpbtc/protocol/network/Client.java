@@ -97,7 +97,7 @@ public class Client {
         return isRunning;
     }
 
-    public void disconnect() throws IOException {
+    public void disconnect() {
         isRunning = false;
     }
 
