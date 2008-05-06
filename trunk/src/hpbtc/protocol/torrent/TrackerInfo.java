@@ -1,4 +1,4 @@
-package hpbtc.client;
+package hpbtc.protocol.torrent;
 
 import hpbtc.bencoding.BencodingReader;
 import java.io.IOException;
@@ -18,62 +18,48 @@ import java.util.logging.Logger;
  *
  * @author Cristian Mocanu
  */
-public class TrackerConnection {
+public class TrackerInfo {
 
-    private static Logger logger = Logger.getLogger(TrackerConnection.class.getName());
+    private static Logger logger = Logger.getLogger(TrackerInfo.class.getName());
     private long complete;
     private long interval;
     private long incomplete;
     private String trackerId;
     private long minInterval;
-    private long lastCheck;
     private byte[] infoHash;
     private byte[] pid;
     private int port;
     private List<LinkedList<String>> trackers;
     private String encoding;
-    private int totalPeers;
+    private Set<Peer> peers;
 
-    public TrackerConnection(byte[] infoHash, byte[] pid, int port, List<LinkedList<String>> trackers) {
+    public TrackerInfo(byte[] infoHash, byte[] pid, int port, List<LinkedList<String>> trackers) {
         this.infoHash = infoHash;
         this.pid = pid;
         this.port = port;
         this.trackers = trackers;
         this.encoding = "ISO-8859-1";
-        this.totalPeers = 50;
     }
 
-    public Set<Peer> getTrackerPeers(String event, int uploaded, int downloaded, int bytesLeft) {
+    public void updateTracker(String event, int uploaded, int downloaded, int bytesLeft, int totalPeers) {
         for (LinkedList<String> ul : trackers) {
             Iterator<String> i = ul.iterator();
             while (i.hasNext()) {
                 String tracker = i.next();
                 try {
-                    Set<Peer> lastPeers = getTrackerPeers(event, tracker, uploaded, downloaded, bytesLeft);
+                    connectToTracker(event, tracker, uploaded, downloaded, bytesLeft, totalPeers);
                     i.remove();
                     ul.addFirst(tracker);
-                    return lastPeers;
+                    break;
                 } catch (IOException e) {
                     logger.warning(e.getLocalizedMessage());
                 }
             }
         }
-        return new HashSet<Peer>();
     }
 
-    private Set<Peer> getTrackerPeers(String event, String tracker, int uploaded,
-            int downloaded, int bytesLeft) throws IOException {
-        long l = System.currentTimeMillis();
-        long h = l - lastCheck;
-        long w = minInterval * 1000;
-        while (h < w) {
-            try {
-                wait(w - h);
-            } catch (InterruptedException e) {
-            }
-            l = System.currentTimeMillis();
-            h = l - lastCheck;
-        }
+    private void connectToTracker(String event, String tracker, int uploaded,
+            int downloaded, int bytesLeft, int totalPeers) throws IOException {
         StringBuilder req = new StringBuilder(tracker);
         req.append("?info_hash=");
         req.append(infoHash);
@@ -106,12 +92,12 @@ public class TrackerConnection {
         BencodingReader parser = new BencodingReader(con.getInputStream());
         Map<String, Object> response = parser.readNextDictionary();
         con.disconnect();
-        Set<Peer> peers = new HashSet<Peer>();
+        peers = new HashSet<Peer>();
         if (response.containsKey("failure reason")) {
-            logger.warning("tracker failure " + (String) response.get("failure reason"));
+            logger.warning((String) response.get("failure reason"));
         } else {
             if (response.containsKey("warning message")) {
-                logger.warning("tracker warning " + (String) response.get("warning message"));
+                logger.warning((String) response.get("warning message"));
             }
             interval = (Long) response.get("interval");
             if (response.containsKey("min interval")) {
@@ -132,7 +118,25 @@ public class TrackerConnection {
                         ((Long) d.get("port")).intValue()), (String) d.get("peer id")));
             }
         }
-        lastCheck = l;
+    }
+
+    public long getComplete() {
+        return complete;
+    }
+
+    public long getIncomplete() {
+        return incomplete;
+    }
+
+    public long getInterval() {
+        return interval;
+    }
+
+    public long getMinInterval() {
+        return minInterval;
+    }
+
+    public Set<Peer> getPeers() {
         return peers;
     }
 }
