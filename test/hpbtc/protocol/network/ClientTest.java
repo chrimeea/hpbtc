@@ -18,7 +18,6 @@ public class ClientTest {
     public void testClientIncomingConnection() throws IOException, UnsupportedEncodingException {
         final Client c = new Client();
         c.connect();
-        while (!c.isConnected());
         final SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.getLocalHost(), c.getPort()));
         ch.write(ByteBuffer.wrap("test client".getBytes("US-ASCII")));
         synchronized (c) {
