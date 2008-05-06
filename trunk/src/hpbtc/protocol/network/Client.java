@@ -90,10 +90,6 @@ public class Client {
         }).start();
     }
 
-    public boolean isConnected() {
-        return isRunning;
-    }
-
     public void disconnect() {
         isRunning = false;
     }
