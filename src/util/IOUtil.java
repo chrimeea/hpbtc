@@ -6,7 +6,6 @@ package util;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ReadableByteChannel;
@@ -32,7 +31,7 @@ public class IOUtil {
             r += c;
         }
         if (c == -1) {
-            throw new ClosedChannelException();
+            throw new IOException("Should close channel");
         }
         return r;
     }

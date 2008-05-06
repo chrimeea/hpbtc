@@ -137,6 +137,10 @@ public class Client {
         }
     }
 
+    public boolean hasUnreadMessages() {
+        return !messagesReceived.isEmpty();
+    }
+    
     private void readMessage(SocketChannel ch) {
         int i;
         try {
@@ -228,12 +232,14 @@ public class Client {
                             if (key.isReadable()) {
                                 ch.register(selector, key.interestOps() & ~SelectionKey.OP_READ);
                                 readMessage(ch);
-                                ch.register(selector, key.interestOps() | SelectionKey.OP_READ);
+                                if (ch.isOpen()) {
+                                    ch.register(selector, key.interestOps() | SelectionKey.OP_READ);
+                                }
                             }
-                            if (key.isWritable()) {
+                            if (key.isValid() && key.isWritable()) {
                                 ch.register(selector, key.interestOps() & ~SelectionKey.OP_WRITE);
                                 writeNext(ch);
-                                if (!messagesToSend.isEmpty()) {
+                                if (ch.isOpen() && !messagesToSend.isEmpty()) {
                                     ch.register(selector, key.interestOps() | SelectionKey.OP_WRITE);
                                 }
                             }
