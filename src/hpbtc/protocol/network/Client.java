@@ -138,16 +138,21 @@ public class Client {
     }
 
     private void readMessage(SocketChannel ch) throws IOException {
-        int i = IOUtil.readFromChannel(ch, current);
-        if (i > 0) {
-            byte[] b = new byte[i];
-            current.rewind();
-            current.get(b);
-            current.clear();
-            messagesReceived.add(new ClientProtocolMessage(IOUtil.getAddress(ch), b));
-            synchronized (this) {
-                notify();
+        try {
+            int i = IOUtil.readFromChannel(ch, current);
+            if (i > 0) {
+                byte[] b = new byte[i];
+                current.rewind();
+                current.get(b);
+                current.clear();
+                messagesReceived.add(new ClientProtocolMessage(IOUtil.getAddress(ch), b));
+                synchronized (this) {
+                    notify();
+                }
             }
+        } catch (IOException e) {
+            logger.warning(e.getLocalizedMessage());
+            ch.close();
         }
     }
 
