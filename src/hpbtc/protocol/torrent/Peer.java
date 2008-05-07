@@ -23,4 +23,20 @@ public class Peer {
     public InetSocketAddress getAddress() {
         return address;
     }
+
+    @Override
+    public boolean equals(Object arg) {
+        if (arg instanceof Peer && arg != null) {
+            Peer obj = (Peer) arg;
+            if (id.equals(obj.id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }
