@@ -38,7 +38,7 @@ public class TrackerInfo {
         this.pid = pid;
         this.port = port;
         this.trackers = trackers;
-        this.encoding = "ISO-8859-1";
+        this.encoding = "UTF-8";
     }
 
     public void updateTracker(String event, int uploaded, int downloaded, int bytesLeft, int totalPeers) {
@@ -59,18 +59,18 @@ public class TrackerInfo {
     }
 
     private void connectToTracker(String event, String tracker, int uploaded,
-            int downloaded, int bytesLeft, int totalPeers) throws IOException {
+            int dloaded, int bytesLeft, int totalPeers) throws IOException {
         StringBuilder req = new StringBuilder(tracker);
         req.append("?info_hash=");
-        req.append(infoHash);
+        req.append(URLEncoder.encode(new String(infoHash, encoding), encoding));
         req.append("&peer_id=");
-        req.append(pid);
+        req.append(URLEncoder.encode(new String(pid, encoding), encoding));
         req.append("&port=");
         req.append(port);
         req.append("&uploaded=");
         req.append(uploaded);
         req.append("&downloaded=");
-        req.append(downloaded);
+        req.append(dloaded);
         req.append("&left=");
         req.append(bytesLeft);
         req.append("&numwant=");
@@ -99,7 +99,7 @@ public class TrackerInfo {
             if (response.containsKey("warning message")) {
                 logger.warning((String) response.get("warning message"));
             }
-            interval = (Long) response.get("interval");
+            interval = (Long) response.get("interval");   
             if (response.containsKey("min interval")) {
                 minInterval = (Long) response.get("min interval");
             }
