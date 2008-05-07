@@ -9,6 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.LinkedList;
+import java.util.Set;
 import org.junit.Test;
 
 /**
@@ -27,7 +28,7 @@ public class TrackerInfoTest {
                 } catch (URISyntaxException e) {
                     assert false;
                 }
-                String response = "X";
+                String response = "d8:intervali10e12:min intervali5e10:tracker id3:foo8:completei20e10:incompletei9e5:peersld7:peer id2:1P2:ip9:localhost4:porti9000eed7:peer id2:2P2:ip9:localhost4:porti3003eeee";
                 t.sendResponseHeaders(200, response.length());
                 OutputStream os = t.getResponseBody();
                 os.write(response.getBytes("US-ASCII"));
@@ -45,5 +46,15 @@ public class TrackerInfoTest {
                 "PID".getBytes("US-ASCII"), 2000, t);
         ti.updateTracker("started", 1, 2, 3, 4);
         server.stop(0);
+        assert ti.getInterval() == 10;
+        assert ti.getMinInterval() == 5;
+        assert ti.getComplete() == 20;
+        assert ti.getIncomplete() == 9;
+        Set<Peer> peers = ti.getPeers();
+        assert peers.size() == 2;
+        Peer p = new Peer(new InetSocketAddress("localhost", 9000), "1P");
+        assert peers.contains(p);
+        p = new Peer(new InetSocketAddress("localhost", 3003), "2P");
+        assert peers.contains(p);
     }
 }
