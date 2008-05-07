@@ -27,7 +27,7 @@ public class TrackerInfoTest {
                 } catch (URISyntaxException e) {
                     assert false;
                 }
-                String response = "";
+                String response = "X";
                 t.sendResponseHeaders(200, response.length());
                 OutputStream os = t.getResponseBody();
                 os.write(response.getBytes("US-ASCII"));
@@ -38,6 +38,7 @@ public class TrackerInfoTest {
         server.start();
         LinkedList<LinkedList<String>> t = new LinkedList<LinkedList<String>>();
         LinkedList<String> l = new LinkedList<String>();
+        l.add("http://localhost:8001/test");
         l.add("http://localhost:8000/test");
         t.add(l);
         TrackerInfo ti = new TrackerInfo("INFOHASH".getBytes("US-ASCII"),
