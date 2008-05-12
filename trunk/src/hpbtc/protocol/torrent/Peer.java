@@ -16,6 +16,10 @@ public class Peer {
         this.id = id;
     }
     
+    public Peer(InetSocketAddress address) {
+        this(address, null);
+    }
+    
     public String getId() {
         return id;
     }

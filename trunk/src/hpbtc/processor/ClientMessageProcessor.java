@@ -24,13 +24,16 @@ import java.net.InetSocketAddress;
 public class ClientMessageProcessor implements MessageProcessor {
 
     private Client client;
+    private Peer peer;
     
-    public ClientMessageProcessor(Client client, Peer messagePeer) {
+    public ClientMessageProcessor(Client client, Peer peer) {
         this.client = client;
+        this.peer = peer;
     }
     
     public ClientMessageProcessor(Client client, InetSocketAddress address) {
         this.client = client;
+        peer = new Peer(address);
     }
 
     public void process(byte[] data) {
