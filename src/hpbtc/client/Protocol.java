@@ -3,6 +3,7 @@ package hpbtc.client;
 import hpbtc.protocol.network.*;
 import hpbtc.protocol.torrent.Peer;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -16,6 +17,7 @@ public class Protocol {
 
     public Protocol(Client client) {
         this.client = client;
+        peers = new HashMap<InetSocketAddress, ClientMessageProcessor>();
     }
 
     public void startProtocol() {
