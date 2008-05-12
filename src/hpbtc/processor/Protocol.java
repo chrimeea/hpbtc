@@ -1,6 +1,7 @@
 package hpbtc.processor;
 
-import hpbtc.protocol.network.*;
+import hpbtc.protocol.network.Client;
+import hpbtc.protocol.network.ClientProtocolMessage;
 import hpbtc.protocol.torrent.Peer;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -46,11 +47,5 @@ public class Protocol {
             peers.put(data.getPeer(), processor);
         }
         processor.process(data.getMessage());
-    }
-    
-    public void connect(Peer peer) {
-        ClientMessageProcessor processor = new ClientMessageProcessor(client, peer);
-        peers.put(peer.getAddress(), processor);
-        processor.connect();
     }
 }
