@@ -2,7 +2,6 @@ package hpbtc.processor;
 
 import hpbtc.protocol.network.Client;
 import hpbtc.protocol.network.ClientProtocolMessage;
-import hpbtc.protocol.torrent.Peer;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;

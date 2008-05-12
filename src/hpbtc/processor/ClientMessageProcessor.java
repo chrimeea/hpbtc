@@ -36,9 +36,6 @@ public class ClientMessageProcessor implements MessageProcessor {
     public void process(byte[] data) {
     }
     
-    public void connect() {
-    }
-    
     public void process(BitfieldMessage message) {
     }
 
