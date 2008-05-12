@@ -1,4 +1,4 @@
-package hpbtc.client;
+package hpbtc.processor;
 
 import hpbtc.protocol.network.*;
 import hpbtc.protocol.torrent.Peer;
