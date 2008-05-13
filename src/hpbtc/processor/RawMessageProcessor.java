@@ -11,7 +11,6 @@ import hpbtc.protocol.message.InterestedMessage;
 import hpbtc.protocol.message.NotInterestedMessage;
 import hpbtc.protocol.message.PIDMessage;
 import hpbtc.protocol.message.PieceMessage;
-import hpbtc.protocol.message.ProtocolMessage;
 import hpbtc.protocol.message.RequestMessage;
 import hpbtc.protocol.message.UnchokeMessage;
 import hpbtc.protocol.network.Network;
@@ -28,7 +27,6 @@ public class RawMessageProcessor {
     private Network client;
     private Peer peer;
     private boolean handshakeReceived;
-    private ByteBuffer current;
 
     public RawMessageProcessor(Network client, Peer peer) {
         this.client = client;
@@ -41,7 +39,7 @@ public class RawMessageProcessor {
     }
 
     public void process(byte[] data) throws IOException {
-        current = ByteBuffer.wrap(data);
+        ByteBuffer current = ByteBuffer.wrap(data);
         do {
             if (!handshakeReceived) {
                 process(new HandshakeMessage(current));
