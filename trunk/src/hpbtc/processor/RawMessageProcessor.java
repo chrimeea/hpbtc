@@ -1,6 +1,5 @@
 package hpbtc.processor;
 
-import hpbtc.protocol.network.*;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.message.MessageProcessor;
 import hpbtc.protocol.message.BitfieldMessage;
@@ -13,32 +12,56 @@ import hpbtc.protocol.message.InterestedMessage;
 import hpbtc.protocol.message.NotInterestedMessage;
 import hpbtc.protocol.message.PIDMessage;
 import hpbtc.protocol.message.PieceMessage;
+import hpbtc.protocol.message.ProtocolMessage;
 import hpbtc.protocol.message.RequestMessage;
 import hpbtc.protocol.message.UnchokeMessage;
+import hpbtc.protocol.network.Network;
+import java.io.EOFException;
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Cristian Mocanu
  */
-public class ClientMessageProcessor implements MessageProcessor {
+public class RawMessageProcessor implements MessageProcessor {
 
-    private Client client;
+    private static Logger logger = Logger.getLogger(RawMessageProcessor.class.getName());
+    private Network client;
     private Peer peer;
-    
-    public ClientMessageProcessor(Client client, Peer peer) {
+    private boolean handshakeReceived;
+    private ByteBuffer current;
+
+    public RawMessageProcessor(Network client, Peer peer) {
         this.client = client;
         this.peer = peer;
     }
-    
-    public ClientMessageProcessor(Client client, InetSocketAddress address) {
+
+    public RawMessageProcessor(Network client, InetSocketAddress address) {
         this.client = client;
         peer = new Peer(address);
     }
 
-    public void process(byte[] data) {
+    public void process(byte[] data) throws IOException {
+        current = ByteBuffer.wrap(data);
+        try {
+            do {
+                if (!handshakeReceived) {
+                    ProtocolMessage m = new HandshakeMessage(current);
+                    handshakeReceived = true;
+                } else {
+                //receive message
+                }
+            } while (current.remaining() > 0);
+        } catch (EOFException eofe) {
+        } catch (IOException ioe) {
+            client.closeConnection(peer.getAddress());
+            logger.warning(ioe.getLocalizedMessage());
+        }
     }
-    
+
     public void process(BitfieldMessage message) {
     }
 

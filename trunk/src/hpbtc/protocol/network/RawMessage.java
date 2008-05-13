@@ -6,12 +6,12 @@ import java.net.InetSocketAddress;
  *
  * @author Cristian Mocanu
  */
-public class ClientProtocolMessage {
+public class RawMessage {
     
     private byte[] message;
     private InetSocketAddress peer;
     
-    public ClientProtocolMessage(InetSocketAddress peer, byte[] message) {
+    public RawMessage(InetSocketAddress peer, byte[] message) {
         this.message = message;
         this.peer = peer;
     }
