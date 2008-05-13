@@ -17,13 +17,17 @@ public class PeerRepository {
         peerInfo = new HashSet<PeerInfo>();
     }
     
-    public boolean isHandshakeReceived(InetSocketAddress address) {
+    public PeerInfo getPeer(InetSocketAddress address) {
         for (PeerInfo p: peerInfo) {
             if (p.getAddress().equals(address)) {
-                return true;
+                return p;
             }
         }
-        return false;
+        return null;
+    }
+    
+    public boolean isHandshakeReceived(InetSocketAddress address) {
+        return getPeer(address) != null;
     }
     
     public void removePeer(InetSocketAddress address) {
