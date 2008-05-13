@@ -28,6 +28,10 @@ public class Peer {
         return address;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+    
     @Override
     public boolean equals(Object arg) {
         if (arg instanceof Peer && arg != null) {
