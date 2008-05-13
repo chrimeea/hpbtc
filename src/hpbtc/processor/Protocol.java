@@ -33,13 +33,13 @@ public class Protocol {
     
     private Set<TorrentInfo> torrents;
     private Network network;
-    private Set<InetSocketAddress> connected;
+    private PeerRepository peerRep;
     private byte[] peerId;
     
     public Protocol() {
         torrents = new HashSet<TorrentInfo>();
         network = new Network();
-        connected = new HashSet<InetSocketAddress>();
+        peerRep = new PeerRepository();
         generateId();
     }
     
@@ -91,16 +91,16 @@ public class Protocol {
             }
         }).start();
     }
-    
+       
     private void process(RawMessage data) throws IOException {
         if (data.isDisconnect()) {
-            disconnectedByPeer(data.getPeer());
+            peerRep.removePeer(data.getPeer());
             return;
         }
         ByteBuffer current = ByteBuffer.wrap(data.getMessage());
         InetSocketAddress address = data.getPeer();
         do {
-            if (connected.contains(address)) {
+            if (peerRep.isHandshakeReceived(address)) {
                 byte disc = current.get();
                 switch (disc) {
                     case BitfieldMessage.TYPE_DISCRIMINATOR:
@@ -135,21 +135,17 @@ public class Protocol {
             }
         } while (current.remaining() > 0);
     }
-    
-    private void disconnectedByPeer(InetSocketAddress address) {
-        connected.remove(address);
-    }
 
     private void process(HandshakeMessage message, InetSocketAddress address) throws IOException {
-        if (connected.contains(message.getInfoHash())) {
-            connected.add(address);
+        if (torrents.contains(message.getInfoHash())) {
+            peerRep.addPeer(address, message.getPeerId());
             HandshakeMessage reply = new HandshakeMessage(message.getInfoHash(), peerId);
             network.postMessage(address, reply.send());
         } else {
             network.closeConnection(address);
         }
     }
-    
+
     private void process(BitfieldMessage message, InetSocketAddress address) {
     }
     

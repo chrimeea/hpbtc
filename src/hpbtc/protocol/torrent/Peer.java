@@ -1,6 +1,7 @@
 package hpbtc.protocol.torrent;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 /**
  *
@@ -9,9 +10,9 @@ import java.net.InetSocketAddress;
 public class Peer {
 
     private InetSocketAddress address;
-    private String id;
+    private byte[] id;
     
-    public Peer(InetSocketAddress address, String id) {
+    public Peer(InetSocketAddress address, byte[] id) {
         this.address = address;
         this.id = id;
     }
@@ -20,7 +21,7 @@ public class Peer {
         this(address, null);
     }
     
-    public String getId() {
+    public byte[] getId() {
         return id;
     }
     
@@ -28,7 +29,7 @@ public class Peer {
         return address;
     }
 
-    public void setId(String id) {
+    public void setId(byte[] id) {
         this.id = id;
     }
     
@@ -36,9 +37,7 @@ public class Peer {
     public boolean equals(Object arg) {
         if (arg instanceof Peer && arg != null) {
             Peer obj = (Peer) arg;
-            if (id.equals(obj.id)) {
-                return true;
-            }
+            return Arrays.equals(id, obj.id);
         }
         return false;
     }
