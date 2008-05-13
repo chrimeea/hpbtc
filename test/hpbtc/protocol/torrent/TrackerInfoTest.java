@@ -52,9 +52,9 @@ public class TrackerInfoTest {
         assert ti.getIncomplete() == 9;
         Set<Peer> peers = ti.getPeers();
         assert peers.size() == 2;
-        Peer p = new Peer(new InetSocketAddress("localhost", 9000), "1P");
+        Peer p = new Peer(new InetSocketAddress("localhost", 9000), "1P".getBytes("US-ASCII"));
         assert peers.contains(p);
-        p = new Peer(new InetSocketAddress("localhost", 3003), "2P");
+        p = new Peer(new InetSocketAddress("localhost", 3003), "2P".getBytes("US-ASCII"));
         assert peers.contains(p);
     }
 }

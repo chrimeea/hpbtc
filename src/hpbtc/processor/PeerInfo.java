@@ -9,7 +9,6 @@ import java.net.InetSocketAddress;
  */
 public class PeerInfo extends Peer {
     
-    private boolean handshakeReceived;
     private boolean messagesReceived;
 
     public PeerInfo(InetSocketAddress address, byte[] id) {
@@ -20,16 +19,8 @@ public class PeerInfo extends Peer {
         super(address);
     }
 
-    public boolean isHandshakeReceived() {
-        return handshakeReceived;
-    }
-
     public boolean isMessagesReceived() {
         return messagesReceived;
-    }
-
-    public void setHandshakeReceived(boolean handshakeReceived) {
-        this.handshakeReceived = handshakeReceived;
     }
 
     public void setMessagesReceived(boolean messagesReceived) {

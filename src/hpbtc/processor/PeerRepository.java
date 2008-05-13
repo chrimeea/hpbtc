@@ -20,7 +20,7 @@ public class PeerRepository {
     public boolean isHandshakeReceived(InetSocketAddress address) {
         for (PeerInfo p: peerInfo) {
             if (p.getAddress().equals(address)) {
-                return p.isHandshakeReceived();
+                return true;
             }
         }
         return false;
