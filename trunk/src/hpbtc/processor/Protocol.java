@@ -26,15 +26,15 @@ import java.util.logging.Logger;
  *
  * @author Cristian Mocanu
  */
-public class Client {
+public class Protocol {
 
-    private static Logger logger = Logger.getLogger(Client.class.getName());
+    private static Logger logger = Logger.getLogger(Protocol.class.getName());
     
     private List<TorrentInfo> torrents;
     private Network network;
     private List<InetSocketAddress> connected;
     
-    public Client() {
+    public Protocol() {
         torrents = new LinkedList<TorrentInfo>();
         network = new Network();
         connected = new LinkedList<InetSocketAddress>();
