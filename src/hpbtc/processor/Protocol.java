@@ -1,10 +1,12 @@
 package hpbtc.processor;
 
-import hpbtc.protocol.network.Client;
-import hpbtc.protocol.network.ClientProtocolMessage;
+import hpbtc.protocol.network.Network;
+import hpbtc.protocol.network.RawMessage;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  *
@@ -12,12 +14,14 @@ import java.util.Map;
  */
 public class Protocol {
 
-    private Client client;
-    private Map<InetSocketAddress, ClientMessageProcessor> peers;
+    private static Logger logger = Logger.getLogger(Protocol.class.getName());
+    
+    private Network client;
+    private Map<InetSocketAddress, RawMessageProcessor> peers;
 
-    public Protocol(Client client) {
+    public Protocol(Network client) {
         this.client = client;
-        peers = new HashMap<InetSocketAddress, ClientMessageProcessor>();
+        peers = new HashMap<InetSocketAddress, RawMessageProcessor>();
     }
 
     public void startProtocol() {
@@ -32,17 +36,21 @@ public class Protocol {
                             } catch (InterruptedException e) {
                             }
                         } while (!client.hasUnreadMessages());
-                        process(client.takeMessage());
+                        try {
+                            process(client.takeMessage());
+                        } catch (IOException ioe) {
+                            logger.warning(ioe.getLocalizedMessage());
+                        }
                     } while (client.hasUnreadMessages());
                 }
             }
         }).start();
     }
 
-    private void process(ClientProtocolMessage data) {
-        ClientMessageProcessor processor = peers.get(data.getPeer());
+    private void process(RawMessage data) throws IOException {
+        RawMessageProcessor processor = peers.get(data.getPeer());
         if (processor == null) {
-            processor = new ClientMessageProcessor(client, data.getPeer());
+            processor = new RawMessageProcessor(client, data.getPeer());
             peers.put(data.getPeer(), processor);
         }
         processor.process(data.getMessage());

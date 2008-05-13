@@ -4,7 +4,7 @@
  */
 package hpbtc;
 
-import hpbtc.protocol.network.Client;
+import hpbtc.protocol.network.Network;
 import hpbtc.protocol.torrent.TorrentInfo;
 import java.io.FileInputStream;
 import java.util.logging.Logger;
@@ -33,7 +33,7 @@ public class HPBTC {
             FileInputStream fis = new FileInputStream(name);
             TorrentInfo ti = new TorrentInfo(fis);
             fis.close();
-            final Client client = new Client();
+            final Network client = new Network();
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
                 public void run() {

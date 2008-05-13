@@ -26,21 +26,21 @@ import util.IOUtil;
  * @author chris
  *
  */
-public class Client {
+public class Network {
 
     public static final int MIN_PORT = 6881;
     public static final int MAX_PORT = 6999;
-    private static Logger logger = Logger.getLogger(Client.class.getName());
+    private static Logger logger = Logger.getLogger(Network.class.getName());
     private ServerSocketChannel serverCh;
     private Selector selector;
     private Queue<RegisterOp> registered;
     private Map<InetSocketAddress, Queue<ByteBuffer>> messagesToSend;
-    private Queue<ClientProtocolMessage> messagesReceived;
+    private Queue<RawMessage> messagesReceived;
     private ByteBuffer current;
     private boolean isRunning;
 
-    public Client() {
-        messagesReceived = new ConcurrentLinkedQueue<ClientProtocolMessage>();
+    public Network() {
+        messagesReceived = new ConcurrentLinkedQueue<RawMessage>();
         messagesToSend = new ConcurrentHashMap<InetSocketAddress, Queue<ByteBuffer>>();
         registered = new ConcurrentLinkedQueue<RegisterOp>();
         current = ByteBuffer.allocate(16384);
@@ -155,13 +155,20 @@ public class Client {
             current.rewind();
             current.get(b);
             current.clear();
-            messagesReceived.add(new ClientProtocolMessage(IOUtil.getAddress(ch), b));
+            messagesReceived.add(new RawMessage(IOUtil.getAddress(ch), b));
             synchronized (this) {
                 notify();
             }
         }
     }
 
+    public void closeConnection(InetSocketAddress address) throws IOException {
+        SocketChannel ch = findByAddress(address);
+        if (ch != null) {
+            ch.close();
+        }
+    }
+    
     private void writeNext(SocketChannel ch) {
         Queue<ByteBuffer> q = messagesToSend.get(IOUtil.getAddress(ch));
         try {
@@ -181,7 +188,7 @@ public class Client {
         }
     }
 
-    public ClientProtocolMessage takeMessage() {
+    public RawMessage takeMessage() {
         return messagesReceived.poll();
     }
 

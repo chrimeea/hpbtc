@@ -14,11 +14,11 @@ import org.junit.Test;
  *
  * @author Cristian Mocanu
  */
-public class ClientTest {
+public class NetworkTest {
 
     @Test
     public void testClientIncomingConnection() throws IOException, UnsupportedEncodingException {
-        Client c = new Client();
+        Network c = new Network();
         c.connect();
         SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.getLocalHost(), c.getPort()));
         ch.write(ByteBuffer.wrap("test client".getBytes("US-ASCII")));
@@ -29,7 +29,7 @@ public class ClientTest {
                 } catch (InterruptedException e) {}
             } while (!c.hasUnreadMessages());
         }
-        ClientProtocolMessage m = c.takeMessage();
+        RawMessage m = c.takeMessage();
         assert m.getPeer().getAddress().equals(ch.socket().getLocalAddress());
         assert m.getPeer().getPort() == ch.socket().getLocalPort();
         assert new String(m.getMessage(), "US-ASCII").equals("test client");
@@ -40,7 +40,7 @@ public class ClientTest {
     @Test
     public void testClientConnect() throws IOException {
         ServerSocket ch = new ServerSocket(0);
-        Client c = new Client();
+        Network c = new Network();
         c.connect();
         InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(), ch.getLocalPort());
         c.postMessage(a, ByteBuffer.wrap("bit torrent".getBytes("US-ASCII")));
