@@ -115,7 +115,7 @@ public class TrackerInfo {
             List<Map<String, Object>> prs = (List<Map<String, Object>>) response.get("peers");
             for (Map<String, Object> d : prs) {
                 peers.add(new Peer(new InetSocketAddress((String) d.get("ip"),
-                        ((Long) d.get("port")).intValue()), (String) d.get("peer id")));
+                        ((Long) d.get("port")).intValue()), ((String) d.get("peer id")).getBytes(encoding)));
             }
         }
     }
