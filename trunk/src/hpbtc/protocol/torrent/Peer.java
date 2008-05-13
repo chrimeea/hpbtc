@@ -44,6 +44,6 @@ public class Peer {
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return new String(id).hashCode();
     }
 }
