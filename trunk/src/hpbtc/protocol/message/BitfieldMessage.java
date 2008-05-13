@@ -39,14 +39,6 @@ public class BitfieldMessage implements ProtocolMessage {
     public BitfieldMessage(BitSet pieces) {
         this.pieces = pieces;
     }
-    
-    /* (non-Javadoc)
-     * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
-     */
-    @Override
-    public void process(MessageProcessor processor) {
-        processor.process(this);
-    }
 
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
