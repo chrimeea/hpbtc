@@ -13,7 +13,6 @@ import hpbtc.protocol.message.PIDMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.RequestMessage;
 import hpbtc.protocol.message.UnchokeMessage;
-import hpbtc.protocol.network.Network;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -24,17 +23,14 @@ import java.nio.ByteBuffer;
  */
 public class RawMessageProcessor {
 
-    private Network client;
     private Peer peer;
     private boolean handshakeReceived;
 
-    public RawMessageProcessor(Network client, Peer peer) {
-        this.client = client;
+    public RawMessageProcessor(Peer peer) {
         this.peer = peer;
     }
 
-    public RawMessageProcessor(Network client, InetSocketAddress address) {
-        this.client = client;
+    public RawMessageProcessor(InetSocketAddress address) {
         peer = new Peer(address);
     }
 
