@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,7 +20,7 @@ import java.util.Map;
  * @author Cristian Mocanu
  */
 public class TorrentInfo {
-    
+
     private List<LinkedList<String>> trackers;
     private byte[] infoHash;
     private boolean multiple;
@@ -97,7 +98,7 @@ public class TorrentInfo {
         md.update(os.toByteArray());
         return md.digest();
     }
-    
+
     public long getFileLength() {
         return fileLength;
     }
@@ -144,5 +145,22 @@ public class TorrentInfo {
 
     public String getEncoding() {
         return encoding;
+    }
+
+    @Override
+    public boolean equals(Object arg0) {
+        if (arg0 instanceof TorrentInfo) {
+            TorrentInfo t = (TorrentInfo) arg0;
+            return Arrays.equals(infoHash, t.infoHash);
+        } else if (arg0 instanceof byte[]) {
+            return Arrays.equals(infoHash, (byte[]) arg0);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return infoHash.hashCode();
     }
 }

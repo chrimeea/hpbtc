@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 public class HandshakeMessage implements ProtocolMessage {
 
     private byte[] infoHash;
-    private String peerId;
+    private byte[] peerId;
 
     public HandshakeMessage(ByteBuffer message) throws IOException {
         if (message.limit() < 48) {
@@ -26,27 +26,32 @@ public class HandshakeMessage implements ProtocolMessage {
         if (message.remaining() >= 20) {
             message.limit(68);
             message.position(48);
-            byte[] id = new byte[20];
-            message.get(id);
-            peerId = new String(id, "UTF-8");
+            peerId = new byte[20];
+            message.get(peerId);
         }
     }
 
-    public String getPeerId() {
-        return peerId;
+    public HandshakeMessage(byte[] infoHash, byte[] peerId) {
+        this.infoHash = infoHash;
+        this.peerId = peerId;
     }
     
+    public byte[] getPeerId() {
+        return peerId;
+    }
+
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override
     public ByteBuffer send() {
-        ByteBuffer bb = ByteBuffer.allocate(48);
+        ByteBuffer bb = ByteBuffer.allocate(68);
         getProtocol(bb);
         for (int i = 0; i < 8; i++) {
             bb.put((byte) 0);
         }
         bb.put(infoHash);
+        bb.put(peerId);
         return bb;
     }
 
@@ -61,5 +66,9 @@ public class HandshakeMessage implements ProtocolMessage {
 
     public void setInfoHash(byte[] infoHash) {
         this.infoHash = infoHash;
+    }
+
+    public void setPeerId(byte[] peerId) {
+        this.peerId = peerId;
     }
 }

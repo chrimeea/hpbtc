@@ -18,8 +18,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -30,14 +31,28 @@ public class Protocol {
 
     private static Logger logger = Logger.getLogger(Protocol.class.getName());
     
-    private List<TorrentInfo> torrents;
+    private Set<TorrentInfo> torrents;
     private Network network;
-    private List<InetSocketAddress> connected;
+    private Set<InetSocketAddress> connected;
+    private byte[] peerId;
     
     public Protocol() {
-        torrents = new LinkedList<TorrentInfo>();
+        torrents = new HashSet<TorrentInfo>();
         network = new Network();
-        connected = new LinkedList<InetSocketAddress>();
+        connected = new HashSet<InetSocketAddress>();
+        generateId();
+    }
+    
+    private void generateId() {
+        peerId = new byte[20];
+        peerId[0] = 'C';
+        peerId[1] = 'M';
+        peerId[2] = '-';
+        peerId[3] = '2';
+        peerId[4] = '.';
+        peerId[5] = '0';
+        Random r = new Random();
+        r.nextBytes(peerId);
     }
     
     public void download(String fileName) throws IOException, NoSuchAlgorithmException {
@@ -83,73 +98,82 @@ public class Protocol {
             return;
         }
         ByteBuffer current = ByteBuffer.wrap(data.getMessage());
+        InetSocketAddress address = data.getPeer();
         do {
-            if (connected.contains(data.getPeer())) {
+            if (connected.contains(address)) {
                 byte disc = current.get();
                 switch (disc) {
                     case BitfieldMessage.TYPE_DISCRIMINATOR:
-                        process(new BitfieldMessage(current));
+                        process(new BitfieldMessage(current), address);
                         break;
                     case CancelMessage.TYPE_DISCRIMINATOR:
-                        process(new CancelMessage(current));
+                        process(new CancelMessage(current), address);
                         break;
                     case ChokeMessage.TYPE_DISCRIMINATOR:
-                        process(new ChokeMessage());
+                        process(new ChokeMessage(), address);
                         break;
                     case HaveMessage.TYPE_DISCRIMINATOR:
-                        process(new HaveMessage(current));
+                        process(new HaveMessage(current), address);
                         break;
                     case InterestedMessage.TYPE_DISCRIMINATOR:
-                        process(new InterestedMessage());
+                        process(new InterestedMessage(), address);
                         break;
                     case NotInterestedMessage.TYPE_DISCRIMINATOR:
-                        process(new NotInterestedMessage());
+                        process(new NotInterestedMessage(), address);
                         break;
                     case PieceMessage.TYPE_DISCRIMINATOR:
-                        process(new PieceMessage(current));
+                        process(new PieceMessage(current), address);
                         break;
                     case RequestMessage.TYPE_DISCRIMINATOR:
-                        process(new RequestMessage(current));
+                        process(new RequestMessage(current), address);
                         break;
                     case UnchokeMessage.TYPE_DISCRIMINATOR:
-                        process(new UnchokeMessage());
+                        process(new UnchokeMessage(), address);
                 }
             } else {
-                process(new HandshakeMessage(current));
+                process(new HandshakeMessage(current), data.getPeer());
             }
         } while (current.remaining() > 0);
     }
     
     private void disconnectedByPeer(InetSocketAddress address) {
+        connected.remove(address);
     }
 
-    private void process(HandshakeMessage message) {
+    private void process(HandshakeMessage message, InetSocketAddress address) throws IOException {
+        if (connected.contains(message.getInfoHash())) {
+            connected.add(address);
+            HandshakeMessage reply = new HandshakeMessage(message.getInfoHash(), peerId);
+            network.postMessage(address, reply.send());
+        } else {
+            network.closeConnection(address);
+        }
     }
     
-    private void process(BitfieldMessage message) {
+    private void process(BitfieldMessage message, InetSocketAddress address) {
     }
     
-    private void process(CancelMessage message) {
+    private void process(CancelMessage message, InetSocketAddress address) {
     }
     
-    private void process(ChokeMessage message) {
+    private void process(ChokeMessage message, InetSocketAddress address) {
     }
     
-    private void process(HaveMessage message) {
+    private void process(HaveMessage message, InetSocketAddress address) {
     }
 
-    private void process(InterestedMessage message) {
+    private void process(InterestedMessage message, InetSocketAddress address) {
     }
     
-    private void process(NotInterestedMessage message) {
+    private void process(NotInterestedMessage message, InetSocketAddress address) {
     }
     
-    private void process(PieceMessage message) {
+    private void process(PieceMessage message, InetSocketAddress address) {
     }
     
-    private void process(RequestMessage message) {
+    private void process(RequestMessage message, InetSocketAddress address) {
     }
     
-    private void process(UnchokeMessage message) {
+    private void process(UnchokeMessage message, InetSocketAddress address) {
     }
 }
