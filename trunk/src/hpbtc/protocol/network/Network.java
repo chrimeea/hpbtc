@@ -144,7 +144,7 @@ public class Network {
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
             i = current.position();
-            disconnectFromPeer(ch);
+            disconnectedByPeer(ch);
         }
         if (i > 0) {
             byte[] b = new byte[i];
@@ -158,7 +158,7 @@ public class Network {
         }
     }
 
-    private void disconnectFromPeer(SocketChannel ch) {
+    private void disconnectedByPeer(SocketChannel ch) {
         try {
             ch.close();
         } catch (IOException e) {
@@ -188,7 +188,7 @@ public class Network {
             } while (!q.isEmpty());
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
-            disconnectFromPeer(ch);
+            disconnectedByPeer(ch);
         }
     }
 
