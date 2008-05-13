@@ -144,11 +144,7 @@ public class Network {
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
             i = current.position();
-            try {
-                ch.close();
-            } catch (IOException x) {
-                logger.warning(x.getLocalizedMessage());
-            }
+            disconnectFromPeer(ch);
         }
         if (i > 0) {
             byte[] b = new byte[i];
@@ -162,13 +158,25 @@ public class Network {
         }
     }
 
+    private void disconnectFromPeer(SocketChannel ch) {
+        try {
+            ch.close();
+        } catch (IOException e) {
+            logger.warning(e.getLocalizedMessage());
+        }
+        messagesReceived.add(new RawMessage(IOUtil.getAddress(ch)));
+        synchronized (this) {
+            notify();
+        }
+    }
+
     public void closeConnection(InetSocketAddress address) throws IOException {
         SocketChannel ch = findByAddress(address);
         if (ch != null) {
             ch.close();
         }
     }
-    
+
     private void writeNext(SocketChannel ch) {
         Queue<ByteBuffer> q = messagesToSend.get(IOUtil.getAddress(ch));
         try {
@@ -180,11 +188,7 @@ public class Network {
             } while (!q.isEmpty());
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
-            try {
-                ch.close();
-            } catch (IOException x) {
-                logger.warning(x.getLocalizedMessage());
-            }
+            disconnectFromPeer(ch);
         }
     }
 

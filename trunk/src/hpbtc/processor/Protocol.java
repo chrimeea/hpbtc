@@ -1,5 +1,6 @@
 package hpbtc.processor;
 
+import hpbtc.protocol.message.ProtocolMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.RawMessage;
 import java.io.IOException;
@@ -16,39 +17,40 @@ public class Protocol {
 
     private static Logger logger = Logger.getLogger(Protocol.class.getName());
     
-    private Network client;
+    private Network network;
     private Map<InetSocketAddress, RawMessageProcessor> peers;
 
-    public Protocol(Network client) {
-        this.client = client;
+    public Protocol() {
+        this.network = new Network();
         peers = new HashMap<InetSocketAddress, RawMessageProcessor>();
     }
 
-    public void startProtocol() {
+    public void startProtocol() throws IOException {
+        network.connect();
         new Thread(new Runnable() {
 
             public void run() {
-                synchronized (client) {
+                synchronized (network) {
                     do {
                         do {
                             try {
-                                client.wait();
+                                network.wait();
                             } catch (InterruptedException e) {
                             }
-                        } while (!client.hasUnreadMessages());
+                        } while (!network.hasUnreadMessages());
                         RawMessage message = null;
                         try {
-                            message = client.takeMessage();
+                            message = network.takeMessage();
                             process(message);
                         } catch (IOException ioe) {
                             logger.warning(ioe.getLocalizedMessage());
                             try {
-                                client.closeConnection(message.getPeer());
+                                network.closeConnection(message.getPeer());
                             } catch (IOException e) {
                                 logger.warning(e.getLocalizedMessage());
                             }
                         }
-                    } while (client.hasUnreadMessages());
+                    } while (network.hasUnreadMessages());
                 }
             }
         }).start();
@@ -57,9 +59,20 @@ public class Protocol {
     private void process(RawMessage data) throws IOException {
         RawMessageProcessor processor = peers.get(data.getPeer());
         if (processor == null) {
-            processor = new RawMessageProcessor(client, data.getPeer());
+            processor = new RawMessageProcessor(data.getPeer());
             peers.put(data.getPeer(), processor);
+        } else if (data.isDisconnect()) {
+            peers.remove(processor);
+            return;
         }
         processor.process(data.getMessage());
+    }
+    
+    public void disconnectFromPeer(InetSocketAddress address) throws IOException {
+        network.closeConnection(address);
+    }
+    
+    public void sendMessage(InetSocketAddress address, ProtocolMessage message) throws IOException {
+        network.postMessage(address, message.send());
     }
 }
