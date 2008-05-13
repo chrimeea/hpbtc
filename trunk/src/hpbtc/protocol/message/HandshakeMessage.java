@@ -7,9 +7,10 @@ import java.nio.ByteBuffer;
 public class HandshakeMessage implements ProtocolMessage {
 
     private byte[] infoHash;
+    private String peerId;
 
     public HandshakeMessage(ByteBuffer message) throws IOException {
-        if (message.limit() < 28) {
+        if (message.limit() < 48) {
             throw new EOFException("wrong hanshake");
         }
         message.limit(20);
@@ -19,13 +20,22 @@ public class HandshakeMessage implements ProtocolMessage {
         if (!message.equals(h)) {
             throw new IOException("wrong hanshake");
         }
+        message.limit(48);
         message.position(28);
+        message.get(infoHash);
         if (message.remaining() >= 20) {
-            message.limit(48);
-            message.get(infoHash);
+            message.limit(68);
+            message.position(48);
+            byte[] id = new byte[20];
+            message.get(id);
+            peerId = new String(id, "UTF-8");
         }
     }
 
+    public String getPeerId() {
+        return peerId;
+    }
+    
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */

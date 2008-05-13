@@ -88,6 +88,10 @@ public class RawMessageProcessor {
 
     private void process(HandshakeMessage message) {
         handshakeReceived = true;
+        String id = message.getPeerId();
+        if (peer.getId() == null && id != null) {
+            peer.setId(id);
+        }
     }
 
     private void process(HaveMessage message) {
