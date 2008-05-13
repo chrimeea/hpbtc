@@ -16,14 +16,6 @@ public class NotInterestedMessage implements ProtocolMessage {
     
     public NotInterestedMessage() {
     }
-
-    /* (non-Javadoc)
-     * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
-     */
-    @Override
-    public void process(MessageProcessor processor) {
-        processor.process(this);
-    }
     
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()

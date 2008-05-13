@@ -18,14 +18,6 @@ public class InterestedMessage implements ProtocolMessage {
     }
 
     /* (non-Javadoc)
-     * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
-     */
-    @Override
-    public void process(MessageProcessor processor) {
-        processor.process(this);
-    }
-
-    /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
     @Override

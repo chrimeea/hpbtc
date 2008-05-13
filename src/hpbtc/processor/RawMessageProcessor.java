@@ -1,7 +1,6 @@
 package hpbtc.processor;
 
 import hpbtc.protocol.torrent.Peer;
-import hpbtc.protocol.message.MessageProcessor;
 import hpbtc.protocol.message.BitfieldMessage;
 import hpbtc.protocol.message.CancelMessage;
 import hpbtc.protocol.message.ChokeMessage;
@@ -16,19 +15,16 @@ import hpbtc.protocol.message.ProtocolMessage;
 import hpbtc.protocol.message.RequestMessage;
 import hpbtc.protocol.message.UnchokeMessage;
 import hpbtc.protocol.network.Network;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.logging.Logger;
 
 /**
  *
  * @author Cristian Mocanu
  */
-public class RawMessageProcessor implements MessageProcessor {
+public class RawMessageProcessor {
 
-    private static Logger logger = Logger.getLogger(RawMessageProcessor.class.getName());
     private Network client;
     private Peer peer;
     private boolean handshakeReceived;
@@ -46,55 +42,77 @@ public class RawMessageProcessor implements MessageProcessor {
 
     public void process(byte[] data) throws IOException {
         current = ByteBuffer.wrap(data);
-        try {
-            do {
-                if (!handshakeReceived) {
-                    ProtocolMessage m = new HandshakeMessage(current);
-                    handshakeReceived = true;
-                } else {
-                //receive message
+        do {
+            if (!handshakeReceived) {
+                process(new HandshakeMessage(current));
+            } else {
+                byte disc = current.get();
+                switch (disc) {
+                    case BitfieldMessage.TYPE_DISCRIMINATOR:
+                        process(new BitfieldMessage(current));
+                        break;
+                    case CancelMessage.TYPE_DISCRIMINATOR:
+                        process(new CancelMessage(current));
+                        break;
+                    case ChokeMessage.TYPE_DISCRIMINATOR:
+                        process(new ChokeMessage());
+                        break;
+                    case HaveMessage.TYPE_DISCRIMINATOR:
+                        process(new HaveMessage(current));
+                        break;
+                    case InterestedMessage.TYPE_DISCRIMINATOR:
+                        process(new InterestedMessage());
+                        break;
+                    case NotInterestedMessage.TYPE_DISCRIMINATOR:
+                        process(new NotInterestedMessage());
+                        break;
+                    case PieceMessage.TYPE_DISCRIMINATOR:
+                        process(new PieceMessage(current));
+                        break;
+                    case RequestMessage.TYPE_DISCRIMINATOR:
+                        process(new RequestMessage(current));
+                        break;
+                    case UnchokeMessage.TYPE_DISCRIMINATOR:
+                        process(new UnchokeMessage());
                 }
-            } while (current.remaining() > 0);
-        } catch (EOFException eofe) {
-        } catch (IOException ioe) {
-            client.closeConnection(peer.getAddress());
-            logger.warning(ioe.getLocalizedMessage());
-        }
+            }
+        } while (current.remaining() > 0);
     }
 
-    public void process(BitfieldMessage message) {
+    private void process(BitfieldMessage message) {
     }
 
-    public void process(CancelMessage message) {
+    private void process(CancelMessage message) {
     }
 
-    public void process(ChokeMessage message) {
+    private void process(ChokeMessage message) {
     }
 
-    public void process(HandshakeMessage message) {
+    private void process(HandshakeMessage message) {
+        handshakeReceived = true;
     }
 
-    public void process(HaveMessage message) {
+    private void process(HaveMessage message) {
     }
 
-    public void process(IdleMessage message) {
+    private void process(IdleMessage message) {
     }
 
-    public void process(InterestedMessage message) {
+    private void process(InterestedMessage message) {
     }
 
-    public void process(NotInterestedMessage message) {
+    private void process(NotInterestedMessage message) {
     }
 
-    public void process(PIDMessage message) {
+    private void process(PIDMessage message) {
     }
 
-    public void process(final PieceMessage message) {
+    private void process(final PieceMessage message) {
     }
 
-    public void process(RequestMessage message) {
+    private void process(RequestMessage message) {
     }
 
-    public void process(UnchokeMessage message) {
+    private void process(UnchokeMessage message) {
     }
 }

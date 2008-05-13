@@ -36,10 +36,17 @@ public class Protocol {
                             } catch (InterruptedException e) {
                             }
                         } while (!client.hasUnreadMessages());
+                        RawMessage message = null;
                         try {
-                            process(client.takeMessage());
+                            message = client.takeMessage();
+                            process(message);
                         } catch (IOException ioe) {
                             logger.warning(ioe.getLocalizedMessage());
+                            try {
+                                client.closeConnection(message.getPeer());
+                            } catch (IOException e) {
+                                logger.warning(e.getLocalizedMessage());
+                            }
                         }
                     } while (client.hasUnreadMessages());
                 }

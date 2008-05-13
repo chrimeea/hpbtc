@@ -23,14 +23,6 @@ public class HaveMessage implements ProtocolMessage {
     public HaveMessage(int index) {
         this.index = index;
     }
-    
-    /* (non-Javadoc)
-     * @see hpbtc.message.ProtocolMessage#process(java.nio.ByteBuffer)
-     */
-    @Override
-    public void process(MessageProcessor processor) {
-        processor.process(this);
-    }
 
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()

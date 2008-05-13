@@ -11,8 +11,6 @@ import java.nio.ByteBuffer;
  *
  */
 public interface ProtocolMessage {
-          
-    void process(MessageProcessor processor);
     
     ByteBuffer send();
 }
