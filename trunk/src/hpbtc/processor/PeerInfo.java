@@ -10,15 +10,21 @@ import java.net.InetSocketAddress;
 public class PeerInfo extends Peer {
     
     private boolean messagesReceived;
+    private byte[] infoHash;
 
-    public PeerInfo(InetSocketAddress address, byte[] id) {
+    public PeerInfo(InetSocketAddress address, byte[] id, byte[] infoHash) {
         super(address, id);
+        this.infoHash = infoHash;
     }
     
     public PeerInfo(InetSocketAddress address) {
         super(address);
     }
 
+    public byte[] getInfoHash() {
+        return infoHash;
+    }
+    
     public boolean isMessagesReceived() {
         return messagesReceived;
     }

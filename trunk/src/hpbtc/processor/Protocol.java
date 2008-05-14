@@ -18,9 +18,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -30,19 +28,18 @@ import java.util.logging.Logger;
 public class Protocol {
 
     private static Logger logger = Logger.getLogger(Protocol.class.getName());
-    
-    private Set<TorrentInfo> torrents;
+    private TorrentRepository torrentRep;
     private Network network;
     private PeerRepository peerRep;
     private byte[] peerId;
-    
+
     public Protocol() {
-        torrents = new HashSet<TorrentInfo>();
+        torrentRep = new TorrentRepository();
         network = new Network();
         peerRep = new PeerRepository();
         generateId();
     }
-    
+
     private void generateId() {
         peerId = new byte[20];
         peerId[0] = 'C';
@@ -54,17 +51,17 @@ public class Protocol {
         Random r = new Random();
         r.nextBytes(peerId);
     }
-    
+
     public void download(String fileName) throws IOException, NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
-        torrents.add(new TorrentInfo(fis));
+        torrentRep.addTorrent(new TorrentInfo(fis));
         fis.close();
     }
 
     public void stopProtocol() {
         network.disconnect();
     }
-    
+
     public void startProtocol() throws IOException {
         network.connect();
         new Thread(new Runnable() {
@@ -98,7 +95,7 @@ public class Protocol {
             }
         }).start();
     }
-       
+
     private void process(RawMessage data) throws IOException {
         if (data.isDisconnect()) {
             peerRep.removePeer(data.getPeer());
@@ -143,10 +140,11 @@ public class Protocol {
             }
         } while (current.remaining() > 0);
     }
-
+    
     private void process(HandshakeMessage message, InetSocketAddress address) throws IOException {
-        if (torrents.contains(message.getInfoHash())) {
-            peerRep.addPeer(address, message.getPeerId());
+        byte[] infoHash = message.getInfoHash();
+        if (torrentRep.haveTorrent(infoHash)) {
+            peerRep.addPeer(new PeerInfo(address, message.getPeerId(), infoHash));
             HandshakeMessage reply = new HandshakeMessage(message.getInfoHash(), peerId);
             network.postMessage(address, reply.send());
         } else {
@@ -156,28 +154,28 @@ public class Protocol {
 
     private void process(BitfieldMessage message, InetSocketAddress address) {
     }
-    
+
     private void process(CancelMessage message, InetSocketAddress address) {
     }
-    
+
     private void process(ChokeMessage message, InetSocketAddress address) {
     }
-    
+
     private void process(HaveMessage message, InetSocketAddress address) {
     }
 
     private void process(InterestedMessage message, InetSocketAddress address) {
     }
-    
+
     private void process(NotInterestedMessage message, InetSocketAddress address) {
     }
-    
+
     private void process(PieceMessage message, InetSocketAddress address) {
     }
-    
+
     private void process(RequestMessage message, InetSocketAddress address) {
     }
-    
+
     private void process(UnchokeMessage message, InetSocketAddress address) {
     }
 }

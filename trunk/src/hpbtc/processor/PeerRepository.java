@@ -40,7 +40,7 @@ public class PeerRepository {
         }
     }
     
-    public void addPeer(InetSocketAddress address, byte[] peerId) {
-        peerInfo.add(new PeerInfo(address, peerId));
+    public void addPeer(PeerInfo peer) {
+        peerInfo.add(peer);
     }
 }

@@ -10,7 +10,7 @@ public class HandshakeMessage implements ProtocolMessage {
     private byte[] peerId;
 
     public HandshakeMessage(ByteBuffer message) throws IOException {
-        if (message.limit() < 48) {
+        if (message.remaining() < 48) {
             throw new EOFException("wrong hanshake");
         }
         message.limit(20);

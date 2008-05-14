@@ -4,6 +4,8 @@
  */
 package hpbtc.protocol.message;
 
+import java.io.EOFException;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 
@@ -17,11 +19,14 @@ public class BitfieldMessage implements ProtocolMessage {
     
     private BitSet pieces;
 
-    public BitfieldMessage(ByteBuffer message, int len) {
+    public BitfieldMessage(ByteBuffer message, int len) throws IOException {
+        int l = message.remaining();
+        if (l < len) {
+            throw new EOFException("wrong message");
+        }
         int j = 0;
         int k = 0;
-        int l = message.remaining();
-        for (int i = 0; i < l; i++) {
+        for (int i = 0; i < len; i++) {
             byte bit = message.get();
             byte c = (byte) 128;
             for (int p = 0; p < 8; p++) {
@@ -31,7 +36,6 @@ public class BitfieldMessage implements ProtocolMessage {
                 }
                 bit <<= 1;
                 j++;
-                //Might read more than the number of actual pieces
             }
         }
     }
