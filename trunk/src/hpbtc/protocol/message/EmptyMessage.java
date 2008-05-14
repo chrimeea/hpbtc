@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
  * @author chris
  *
  */
-public class ProtocolMessage {
+public class EmptyMessage {
     
     public static final byte TYPE_BITFIELD = 5;
     public static final byte TYPE_CANCEL = 8;
@@ -25,7 +25,7 @@ public class ProtocolMessage {
     protected int messageLength;
     protected byte disc;
     
-    public ProtocolMessage(int len, byte disc) {
+    public EmptyMessage(int len, byte disc) {
         messageLength = len;
         this.disc = disc;
     }
