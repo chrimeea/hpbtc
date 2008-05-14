@@ -12,7 +12,7 @@ import java.util.BitSet;
  * @author chris
  *
  */
-public class BitfieldMessage extends ProtocolMessage {
+public class BitfieldMessage extends EmptyMessage {
     
     private BitSet pieces;
     

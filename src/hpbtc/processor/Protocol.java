@@ -5,7 +5,7 @@ import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.PieceMessage;
-import hpbtc.protocol.message.ProtocolMessage;
+import hpbtc.protocol.message.EmptyMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.RawMessage;
 import java.io.EOFException;
@@ -106,36 +106,36 @@ public class Protocol {
                         throw new EOFException("wrong message");
                     }
                     switch (disc) {
-                        case ProtocolMessage.TYPE_BITFIELD:
+                        case EmptyMessage.TYPE_BITFIELD:
                             BitfieldMessage mBit = new BitfieldMessage(current, len);
                             processBitfield(mBit.getBitfield(), len, address);
                             break;
-                        case ProtocolMessage.TYPE_CANCEL:
-                            BlockMessage mCan = new BlockMessage(current, len, ProtocolMessage.TYPE_CANCEL);
+                        case EmptyMessage.TYPE_CANCEL:
+                            BlockMessage mCan = new BlockMessage(current, len, EmptyMessage.TYPE_CANCEL);
                             processCancel(mCan.getBegin(), mCan.getIndex(), mCan.getLength(), address);
                             break;
-                        case ProtocolMessage.TYPE_CHOKE:
+                        case EmptyMessage.TYPE_CHOKE:
                             processChoke(address);
                             break;
-                        case ProtocolMessage.TYPE_HAVE:
+                        case EmptyMessage.TYPE_HAVE:
                             HaveMessage mHave = new HaveMessage(current, len);
                             processHave(mHave.getIndex(), address);
                             break;
-                        case ProtocolMessage.TYPE_INTERESTED:
+                        case EmptyMessage.TYPE_INTERESTED:
                             processInterested(address);
                             break;
-                        case ProtocolMessage.TYPE_NOT_INTERESTED:
+                        case EmptyMessage.TYPE_NOT_INTERESTED:
                             processNotInterested(address);
                             break;
-                        case ProtocolMessage.TYPE_PIECE:
+                        case EmptyMessage.TYPE_PIECE:
                             PieceMessage mPiece = new PieceMessage(current, len);
                             processPiece(mPiece.getBegin(), mPiece.getIndex(), mPiece.getPiece(), address);
                             break;
-                        case ProtocolMessage.TYPE_REQUEST:
-                            BlockMessage mReq = new BlockMessage(current, len, ProtocolMessage.TYPE_REQUEST);
+                        case EmptyMessage.TYPE_REQUEST:
+                            BlockMessage mReq = new BlockMessage(current, len, EmptyMessage.TYPE_REQUEST);
                             processRequest(mReq.getBegin(), mReq.getIndex(), mReq.getLength(), address);
                             break;
-                        case ProtocolMessage.TYPE_UNCHOKE:
+                        case EmptyMessage.TYPE_UNCHOKE:
                             processUnchoke(address);
                     }
                     peerRep.setMessagesReceived(address);
