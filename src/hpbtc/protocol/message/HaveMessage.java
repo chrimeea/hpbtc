@@ -16,12 +16,12 @@ public class HaveMessage extends ProtocolMessage {
     private int index;
     
     public HaveMessage(ByteBuffer message, int len) {
-        super(len);
+        super(len, TYPE_DISCRIMINATOR);
         index = message.getInt();
     }
     
     public HaveMessage(int index) {
-        super(5);
+        super(5, TYPE_DISCRIMINATOR);
         this.index = index;
     }
 
@@ -31,7 +31,6 @@ public class HaveMessage extends ProtocolMessage {
     @Override
     public ByteBuffer send() {
         ByteBuffer bb = super.send();
-        bb.put(TYPE_DISCRIMINATOR);
         bb.putInt(index);
         return bb;
     }

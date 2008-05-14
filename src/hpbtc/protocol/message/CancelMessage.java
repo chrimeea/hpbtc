@@ -15,26 +15,13 @@ public class CancelMessage extends BlockMessage {
     public static final byte TYPE_DISCRIMINATOR = 8;
 
     public CancelMessage(ByteBuffer message, int len) {
-        super(message, len);
+        super(message, len, TYPE_DISCRIMINATOR);
     }
     
     /**
      * @param p
      */
     public CancelMessage(int begin, int index, int length) {
-        super(begin, index, length);
-    }
-
-    /* (non-Javadoc)
-     * @see hpbtc.message.ProtocolMessage#send()
-     */
-    @Override
-    public ByteBuffer send() {
-        ByteBuffer bb = super.send();
-        bb.put(TYPE_DISCRIMINATOR);
-        bb.putInt(index);
-        bb.putInt(begin);
-        bb.putInt(length);
-        return bb;
+        super(begin, index, length, TYPE_DISCRIMINATOR);
     }
 }

@@ -20,7 +20,7 @@ public class BitfieldMessage extends ProtocolMessage {
     private BitSet pieces;
     
     public BitfieldMessage(ByteBuffer message, int len) throws IOException {
-        super(len);
+        super(len, TYPE_DISCRIMINATOR);
         int l = message.remaining();
         if (l < len) {
             throw new EOFException("wrong message");
@@ -43,7 +43,7 @@ public class BitfieldMessage extends ProtocolMessage {
     }
     
     public BitfieldMessage(BitSet pieces) {
-        super((int) Math.ceil(pieces.size() / 8.0));
+        super((int) Math.ceil(pieces.size() / 8.0), TYPE_DISCRIMINATOR);
         this.pieces = pieces;
     }
 
@@ -53,31 +53,23 @@ public class BitfieldMessage extends ProtocolMessage {
     @Override
     public ByteBuffer send() {
         ByteBuffer bb = super.send();
-        byte x = TYPE_DISCRIMINATOR;
+        byte x = 0;
         byte y = (byte) -128;
-        boolean hasp = false;
         for (int i = 0; i < messageLength; i++) {
-            if (i % 8 == 0) {
+            if (i % 8 == 0 && i != 0) {
                 bb.put(x);
                 x = 0;
                 y = (byte) -128;
             }
             if (pieces.get(i)) {
                 x |= y;
-                hasp = true;
             }
             y >>= 1;
             if (y < 0) {
                 y ^= (byte) -128;
             }
         }
-        if (hasp) {
-            if (y != 0) {
-                bb.put(x);
-            }
-            return bb;
-        }
-        return ByteBuffer.allocate(0);
+        return bb;
     }
     
     public BitSet getBitfield() {

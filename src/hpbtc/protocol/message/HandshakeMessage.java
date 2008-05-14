@@ -10,7 +10,7 @@ public class HandshakeMessage extends ProtocolMessage {
     private byte[] peerId;
 
     public HandshakeMessage(ByteBuffer message) throws IOException {
-        super(68);
+        super(68, (byte) 0);
         if (message.remaining() < 48) {
             throw new EOFException("wrong hanshake");
         }
@@ -33,7 +33,7 @@ public class HandshakeMessage extends ProtocolMessage {
     }
 
     public HandshakeMessage(byte[] infoHash, byte[] peerId) {
-        super(68);
+        super(68, (byte) 0);
         this.infoHash = infoHash;
         this.peerId = peerId;
     }
