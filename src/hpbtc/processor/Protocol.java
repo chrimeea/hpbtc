@@ -61,6 +61,10 @@ public class Protocol {
         fis.close();
     }
 
+    public void stopProtocol() {
+        network.disconnect();
+    }
+    
     public void startProtocol() throws IOException {
         network.connect();
         new Thread(new Runnable() {
@@ -72,6 +76,9 @@ public class Protocol {
                             try {
                                 network.wait();
                             } catch (InterruptedException e) {
+                            }
+                            if (!network.isRunning()) {
+                                return;
                             }
                         } while (!network.hasUnreadMessages());
                         RawMessage message = null;

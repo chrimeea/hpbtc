@@ -4,6 +4,7 @@
  */
 package hpbtc;
 
+import hpbtc.processor.Protocol;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.torrent.TorrentInfo;
 import java.io.FileInputStream;
@@ -23,24 +24,20 @@ public class HPBTC {
      * @param args
      */
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-        if (args.length != 1) {
+        if (args.length == 0) {
             logger.severe("Mandatory parameter missing");
         } else {
-            String name = args[0];
-            if (!name.endsWith(".torrent")) {
-                name += ".torrent";
+            final Protocol protocol = new Protocol();
+            protocol.startProtocol();
+            for (String torrent: args) {
+                protocol.download(torrent);
             }
-            FileInputStream fis = new FileInputStream(name);
-            TorrentInfo ti = new TorrentInfo(fis);
-            fis.close();
-            final Network client = new Network();
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
                 public void run() {
-                //TODO: stop download
+                    protocol.stopProtocol();
                 }
                 }, "Shutdown"));
-            client.connect();
         }
     }
 }
