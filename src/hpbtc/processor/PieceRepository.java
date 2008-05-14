@@ -8,7 +8,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  *
@@ -16,27 +15,20 @@ import java.util.logging.Logger;
  */
 public class PieceRepository {
 
-    private static Logger logger = Logger.getLogger(PieceRepository.class.getName());
     public static final int DEFAULT_CHUNK = 16384;
-    
     private List<BTFile> files;
-    
+
     public PieceRepository(List<BTFile> files) {
         this.files = files;
     }
-    
-    private boolean checkHash(ByteBuffer bb, byte[] hash) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA1");
-            bb.rewind();
-            md.update(bb);
-            return Arrays.equals(md.digest(), hash);
-        } catch (NoSuchAlgorithmException e) {
-            logger.severe("SHA1 is not available");
-        }
-        return false;
+
+    private boolean checkHash(ByteBuffer bb, byte[] hash) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA1");
+        bb.rewind();
+        md.update(bb);
+        return Arrays.equals(md.digest(), hash);
     }
-    
+
     /**
      * @param begin
      * @param length
@@ -54,10 +46,7 @@ public class PieceRepository {
      */
     public void savePiece(int begin, ByteBuffer b) {
     }
-    
-    private void flush() {
-    }
-    
+
     private void createFile(String path) throws IOException {
         File f = new File(path);
         f.mkdirs();
