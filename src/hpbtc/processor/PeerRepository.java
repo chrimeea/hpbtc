@@ -17,7 +17,7 @@ public class PeerRepository {
         peerInfo = new HashSet<PeerInfo>();
     }
     
-    public PeerInfo getPeer(InetSocketAddress address) {
+    private PeerInfo getPeer(InetSocketAddress address) {
         for (PeerInfo p: peerInfo) {
             if (p.getAddress().equals(address)) {
                 return p;
@@ -42,5 +42,18 @@ public class PeerRepository {
     
     public void addPeer(InetSocketAddress address, byte[] peerId, byte[] infoHash) {
         peerInfo.add(new PeerInfo(address, peerId, infoHash));
+    }
+    
+    public boolean isMessagesReceived(InetSocketAddress address) {
+        PeerInfo peer = getPeer(address);
+        return peer == null ? false : peer.isMessagesReceived();
+    }
+    
+    public void setMessagesReceived(InetSocketAddress address) {
+        getPeer(address).setMessagesReceived();
+    }
+    
+    public byte[] getInfoHash(InetSocketAddress address) {
+        return getPeer(address).getInfoHash();
     }
 }

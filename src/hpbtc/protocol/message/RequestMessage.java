@@ -23,8 +23,7 @@ public class RequestMessage extends BlockMessage implements Cloneable {
      */
     @Override
     public ByteBuffer send() {
-        ByteBuffer bb = ByteBuffer.allocate(17);
-        bb.putInt(13);
+        ByteBuffer bb = super.send();
         bb.put(TYPE_DISCRIMINATOR);
         bb.putInt(index);
         bb.putInt(begin);

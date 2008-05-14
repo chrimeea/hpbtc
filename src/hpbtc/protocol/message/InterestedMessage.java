@@ -10,11 +10,16 @@ import java.nio.ByteBuffer;
  * @author chris
  *
  */
-public class InterestedMessage implements ProtocolMessage {
+public class InterestedMessage extends ProtocolMessage {
 
     public static final byte TYPE_DISCRIMINATOR = 2;
     
+    public InterestedMessage() {
+        super(1);
+    }
+    
     public InterestedMessage(int len) {
+        super(len);
     }
 
     /* (non-Javadoc)

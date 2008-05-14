@@ -4,12 +4,13 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class HandshakeMessage implements ProtocolMessage {
+public class HandshakeMessage extends ProtocolMessage {
 
     private byte[] infoHash;
     private byte[] peerId;
 
     public HandshakeMessage(ByteBuffer message) throws IOException {
+        super(68);
         if (message.remaining() < 48) {
             throw new EOFException("wrong hanshake");
         }
@@ -32,6 +33,7 @@ public class HandshakeMessage implements ProtocolMessage {
     }
 
     public HandshakeMessage(byte[] infoHash, byte[] peerId) {
+        super(68);
         this.infoHash = infoHash;
         this.peerId = peerId;
     }

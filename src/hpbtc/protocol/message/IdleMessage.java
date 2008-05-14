@@ -10,9 +10,14 @@ import java.nio.ByteBuffer;
  * @author chris
  *
  */
-public class IdleMessage implements ProtocolMessage {
+public class IdleMessage extends ProtocolMessage {
 
+    public IdleMessage() {
+        super(0);
+    }
+    
     public IdleMessage(int len) {
+        super(len);
     }
     
     /* (non-Javadoc)

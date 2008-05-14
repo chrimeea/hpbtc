@@ -29,7 +29,7 @@ public class PeerInfo extends Peer {
         return messagesReceived;
     }
 
-    public void setMessagesReceived(boolean messagesReceived) {
-        this.messagesReceived = messagesReceived;
+    public void setMessagesReceived() {
+        this.messagesReceived = true;
     }
 }

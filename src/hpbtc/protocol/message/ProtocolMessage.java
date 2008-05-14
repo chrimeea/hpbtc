@@ -10,7 +10,17 @@ import java.nio.ByteBuffer;
  * @author chris
  *
  */
-public interface ProtocolMessage {
+public abstract class ProtocolMessage {
     
-    ByteBuffer send();
+    protected int messageLength;
+    
+    public ProtocolMessage(int len) {
+        messageLength = len;
+    }
+    
+    public int getMessageLength() {
+        return messageLength;
+    }
+    
+    public abstract ByteBuffer send();
 }

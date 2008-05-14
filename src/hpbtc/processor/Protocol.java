@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
+import java.util.BitSet;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -131,6 +132,7 @@ public class Protocol {
                     case UnchokeMessage.TYPE_DISCRIMINATOR:
                         process(new UnchokeMessage(len), address);
                 }
+                peerRep.setMessagesReceived(address);
             } else {
                 process(new HandshakeMessage(current), data.getPeer());
             }
@@ -144,11 +146,21 @@ public class Protocol {
             HandshakeMessage reply = new HandshakeMessage(message.getInfoHash(), peerId);
             network.postMessage(address, reply.send());
         } else {
-            network.closeConnection(address);
+            throw new IOException("wrong message");
         }
     }
 
-    private void process(BitfieldMessage message, InetSocketAddress address) {
+    private void process(BitfieldMessage message, InetSocketAddress address) throws IOException {
+        if (peerRep.isMessagesReceived(address)) {
+            throw new IOException("wrong message");
+        } else {
+            BitSet pieces = message.getBitfield();
+            long nrPieces = torrentRep.getNrPieces(peerRep.getInfoHash(address));
+            if (pieces.length() > nrPieces || message.getMessageLength() != Math.ceil(nrPieces / 8.0)) {
+                throw new IOException("wrong message");
+            }
+        }
+        //set pieces to peer
     }
 
     private void process(CancelMessage message, InetSocketAddress address) {

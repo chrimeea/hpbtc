@@ -146,7 +146,7 @@ public class TorrentInfo {
     public String getEncoding() {
         return encoding;
     }
-
+    
     @Override
     public boolean equals(Object arg0) {
         if (arg0 instanceof TorrentInfo) {

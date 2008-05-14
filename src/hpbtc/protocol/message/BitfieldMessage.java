@@ -13,19 +13,21 @@ import java.util.BitSet;
  * @author chris
  *
  */
-public class BitfieldMessage implements ProtocolMessage {
+public class BitfieldMessage extends ProtocolMessage {
     
     public static final byte TYPE_DISCRIMINATOR = 5;
     
     private BitSet pieces;
-
+    
     public BitfieldMessage(ByteBuffer message, int len) throws IOException {
+        super(len);
         int l = message.remaining();
         if (l < len) {
             throw new EOFException("wrong message");
         }
         int j = 0;
         int k = 0;
+        pieces = new BitSet(len * 8);
         for (int i = 0; i < len; i++) {
             byte bit = message.get();
             byte c = (byte) 128;
@@ -41,6 +43,7 @@ public class BitfieldMessage implements ProtocolMessage {
     }
     
     public BitfieldMessage(BitSet pieces) {
+        super(pieces.size() * 8);
         this.pieces = pieces;
     }
 
@@ -49,8 +52,8 @@ public class BitfieldMessage implements ProtocolMessage {
      */
     @Override
     public ByteBuffer send() {
-        int n = 1 + pieces.size() / 8;
-        if (pieces.size() % 8 > 0) {
+        int n = 1 + messageLength / 8;
+        if (messageLength % 8 > 0) {
             n++;
         }
         ByteBuffer bb = ByteBuffer.allocate(n + 4);
@@ -58,7 +61,7 @@ public class BitfieldMessage implements ProtocolMessage {
         byte x = TYPE_DISCRIMINATOR;
         byte y = (byte) -128;
         boolean hasp = false;
-        for (int i = 0; i < pieces.size(); i++) {
+        for (int i = 0; i < messageLength; i++) {
             if (i % 8 == 0) {
                 bb.put(x);
                 x = 0;

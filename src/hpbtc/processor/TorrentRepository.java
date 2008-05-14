@@ -38,4 +38,8 @@ public class TorrentRepository {
         torrents.add(new TorrentInfo(fis));
         fis.close();
     }
+    
+    public long getNrPieces(byte[] infoHash) {
+        return getTorrent(infoHash).getNrPieces();
+    }
 }
