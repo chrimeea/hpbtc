@@ -152,8 +152,6 @@ public class TorrentInfo {
         if (arg0 instanceof TorrentInfo) {
             TorrentInfo t = (TorrentInfo) arg0;
             return Arrays.equals(infoHash, t.infoHash);
-        } else if (arg0 instanceof byte[]) {
-            return Arrays.equals(infoHash, (byte[]) arg0);
         } else {
             return false;
         }

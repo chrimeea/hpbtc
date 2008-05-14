@@ -14,14 +14,14 @@ import java.util.logging.Logger;
  *
  * @author Cristian Mocanu
  */
-public class PiecePersistence {
+public class PieceRepository {
 
-    private static Logger logger = Logger.getLogger(PiecePersistence.class.getName());
+    private static Logger logger = Logger.getLogger(PieceRepository.class.getName());
     public static final int DEFAULT_CHUNK = 16384;
     
     private List<BTFile> files;
     
-    public PiecePersistence(List<BTFile> files) {
+    public PieceRepository(List<BTFile> files) {
         this.files = files;
     }
     
