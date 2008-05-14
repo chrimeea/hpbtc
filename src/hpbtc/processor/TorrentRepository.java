@@ -1,6 +1,9 @@
 package hpbtc.processor;
 
 import hpbtc.protocol.torrent.TorrentInfo;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,7 +33,9 @@ public class TorrentRepository {
         return getTorrent(infoHash) != null;
     }
     
-    public void addTorrent(TorrentInfo torrent) {
-        torrents.add(torrent);
+    public void addTorrent(String fileName) throws IOException, NoSuchAlgorithmException {
+        FileInputStream fis = new FileInputStream(fileName);
+        torrents.add(new TorrentInfo(fis));
+        fis.close();
     }
 }
