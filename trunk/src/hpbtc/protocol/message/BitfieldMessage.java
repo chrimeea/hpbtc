@@ -43,7 +43,7 @@ public class BitfieldMessage extends ProtocolMessage {
     }
     
     public BitfieldMessage(BitSet pieces) {
-        super(pieces.size() * 8);
+        super((int) Math.ceil(pieces.size() / 8.0));
         this.pieces = pieces;
     }
 
@@ -52,12 +52,7 @@ public class BitfieldMessage extends ProtocolMessage {
      */
     @Override
     public ByteBuffer send() {
-        int n = 1 + messageLength / 8;
-        if (messageLength % 8 > 0) {
-            n++;
-        }
-        ByteBuffer bb = ByteBuffer.allocate(n + 4);
-        bb.putInt(n);
+        ByteBuffer bb = super.send();
         byte x = TYPE_DISCRIMINATOR;
         byte y = (byte) -128;
         boolean hasp = false;

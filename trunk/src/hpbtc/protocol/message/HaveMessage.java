@@ -30,8 +30,7 @@ public class HaveMessage extends ProtocolMessage {
      */
     @Override
     public ByteBuffer send() {
-        ByteBuffer bb = ByteBuffer.allocate(9);
-        bb.putInt(5);
+        ByteBuffer bb = super.send();
         bb.put(TYPE_DISCRIMINATOR);
         bb.putInt(index);
         return bb;

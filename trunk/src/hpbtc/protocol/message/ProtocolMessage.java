@@ -22,5 +22,9 @@ public abstract class ProtocolMessage {
         return messageLength;
     }
     
-    public abstract ByteBuffer send();
+    public ByteBuffer send() {
+        ByteBuffer bb = ByteBuffer.allocate(messageLength + 4);
+        bb.putInt(messageLength);
+        return bb;
+    }
 }

@@ -55,11 +55,4 @@ public abstract class BlockMessage extends ProtocolMessage {
     public int getLength() {
         return length;
     }
-
-    @Override
-    public ByteBuffer send() {
-        ByteBuffer bb = ByteBuffer.allocate(17);
-        bb.putInt(13);
-        return bb;
-    }
 }
