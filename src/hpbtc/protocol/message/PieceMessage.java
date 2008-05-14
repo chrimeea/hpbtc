@@ -16,7 +16,7 @@ public class PieceMessage extends BlockMessage {
     
     private ByteBuffer piece;
     
-    public PieceMessage(ByteBuffer message) {
+    public PieceMessage(ByteBuffer message, int len) {
         super(message.getInt(), message.getInt(), message.remaining());
         piece = message;
     }

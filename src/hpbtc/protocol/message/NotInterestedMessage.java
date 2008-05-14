@@ -14,7 +14,7 @@ public class NotInterestedMessage implements ProtocolMessage {
 
     public static final byte TYPE_DISCRIMINATOR = 3;
     
-    public NotInterestedMessage() {
+    public NotInterestedMessage(int len) {
     }
     
     /* (non-Javadoc)

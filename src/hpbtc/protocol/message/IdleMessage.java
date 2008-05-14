@@ -12,6 +12,9 @@ import java.nio.ByteBuffer;
  */
 public class IdleMessage implements ProtocolMessage {
 
+    public IdleMessage(int len) {
+    }
+    
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */

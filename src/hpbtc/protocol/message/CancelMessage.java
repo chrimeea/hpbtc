@@ -14,8 +14,8 @@ public class CancelMessage extends BlockMessage {
 
     public static final byte TYPE_DISCRIMINATOR = 8;
 
-    public CancelMessage(ByteBuffer message) {
-        super(message);
+    public CancelMessage(ByteBuffer message, int len) {
+        super(message, len);
     }
     
     /**
