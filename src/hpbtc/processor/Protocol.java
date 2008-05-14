@@ -12,6 +12,7 @@ import hpbtc.protocol.message.RequestMessage;
 import hpbtc.protocol.message.UnchokeMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.RawMessage;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -104,6 +105,9 @@ public class Protocol {
             if (peerRep.isHandshakeReceived(address)) {
                 int len = current.getInt();
                 byte disc = current.get();
+                if (current.remaining() < len) {
+                    throw new EOFException("wrong message");
+                }
                 switch (disc) {
                     case BitfieldMessage.TYPE_DISCRIMINATOR:
                         process(new BitfieldMessage(current, len), address);

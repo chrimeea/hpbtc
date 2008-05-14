@@ -21,10 +21,6 @@ public class BitfieldMessage extends ProtocolMessage {
     
     public BitfieldMessage(ByteBuffer message, int len) throws IOException {
         super(len, TYPE_DISCRIMINATOR);
-        int l = message.remaining();
-        if (l < len) {
-            throw new EOFException("wrong message");
-        }
         int j = 0;
         int k = 0;
         pieces = new BitSet(len * 8);
