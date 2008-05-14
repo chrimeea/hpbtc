@@ -14,12 +14,10 @@ import java.util.BitSet;
  */
 public class BitfieldMessage extends ProtocolMessage {
     
-    public static final byte TYPE_DISCRIMINATOR = 5;
-    
     private BitSet pieces;
     
     public BitfieldMessage(ByteBuffer message, int len) throws IOException {
-        super(len, TYPE_DISCRIMINATOR);
+        super(len, TYPE_BITFIELD);
         int j = 0;
         int k = 0;
         pieces = new BitSet(len * 8);
@@ -38,7 +36,7 @@ public class BitfieldMessage extends ProtocolMessage {
     }
     
     public BitfieldMessage(BitSet pieces) {
-        super((int) Math.ceil(pieces.size() / 8.0), TYPE_DISCRIMINATOR);
+        super((int) Math.ceil(pieces.size() / 8.0), TYPE_BITFIELD);
         this.pieces = pieces;
     }
 
