@@ -27,8 +27,7 @@ public class UnchokeMessage extends ProtocolMessage {
      */
     @Override
     public ByteBuffer send() {
-        ByteBuffer bb = ByteBuffer.allocate(5);
-        bb.putInt(1);
+        ByteBuffer bb = super.send();
         bb.put(TYPE_DISCRIMINATOR);
         return bb;
     }

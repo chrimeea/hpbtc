@@ -12,6 +12,8 @@ import java.nio.ByteBuffer;
  */
 public class IdleMessage extends ProtocolMessage {
 
+    public static final byte TYPE_DISCRIMINATOR = 0;
+    
     public IdleMessage() {
         super(0);
     }
@@ -20,14 +22,10 @@ public class IdleMessage extends ProtocolMessage {
         super(len);
     }
     
-    /* (non-Javadoc)
-     * @see hpbtc.message.ProtocolMessage#send()
-     */
     @Override
     public ByteBuffer send() {
-        ByteBuffer bb = ByteBuffer.allocate(4);
-        bb.putInt(0);
+        ByteBuffer bb = super.send();
+        bb.put(TYPE_DISCRIMINATOR);
         return bb;
     }
-
 }
