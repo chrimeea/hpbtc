@@ -1,15 +1,11 @@
 package hpbtc.processor;
 
 import hpbtc.protocol.message.BitfieldMessage;
-import hpbtc.protocol.message.CancelMessage;
-import hpbtc.protocol.message.ChokeMessage;
+import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.HaveMessage;
-import hpbtc.protocol.message.InterestedMessage;
-import hpbtc.protocol.message.NotInterestedMessage;
 import hpbtc.protocol.message.PieceMessage;
-import hpbtc.protocol.message.RequestMessage;
-import hpbtc.protocol.message.UnchokeMessage;
+import hpbtc.protocol.message.ProtocolMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.RawMessage;
 import java.io.EOFException;
@@ -104,90 +100,96 @@ public class Protocol {
         do {
             if (peerRep.isHandshakeReceived(address)) {
                 int len = current.getInt();
-                byte disc = current.get();
-                if (current.remaining() < len) {
-                    throw new EOFException("wrong message");
+                if (len > 0) {
+                    byte disc = current.get();
+                    if (current.remaining() < len) {
+                        throw new EOFException("wrong message");
+                    }
+                    switch (disc) {
+                        case ProtocolMessage.TYPE_BITFIELD:
+                            BitfieldMessage mBit = new BitfieldMessage(current, len);
+                            processBitfield(mBit.getBitfield(), len, address);
+                            break;
+                        case ProtocolMessage.TYPE_CANCEL:
+                            BlockMessage mCan = new BlockMessage(current, len, ProtocolMessage.TYPE_CANCEL);
+                            processCancel(mCan.getBegin(), mCan.getIndex(), mCan.getLength(), address);
+                            break;
+                        case ProtocolMessage.TYPE_CHOKE:
+                            processChoke(address);
+                            break;
+                        case ProtocolMessage.TYPE_HAVE:
+                            HaveMessage mHave = new HaveMessage(current, len);
+                            processHave(mHave.getIndex(), address);
+                            break;
+                        case ProtocolMessage.TYPE_INTERESTED:
+                            processInterested(address);
+                            break;
+                        case ProtocolMessage.TYPE_NOT_INTERESTED:
+                            processNotInterested(address);
+                            break;
+                        case ProtocolMessage.TYPE_PIECE:
+                            PieceMessage mPiece = new PieceMessage(current, len);
+                            processPiece(mPiece.getBegin(), mPiece.getIndex(), mPiece.getPiece(), address);
+                            break;
+                        case ProtocolMessage.TYPE_REQUEST:
+                            BlockMessage mReq = new BlockMessage(current, len, ProtocolMessage.TYPE_REQUEST);
+                            processRequest(mReq.getBegin(), mReq.getIndex(), mReq.getLength(), address);
+                            break;
+                        case ProtocolMessage.TYPE_UNCHOKE:
+                            processUnchoke(address);
+                    }
+                    peerRep.setMessagesReceived(address);
                 }
-                switch (disc) {
-                    case BitfieldMessage.TYPE_DISCRIMINATOR:
-                        process(new BitfieldMessage(current, len), address);
-                        break;
-                    case CancelMessage.TYPE_DISCRIMINATOR:
-                        process(new CancelMessage(current, len), address);
-                        break;
-                    case ChokeMessage.TYPE_DISCRIMINATOR:
-                        process(new ChokeMessage(len), address);
-                        break;
-                    case HaveMessage.TYPE_DISCRIMINATOR:
-                        process(new HaveMessage(current, len), address);
-                        break;
-                    case InterestedMessage.TYPE_DISCRIMINATOR:
-                        process(new InterestedMessage(len), address);
-                        break;
-                    case NotInterestedMessage.TYPE_DISCRIMINATOR:
-                        process(new NotInterestedMessage(len), address);
-                        break;
-                    case PieceMessage.TYPE_DISCRIMINATOR:
-                        process(new PieceMessage(current, len), address);
-                        break;
-                    case RequestMessage.TYPE_DISCRIMINATOR:
-                        process(new RequestMessage(current, len), address);
-                        break;
-                    case UnchokeMessage.TYPE_DISCRIMINATOR:
-                        process(new UnchokeMessage(len), address);
-                }
-                peerRep.setMessagesReceived(address);
             } else {
-                process(new HandshakeMessage(current), data.getPeer());
+                HandshakeMessage mHand = new HandshakeMessage(current);
+                processHandshake(mHand.getInfoHash(), mHand.getPeerId(), data.getPeer());
             }
         } while (current.remaining() > 0);
     }
-    
-    private void process(HandshakeMessage message, InetSocketAddress address) throws IOException {
-        byte[] infoHash = message.getInfoHash();
+
+    private void processHandshake(byte[] infoHash, byte[] pid, InetSocketAddress address) throws IOException {
         if (torrentRep.haveTorrent(infoHash)) {
-            peerRep.addPeer(address, message.getPeerId(), infoHash);
-            HandshakeMessage reply = new HandshakeMessage(message.getInfoHash(), peerId);
+            peerRep.addPeer(address, pid, infoHash);
+            HandshakeMessage reply = new HandshakeMessage(infoHash, peerId);
             network.postMessage(address, reply.send());
         } else {
             throw new IOException("wrong message");
         }
     }
 
-    private void process(BitfieldMessage message, InetSocketAddress address) throws IOException {
+    private void processBitfield(BitSet pieces, int len, InetSocketAddress address) throws IOException {
         if (peerRep.isMessagesReceived(address)) {
             throw new IOException("wrong message");
         } else {
-            BitSet pieces = message.getBitfield();
             long nrPieces = torrentRep.getNrPieces(peerRep.getInfoHash(address));
-            if (pieces.length() > nrPieces || message.getMessageLength() != Math.ceil(nrPieces / 8.0)) {
+            if (pieces.length() > nrPieces || len != Math.ceil(nrPieces / 8.0)) {
                 throw new IOException("wrong message");
             }
         }
-        //set pieces to peer
+    //set pieces to peer
     }
 
-    private void process(CancelMessage message, InetSocketAddress address) {
+    private void processCancel(int begin, int index, int length, InetSocketAddress address) {
     }
 
-    private void process(ChokeMessage message, InetSocketAddress address) {
+    private void processChoke(InetSocketAddress address) {
     }
 
-    private void process(HaveMessage message, InetSocketAddress address) {
+    private void processHave(int index, InetSocketAddress address) {
     }
 
-    private void process(InterestedMessage message, InetSocketAddress address) {
+    private void processInterested(InetSocketAddress address) {
     }
 
-    private void process(NotInterestedMessage message, InetSocketAddress address) {
+    private void processNotInterested(InetSocketAddress address) {
     }
 
-    private void process(PieceMessage message, InetSocketAddress address) {
+    private void processPiece(int begin, int index, ByteBuffer piece, InetSocketAddress address) {
     }
 
-    private void process(RequestMessage message, InetSocketAddress address) {
+    private void processRequest(int begin, int index, int length, InetSocketAddress address) {
     }
 
-    private void process(UnchokeMessage message, InetSocketAddress address) {
+    private void processUnchoke(InetSocketAddress address) {
     }
 }

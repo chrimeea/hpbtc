@@ -12,21 +12,19 @@ import java.nio.ByteBuffer;
  */
 public class PieceMessage extends ProtocolMessage {
 
-    public static final byte TYPE_DISCRIMINATOR = 7;
-    
     private int begin;
     private int index;
     private ByteBuffer piece;
     
     public PieceMessage(ByteBuffer message, int len) {
-        super(len, TYPE_DISCRIMINATOR);
+        super(len, TYPE_PIECE);
         begin = message.getInt();
         index = message.getInt();
         piece = message;
     }
 
     public PieceMessage(int begin, int index, ByteBuffer piece) {
-        super(9 + piece.remaining(), TYPE_DISCRIMINATOR);
+        super(9 + piece.remaining(), TYPE_PIECE);
         this.begin = begin;
         this.index = index;
         this.piece = piece;
@@ -46,5 +44,13 @@ public class PieceMessage extends ProtocolMessage {
 
     public ByteBuffer getPiece() {
         return piece;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public int getBegin() {
+        return begin;
     }
 }

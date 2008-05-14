@@ -12,16 +12,15 @@ import java.nio.ByteBuffer;
  */
 public class HaveMessage extends ProtocolMessage {
 
-    public static final byte TYPE_DISCRIMINATOR = 4;
     private int index;
     
     public HaveMessage(ByteBuffer message, int len) {
-        super(len, TYPE_DISCRIMINATOR);
+        super(len, TYPE_HAVE);
         index = message.getInt();
     }
     
     public HaveMessage(int index) {
-        super(5, TYPE_DISCRIMINATOR);
+        super(5, TYPE_HAVE);
         this.index = index;
     }
 
