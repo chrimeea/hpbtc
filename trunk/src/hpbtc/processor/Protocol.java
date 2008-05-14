@@ -12,8 +12,6 @@ import hpbtc.protocol.message.RequestMessage;
 import hpbtc.protocol.message.UnchokeMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.RawMessage;
-import hpbtc.protocol.torrent.TorrentInfo;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -53,9 +51,7 @@ public class Protocol {
     }
 
     public void download(String fileName) throws IOException, NoSuchAlgorithmException {
-        FileInputStream fis = new FileInputStream(fileName);
-        torrentRep.addTorrent(new TorrentInfo(fis));
-        fis.close();
+        torrentRep.addTorrent(fileName);
     }
 
     public void stopProtocol() {
@@ -144,7 +140,7 @@ public class Protocol {
     private void process(HandshakeMessage message, InetSocketAddress address) throws IOException {
         byte[] infoHash = message.getInfoHash();
         if (torrentRep.haveTorrent(infoHash)) {
-            peerRep.addPeer(new PeerInfo(address, message.getPeerId(), infoHash));
+            peerRep.addPeer(address, message.getPeerId(), infoHash);
             HandshakeMessage reply = new HandshakeMessage(message.getInfoHash(), peerId);
             network.postMessage(address, reply.send());
         } else {
