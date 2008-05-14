@@ -4,8 +4,6 @@
  */
 package hpbtc.protocol.message;
 
-import java.nio.ByteBuffer;
-
 /**
  * @author chris
  *
@@ -15,17 +13,10 @@ public class IdleMessage extends ProtocolMessage {
     public static final byte TYPE_DISCRIMINATOR = 0;
     
     public IdleMessage() {
-        super(0);
+        super(0, TYPE_DISCRIMINATOR);
     }
     
     public IdleMessage(int len) {
-        super(len);
-    }
-    
-    @Override
-    public ByteBuffer send() {
-        ByteBuffer bb = super.send();
-        bb.put(TYPE_DISCRIMINATOR);
-        return bb;
+        super(len, TYPE_DISCRIMINATOR);
     }
 }

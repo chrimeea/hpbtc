@@ -4,8 +4,6 @@
  */
 package hpbtc.protocol.message;
 
-import java.nio.ByteBuffer;
-
 /**
  * @author chris
  *
@@ -15,20 +13,10 @@ public class ChokeMessage extends ProtocolMessage {
     public static final byte TYPE_DISCRIMINATOR = 0;
     
     public ChokeMessage() {
-        super(1);
+        super(1, TYPE_DISCRIMINATOR);
     }
     
     public ChokeMessage(int len) {
-        super(len);
-    }
-    
-    /* (non-Javadoc)
-     * @see hpbtc.message.ProtocolMessage#send()
-     */
-    @Override
-    public ByteBuffer send() {
-        ByteBuffer bb = super.send();
-        bb.put(TYPE_DISCRIMINATOR);
-        return bb;
+        super(len, TYPE_DISCRIMINATOR);
     }
 }

@@ -13,9 +13,11 @@ import java.nio.ByteBuffer;
 public abstract class ProtocolMessage {
     
     protected int messageLength;
+    protected byte disc;
     
-    public ProtocolMessage(int len) {
+    public ProtocolMessage(int len, byte disc) {
         messageLength = len;
+        this.disc = disc;
     }
     
     public int getMessageLength() {
@@ -25,6 +27,7 @@ public abstract class ProtocolMessage {
     public ByteBuffer send() {
         ByteBuffer bb = ByteBuffer.allocate(messageLength + 4);
         bb.putInt(messageLength);
+        bb.put(disc);
         return bb;
     }
 }

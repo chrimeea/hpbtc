@@ -8,15 +8,15 @@ public abstract class BlockMessage extends ProtocolMessage {
     protected int begin;
     protected int length;
     
-    public BlockMessage(ByteBuffer message, int len) {
-        super(len);
+    public BlockMessage(ByteBuffer message, int len, byte disc) {
+        super(len, disc);
         index = message.getInt();
         begin = message.getInt();
         length = message.getInt();
     }
     
-    public BlockMessage(int begin, int index, int length) {
-        super(13);
+    public BlockMessage(int begin, int index, int length, byte disc) {
+        super(13, disc);
         this.index = index;
         this.begin = begin;
         this.length = length;
@@ -54,5 +54,14 @@ public abstract class BlockMessage extends ProtocolMessage {
 
     public int getLength() {
         return length;
+    }
+    
+    @Override
+    public ByteBuffer send() {
+        ByteBuffer bb = super.send();
+        bb.putInt(index);
+        bb.putInt(begin);
+        bb.putInt(length);
+        return bb;
     }
 }
