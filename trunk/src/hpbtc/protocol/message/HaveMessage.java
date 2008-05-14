@@ -14,8 +14,8 @@ public class HaveMessage extends EmptyMessage {
 
     private int index;
     
-    public HaveMessage(ByteBuffer message, int len) {
-        super(len, TYPE_HAVE);
+    public HaveMessage(ByteBuffer message) {
+        super(5, TYPE_HAVE);
         index = message.getInt();
     }
     

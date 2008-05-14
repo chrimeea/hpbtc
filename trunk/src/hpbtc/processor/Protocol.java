@@ -10,9 +10,11 @@ import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.RawMessage;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Random;
 import java.util.logging.Logger;
@@ -111,14 +113,14 @@ public class Protocol {
                             processBitfield(mBit.getBitfield(), len, address);
                             break;
                         case EmptyMessage.TYPE_CANCEL:
-                            BlockMessage mCan = new BlockMessage(current, len, EmptyMessage.TYPE_CANCEL);
+                            BlockMessage mCan = new BlockMessage(current, EmptyMessage.TYPE_CANCEL);
                             processCancel(mCan.getBegin(), mCan.getIndex(), mCan.getLength(), address);
                             break;
                         case EmptyMessage.TYPE_CHOKE:
                             processChoke(address);
                             break;
                         case EmptyMessage.TYPE_HAVE:
-                            HaveMessage mHave = new HaveMessage(current, len);
+                            HaveMessage mHave = new HaveMessage(current);
                             processHave(mHave.getIndex(), address);
                             break;
                         case EmptyMessage.TYPE_INTERESTED:
@@ -132,7 +134,7 @@ public class Protocol {
                             processPiece(mPiece.getBegin(), mPiece.getIndex(), mPiece.getPiece(), address);
                             break;
                         case EmptyMessage.TYPE_REQUEST:
-                            BlockMessage mReq = new BlockMessage(current, len, EmptyMessage.TYPE_REQUEST);
+                            BlockMessage mReq = new BlockMessage(current, EmptyMessage.TYPE_REQUEST);
                             processRequest(mReq.getBegin(), mReq.getIndex(), mReq.getLength(), address);
                             break;
                         case EmptyMessage.TYPE_UNCHOKE:
@@ -142,21 +144,29 @@ public class Protocol {
                 }
             } else {
                 HandshakeMessage mHand = new HandshakeMessage(current);
-                processHandshake(mHand.getInfoHash(), mHand.getPeerId(), data.getPeer());
+                processHandshake(mHand.getInfoHash(), mHand.getPeerId(), mHand.getProtocol(), data.getPeer());
             }
         } while (current.remaining() > 0);
     }
 
-    private void processHandshake(byte[] infoHash, byte[] pid, InetSocketAddress address) throws IOException {
-        if (torrentRep.haveTorrent(infoHash)) {
+    private void processHandshake(byte[] infoHash, byte[] pid, byte[] protocol, InetSocketAddress address) throws IOException {
+        if (Arrays.equals(protocol, getSupportedProtocol()) && torrentRep.haveTorrent(infoHash)) {
             peerRep.addPeer(address, pid, infoHash);
-            HandshakeMessage reply = new HandshakeMessage(infoHash, peerId);
+            HandshakeMessage reply = new HandshakeMessage(infoHash, peerId, protocol);
             network.postMessage(address, reply.send());
         } else {
             throw new IOException("wrong message");
         }
     }
 
+    private byte[] getSupportedProtocol() throws UnsupportedEncodingException {
+        byte[] protocol = new byte[20];
+        ByteBuffer pr = ByteBuffer.wrap(protocol);
+        pr.put((byte) 19);
+        pr.put("BitTorrent protocol".getBytes("US-ASCII"));
+        return protocol;
+    }
+    
     private void processBitfield(BitSet pieces, int len, InetSocketAddress address) throws IOException {
         if (peerRep.isMessagesReceived(address)) {
             throw new IOException("wrong message");

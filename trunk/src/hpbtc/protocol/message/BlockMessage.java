@@ -4,12 +4,12 @@ import java.nio.ByteBuffer;
 
 public class BlockMessage extends EmptyMessage {
 
-    protected int index;
-    protected int begin;
-    protected int length;
+    private int index;
+    private int begin;
+    private int length;
     
-    public BlockMessage(ByteBuffer message, int len, byte disc) {
-        super(len, disc);
+    public BlockMessage(ByteBuffer message, byte disc) {
+        super(13, disc);
         index = message.getInt();
         begin = message.getInt();
         length = message.getInt();
@@ -20,28 +20,6 @@ public class BlockMessage extends EmptyMessage {
         this.index = index;
         this.begin = begin;
         this.length = length;
-    }
-        
-    /* (non-Javadoc)
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode() {
-        return (index + "#" + begin + "#" + length).hashCode();
-    }
-    
-    /* (non-Javadoc)
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || !(o instanceof BlockMessage)) {
-            return false;
-        }
-        BlockMessage rm = (BlockMessage) o;
-        return index == rm.index &&
-            begin == rm.begin &&
-            length == rm.length;
     }
 
     public int getBegin() {

@@ -2,25 +2,21 @@ package hpbtc.protocol.message;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-public class HandshakeMessage extends EmptyMessage {
+public class HandshakeMessage {
 
     private byte[] infoHash;
     private byte[] peerId;
+    private byte[] protocol;
 
     public HandshakeMessage(ByteBuffer message) throws IOException {
-        super(68, (byte) 0);
         if (message.remaining() < 48) {
             throw new EOFException("wrong hanshake");
         }
         message.limit(20);
-        ByteBuffer h = ByteBuffer.allocate(20);
-        getProtocol(h);
-        h.rewind();
-        if (!message.equals(h)) {
-            throw new IOException("wrong hanshake");
-        }
+        message.get(protocol);
         message.limit(48);
         message.position(28);
         message.get(infoHash);
@@ -32,8 +28,8 @@ public class HandshakeMessage extends EmptyMessage {
         }
     }
 
-    public HandshakeMessage(byte[] infoHash, byte[] peerId) {
-        super(68, (byte) 0);
+    public HandshakeMessage(byte[] infoHash, byte[] peerId, byte[] protocol) {
+        this.protocol = protocol;
         this.infoHash = infoHash;
         this.peerId = peerId;
     }
@@ -42,13 +38,9 @@ public class HandshakeMessage extends EmptyMessage {
         return peerId;
     }
 
-    /* (non-Javadoc)
-     * @see hpbtc.message.ProtocolMessage#send()
-     */
-    @Override
     public ByteBuffer send() {
         ByteBuffer bb = ByteBuffer.allocate(68);
-        getProtocol(bb);
+        bb.put(protocol);
         for (int i = 0; i < 8; i++) {
             bb.put((byte) 0);
         }
@@ -57,11 +49,10 @@ public class HandshakeMessage extends EmptyMessage {
         return bb;
     }
 
-    private void getProtocol(ByteBuffer pr) {
-        pr.put((byte) 19);
-        pr.put("BitTorrent protocol".getBytes());
+    public byte[] getProtocol() {
+        return protocol;
     }
-
+    
     public byte[] getInfoHash() {
         return infoHash;
     }
