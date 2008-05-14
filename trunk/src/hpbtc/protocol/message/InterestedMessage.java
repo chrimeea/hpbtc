@@ -14,7 +14,7 @@ public class InterestedMessage implements ProtocolMessage {
 
     public static final byte TYPE_DISCRIMINATOR = 2;
     
-    public InterestedMessage() {
+    public InterestedMessage(int len) {
     }
 
     /* (non-Javadoc)

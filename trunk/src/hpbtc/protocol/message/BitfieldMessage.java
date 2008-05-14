@@ -17,7 +17,7 @@ public class BitfieldMessage implements ProtocolMessage {
     
     private BitSet pieces;
 
-    public BitfieldMessage(ByteBuffer message) {
+    public BitfieldMessage(ByteBuffer message, int len) {
         int j = 0;
         int k = 0;
         int l = message.remaining();

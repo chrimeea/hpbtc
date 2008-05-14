@@ -8,7 +8,7 @@ public abstract class BlockMessage implements ProtocolMessage {
     protected int begin;
     protected int length;
     
-    public BlockMessage(ByteBuffer message) {
+    public BlockMessage(ByteBuffer message, int len) {
         index = message.getInt();
         begin = message.getInt();
         length = message.getInt();

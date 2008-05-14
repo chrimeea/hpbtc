@@ -14,7 +14,7 @@ public class ChokeMessage implements ProtocolMessage {
 
     public static final byte TYPE_DISCRIMINATOR = 0;
     
-    public ChokeMessage() {
+    public ChokeMessage(int len) {
     }
 
     /* (non-Javadoc)

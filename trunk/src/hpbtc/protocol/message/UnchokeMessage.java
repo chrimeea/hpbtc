@@ -14,7 +14,7 @@ public class UnchokeMessage implements ProtocolMessage {
 
     public static final byte TYPE_DISCRIMINATOR = 1;
     
-    public UnchokeMessage() {
+    public UnchokeMessage(int len) {
     }
     
     /* (non-Javadoc)

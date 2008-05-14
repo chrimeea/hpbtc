@@ -16,7 +16,7 @@ public class HaveMessage implements ProtocolMessage {
     
     private int index;
     
-    public HaveMessage(ByteBuffer message) {
+    public HaveMessage(ByteBuffer message, int len) {
         index = message.getInt();
     }
     

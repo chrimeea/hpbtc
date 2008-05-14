@@ -10,8 +10,8 @@ public class RequestMessage extends BlockMessage implements Cloneable {
 
     public static final byte TYPE_DISCRIMINATOR = 6;
     
-    public RequestMessage(ByteBuffer message) {
-        super(message);
+    public RequestMessage(ByteBuffer message, int len) {
+        super(message, len);
     }
 
     public RequestMessage(int begin, int index, int length) {

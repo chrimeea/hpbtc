@@ -108,34 +108,35 @@ public class Protocol {
         InetSocketAddress address = data.getPeer();
         do {
             if (peerRep.isHandshakeReceived(address)) {
+                int len = current.getInt();
                 byte disc = current.get();
                 switch (disc) {
                     case BitfieldMessage.TYPE_DISCRIMINATOR:
-                        process(new BitfieldMessage(current), address);
+                        process(new BitfieldMessage(current, len), address);
                         break;
                     case CancelMessage.TYPE_DISCRIMINATOR:
-                        process(new CancelMessage(current), address);
+                        process(new CancelMessage(current, len), address);
                         break;
                     case ChokeMessage.TYPE_DISCRIMINATOR:
-                        process(new ChokeMessage(), address);
+                        process(new ChokeMessage(len), address);
                         break;
                     case HaveMessage.TYPE_DISCRIMINATOR:
-                        process(new HaveMessage(current), address);
+                        process(new HaveMessage(current, len), address);
                         break;
                     case InterestedMessage.TYPE_DISCRIMINATOR:
-                        process(new InterestedMessage(), address);
+                        process(new InterestedMessage(len), address);
                         break;
                     case NotInterestedMessage.TYPE_DISCRIMINATOR:
-                        process(new NotInterestedMessage(), address);
+                        process(new NotInterestedMessage(len), address);
                         break;
                     case PieceMessage.TYPE_DISCRIMINATOR:
-                        process(new PieceMessage(current), address);
+                        process(new PieceMessage(current, len), address);
                         break;
                     case RequestMessage.TYPE_DISCRIMINATOR:
-                        process(new RequestMessage(current), address);
+                        process(new RequestMessage(current, len), address);
                         break;
                     case UnchokeMessage.TYPE_DISCRIMINATOR:
-                        process(new UnchokeMessage(), address);
+                        process(new UnchokeMessage(len), address);
                 }
             } else {
                 process(new HandshakeMessage(current), data.getPeer());
