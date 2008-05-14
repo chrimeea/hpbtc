@@ -4,7 +4,6 @@
  */
 package hpbtc.protocol.message;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
