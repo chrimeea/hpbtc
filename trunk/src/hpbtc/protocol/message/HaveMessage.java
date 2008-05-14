@@ -10,17 +10,18 @@ import java.nio.ByteBuffer;
  * @author chris
  *
  */
-public class HaveMessage implements ProtocolMessage {
+public class HaveMessage extends ProtocolMessage {
 
     public static final byte TYPE_DISCRIMINATOR = 4;
-    
     private int index;
     
     public HaveMessage(ByteBuffer message, int len) {
+        super(len);
         index = message.getInt();
     }
     
     public HaveMessage(int index) {
+        super(5);
         this.index = index;
     }
 

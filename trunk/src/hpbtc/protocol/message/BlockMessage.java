@@ -2,19 +2,21 @@ package hpbtc.protocol.message;
 
 import java.nio.ByteBuffer;
 
-public abstract class BlockMessage implements ProtocolMessage {
+public abstract class BlockMessage extends ProtocolMessage {
 
     protected int index;
     protected int begin;
     protected int length;
     
     public BlockMessage(ByteBuffer message, int len) {
+        super(len);
         index = message.getInt();
         begin = message.getInt();
         length = message.getInt();
     }
     
     public BlockMessage(int begin, int index, int length) {
+        super(13);
         this.index = index;
         this.begin = begin;
         this.length = length;
@@ -52,5 +54,12 @@ public abstract class BlockMessage implements ProtocolMessage {
 
     public int getLength() {
         return length;
+    }
+
+    @Override
+    public ByteBuffer send() {
+        ByteBuffer bb = ByteBuffer.allocate(17);
+        bb.putInt(13);
+        return bb;
     }
 }

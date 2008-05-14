@@ -10,13 +10,18 @@ import java.nio.ByteBuffer;
  * @author chris
  *
  */
-public class ChokeMessage implements ProtocolMessage {
+public class ChokeMessage extends ProtocolMessage {
 
     public static final byte TYPE_DISCRIMINATOR = 0;
     
-    public ChokeMessage(int len) {
+    public ChokeMessage() {
+        super(1);
     }
-
+    
+    public ChokeMessage(int len) {
+        super(len);
+    }
+    
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */

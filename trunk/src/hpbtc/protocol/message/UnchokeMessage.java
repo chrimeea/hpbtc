@@ -10,11 +10,16 @@ import java.nio.ByteBuffer;
  * @author chris
  *
  */
-public class UnchokeMessage implements ProtocolMessage {
+public class UnchokeMessage extends ProtocolMessage {
 
     public static final byte TYPE_DISCRIMINATOR = 1;
     
+    public UnchokeMessage() {
+        super(1);
+    }
+    
     public UnchokeMessage(int len) {
+        super(len);
     }
     
     /* (non-Javadoc)
