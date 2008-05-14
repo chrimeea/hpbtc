@@ -37,7 +37,7 @@ public class Network {
     private Map<InetSocketAddress, Queue<ByteBuffer>> messagesToSend;
     private Queue<RawMessage> messagesReceived;
     private ByteBuffer current;
-    private boolean isRunning;
+    private boolean running;
 
     public Network() {
         messagesReceived = new ConcurrentLinkedQueue<RawMessage>();
@@ -66,14 +66,14 @@ public class Network {
             selector = Selector.open();
             serverCh.register(selector, SelectionKey.OP_ACCEPT);
         }
-        isRunning = true;
+        running = true;
         new Thread(new Runnable() {
 
             public void run() {
                 try {
                     listen();
                 } catch (IOException e) {
-                    isRunning = false;
+                    running = false;
                     logger.warning(e.getLocalizedMessage());
                 }
                 try {
@@ -86,12 +86,20 @@ public class Network {
                 } catch (IOException e) {
                     logger.warning(e.getLocalizedMessage());
                 }
+                synchronized (this) {
+                    notify();
+                }
             }
         }).start();
     }
 
     public void disconnect() {
-        isRunning = false;
+        running = false;
+        selector.wakeup();
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 
     /**
@@ -207,7 +215,7 @@ public class Network {
     }
 
     private void listen() throws IOException {
-        while (isRunning) {
+        while (running) {
             int n = selector.select();
             RegisterOp ro = registered.poll();
             while (ro != null) {
