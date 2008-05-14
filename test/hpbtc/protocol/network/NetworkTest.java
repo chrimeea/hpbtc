@@ -17,7 +17,7 @@ import org.junit.Test;
 public class NetworkTest {
 
     @Test
-    public void testClientIncomingConnection() throws IOException, UnsupportedEncodingException {
+    public void testNetworkIncomingConnection() throws IOException, UnsupportedEncodingException {
         Network c = new Network();
         c.connect();
         SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.getLocalHost(), c.getPort()));
@@ -26,19 +26,37 @@ public class NetworkTest {
             do {
                 try {
                     c.wait();
-                } catch (InterruptedException e) {}
+                } catch (InterruptedException e) {
+                }
             } while (!c.hasUnreadMessages());
         }
         RawMessage m = c.takeMessage();
-        assert m.getPeer().getAddress().equals(ch.socket().getLocalAddress());
-        assert m.getPeer().getPort() == ch.socket().getLocalPort();
+        Socket s = ch.socket();
+        InetSocketAddress a = m.getPeer();
+        InetAddress remoteAddress = s.getLocalAddress();
+        int remotePort = s.getLocalPort();
+        assert a.getAddress().equals(remoteAddress);
+        assert a.getPort() == remotePort;
         assert new String(m.getMessage(), "US-ASCII").equals("test client");
         ch.close();
+        synchronized (c) {
+            do {
+                try {
+                    c.wait();
+                } catch (InterruptedException e) {
+                }
+            } while (!c.hasUnreadMessages());
+        }
+        m = c.takeMessage();
+        a = m.getPeer();
+        assert m.isDisconnect();
+        assert a.getAddress().equals(remoteAddress);
+        assert a.getPort() == remotePort;
         c.disconnect();
     }
-    
+
     @Test
-    public void testClientConnect() throws IOException {
+    public void testNetworkConnect() throws IOException {
         ServerSocket ch = new ServerSocket(0);
         Network c = new Network();
         c.connect();
