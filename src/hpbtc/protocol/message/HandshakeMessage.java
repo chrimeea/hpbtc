@@ -2,10 +2,9 @@ package hpbtc.protocol.message;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
-public class HandshakeMessage {
+public class HandshakeMessage extends EmptyMessage {
 
     private byte[] infoHash;
     private byte[] peerId;

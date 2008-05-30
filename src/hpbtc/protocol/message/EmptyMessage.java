@@ -25,6 +25,9 @@ public class EmptyMessage {
     protected int messageLength;
     protected byte disc;
     
+    public EmptyMessage() {
+    }
+    
     public EmptyMessage(int len, byte disc) {
         messageLength = len;
         this.disc = disc;

@@ -4,6 +4,7 @@
  */
 package hpbtc.protocol.network;
 
+import hpbtc.protocol.message.EmptyMessage;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -34,14 +35,14 @@ public class Network {
     private ServerSocketChannel serverCh;
     private Selector selector;
     private Queue<RegisterOp> registered;
-    private Map<InetSocketAddress, Queue<ByteBuffer>> messagesToSend;
+    private Map<InetSocketAddress, Queue<EmptyMessage>> messagesToSend;
     private Queue<RawMessage> messagesReceived;
     private ByteBuffer current;
     private boolean running;
 
     public Network() {
         messagesReceived = new ConcurrentLinkedQueue<RawMessage>();
-        messagesToSend = new ConcurrentHashMap<InetSocketAddress, Queue<ByteBuffer>>();
+        messagesToSend = new ConcurrentHashMap<InetSocketAddress, Queue<EmptyMessage>>();
         registered = new ConcurrentLinkedQueue<RegisterOp>();
         current = ByteBuffer.allocate(16384);
     }
@@ -186,10 +187,10 @@ public class Network {
     }
 
     private void writeNext(SocketChannel ch) {
-        Queue<ByteBuffer> q = messagesToSend.get(IOUtil.getAddress(ch));
+        Queue<EmptyMessage> q = messagesToSend.get(IOUtil.getAddress(ch));
         try {
             do {
-                ByteBuffer b = q.poll();
+                ByteBuffer b = q.poll().send();
                 do {
                     IOUtil.writeToChannel(ch, b);
                 } while (b.remaining() == 0);
@@ -204,10 +205,10 @@ public class Network {
         return messagesReceived.poll();
     }
 
-    public void postMessage(InetSocketAddress peer, ByteBuffer message) throws IOException {
-        Queue<ByteBuffer> q = messagesToSend.get(peer);
+    public void postMessage(InetSocketAddress peer, EmptyMessage message) throws IOException {
+        Queue<EmptyMessage> q = messagesToSend.get(peer);
         if (q == null) {
-            q = new ConcurrentLinkedQueue<ByteBuffer>();
+            q = new ConcurrentLinkedQueue<EmptyMessage>();
             messagesToSend.put(peer, q);
         }
         q.add(message);

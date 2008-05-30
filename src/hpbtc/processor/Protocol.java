@@ -153,7 +153,7 @@ public class Protocol {
         if (Arrays.equals(protocol, getSupportedProtocol()) && torrentRep.haveTorrent(infoHash)) {
             peerRep.addPeer(address, pid, infoHash);
             HandshakeMessage reply = new HandshakeMessage(infoHash, peerId, protocol);
-            network.postMessage(address, reply.send());
+            network.postMessage(address, reply);
         } else {
             throw new IOException("wrong message");
         }
