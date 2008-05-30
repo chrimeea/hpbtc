@@ -1,6 +1,7 @@
 package hpbtc.processor;
 
 import java.net.InetSocketAddress;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -73,5 +74,9 @@ public class PeerRepository {
             }
         }
         return null;
+    }
+    
+    public void setPieces(InetSocketAddress address, BitSet pieces) {
+        getPeer(address).setPieces(pieces);
     }
 }

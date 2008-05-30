@@ -176,7 +176,7 @@ public class Protocol {
                 throw new IOException("wrong message");
             }
         }
-    //set pieces to peer
+        peerRep.setPieces(address, pieces);
     }
 
     private void processCancel(int begin, int index, int length, InetSocketAddress address) {
