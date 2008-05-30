@@ -1,5 +1,6 @@
 package hpbtc.protocol.network;
 
+import hpbtc.protocol.message.EmptyMessage;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
@@ -20,9 +21,10 @@ public class NetworkTest {
     public void testNetworkIncomingConnection() throws IOException, UnsupportedEncodingException {
         Network c = new Network();
         c.connect();
-        SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.getLocalHost(), c.getPort()));
-        ch.write(ByteBuffer.wrap("test client".getBytes("US-ASCII")));
+        SocketChannel ch;
         synchronized (c) {
+            ch = SocketChannel.open(new InetSocketAddress(InetAddress.getLocalHost(), c.getPort()));
+            ch.write(ByteBuffer.wrap("test client".getBytes("US-ASCII")));
             do {
                 try {
                     c.wait();
@@ -61,7 +63,18 @@ public class NetworkTest {
         Network c = new Network();
         c.connect();
         InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(), ch.getLocalPort());
-        c.postMessage(a, ByteBuffer.wrap("bit torrent".getBytes("US-ASCII")));
+        c.postMessage(a, new EmptyMessage() {
+
+            @Override
+            public ByteBuffer send() {
+                try {
+                    return ByteBuffer.wrap("bit torrent".getBytes("US-ASCII"));
+                } catch (UnsupportedEncodingException e) {
+                    assert false;
+                }
+                return null;
+            }
+        });
         Socket s = ch.accept();
         byte[] b = new byte[15];
         int i = s.getInputStream().read(b);
