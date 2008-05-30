@@ -68,11 +68,12 @@ public class Network {
             serverCh.register(selector, SelectionKey.OP_ACCEPT);
         }
         running = true;
+        final Network net = this;
         new Thread(new Runnable() {
 
             public void run() {
                 try {
-                    listen();
+                    listen(net);
                 } catch (IOException e) {
                     running = false;
                     logger.warning(e.getLocalizedMessage());
@@ -87,8 +88,8 @@ public class Network {
                 } catch (IOException e) {
                     logger.warning(e.getLocalizedMessage());
                 }
-                synchronized (this) {
-                    notify();
+                synchronized (net) {
+                    net.notify();
                 }
             }
         }).start();
@@ -146,14 +147,14 @@ public class Network {
         return !messagesReceived.isEmpty();
     }
 
-    private void readMessage(SocketChannel ch) {
+    private void readMessage(SocketChannel ch, Network net) {
         int i;
         try {
             i = IOUtil.readFromChannel(ch, current);
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
             i = current.position();
-            disconnectedByPeer(ch);
+            disconnectedByPeer(ch, net);
         }
         if (i > 0) {
             byte[] b = new byte[i];
@@ -161,21 +162,21 @@ public class Network {
             current.get(b);
             current.clear();
             messagesReceived.add(new RawMessage(IOUtil.getAddress(ch), b));
-            synchronized (this) {
-                notify();
+            synchronized (net) {
+                net.notify();
             }
         }
     }
 
-    private void disconnectedByPeer(SocketChannel ch) {
+    private void disconnectedByPeer(SocketChannel ch, Network net) {
         try {
             ch.close();
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
         }
         messagesReceived.add(new RawMessage(IOUtil.getAddress(ch)));
-        synchronized (this) {
-            notify();
+        synchronized (net) {
+            net.notify();
         }
     }
 
@@ -186,7 +187,7 @@ public class Network {
         }
     }
 
-    private void writeNext(SocketChannel ch) {
+    private void writeNext(SocketChannel ch, Network net) {
         Queue<EmptyMessage> q = messagesToSend.get(IOUtil.getAddress(ch));
         try {
             do {
@@ -197,7 +198,7 @@ public class Network {
             } while (!q.isEmpty());
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
-            disconnectedByPeer(ch);
+            disconnectedByPeer(ch, net);
         }
     }
 
@@ -215,7 +216,7 @@ public class Network {
         registerNow(peer, SelectionKey.OP_WRITE);
     }
 
-    private void listen() throws IOException {
+    private void listen(Network net) throws IOException {
         while (running) {
             int n = selector.select();
             RegisterOp ro = registered.poll();
@@ -248,14 +249,14 @@ public class Network {
                         } else {
                             if (key.isReadable()) {
                                 ch.register(selector, key.interestOps() & ~SelectionKey.OP_READ);
-                                readMessage(ch);
+                                readMessage(ch, net);
                                 if (ch.isOpen()) {
                                     ch.register(selector, key.interestOps() | SelectionKey.OP_READ);
                                 }
                             }
                             if (key.isValid() && key.isWritable()) {
                                 ch.register(selector, key.interestOps() & ~SelectionKey.OP_WRITE);
-                                writeNext(ch);
+                                writeNext(ch, net);
                                 if (ch.isOpen() && !messagesToSend.isEmpty()) {
                                     ch.register(selector, key.interestOps() | SelectionKey.OP_WRITE);
                                 }
