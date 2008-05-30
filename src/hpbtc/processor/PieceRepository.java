@@ -2,7 +2,7 @@ package hpbtc.processor;
 
 import hpbtc.protocol.torrent.Peer;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Set;
 import java.util.Map;
 
 /**
@@ -11,10 +11,10 @@ import java.util.Map;
  */
 public class PieceRepository {
 
-    Map<byte[], Map<Long, List<Peer>>> pieces;
+    Map<byte[], Map<Long, Set<Peer>>> pieces;
     
     public PieceRepository() {
-        pieces = new HashMap<byte[], Map<Long, List<Peer>>>();
+        pieces = new HashMap<byte[], Map<Long, Set<Peer>>>();
     }
 
     /*
