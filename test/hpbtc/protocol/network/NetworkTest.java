@@ -40,8 +40,8 @@ public class NetworkTest {
         assert a.getAddress().equals(remoteAddress);
         assert a.getPort() == remotePort;
         assert new String(m.getMessage(), "US-ASCII").equals("test client");
-        ch.close();
         synchronized (c) {
+            ch.close();
             do {
                 try {
                     c.wait();
