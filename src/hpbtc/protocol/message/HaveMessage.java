@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
  * @author chris
  *
  */
-public class HaveMessage extends EmptyMessage {
+public class HaveMessage extends SimpleMessage {
 
     private int index;
     

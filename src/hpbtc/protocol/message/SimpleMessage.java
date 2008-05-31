@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
  * @author chris
  *
  */
-public class EmptyMessage {
+public class SimpleMessage {
     
     public static final byte TYPE_BITFIELD = 5;
     public static final byte TYPE_CANCEL = 8;
@@ -25,10 +25,10 @@ public class EmptyMessage {
     protected int messageLength;
     protected byte disc;
     
-    public EmptyMessage() {
+    public SimpleMessage() {
     }
     
-    public EmptyMessage(int len, byte disc) {
+    public SimpleMessage(int len, byte disc) {
         messageLength = len;
         this.disc = disc;
     }

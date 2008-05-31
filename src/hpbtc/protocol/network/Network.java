@@ -4,7 +4,7 @@
  */
 package hpbtc.protocol.network;
 
-import hpbtc.protocol.message.EmptyMessage;
+import hpbtc.protocol.message.SimpleMessage;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -35,14 +35,14 @@ public class Network {
     private ServerSocketChannel serverCh;
     private Selector selector;
     private Queue<RegisterOp> registered;
-    private Map<InetSocketAddress, Queue<EmptyMessage>> messagesToSend;
+    private Map<InetSocketAddress, Queue<SimpleMessage>> messagesToSend;
     private Queue<RawMessage> messagesReceived;
     private ByteBuffer current;
     private boolean running;
 
     public Network() {
         messagesReceived = new ConcurrentLinkedQueue<RawMessage>();
-        messagesToSend = new ConcurrentHashMap<InetSocketAddress, Queue<EmptyMessage>>();
+        messagesToSend = new ConcurrentHashMap<InetSocketAddress, Queue<SimpleMessage>>();
         registered = new ConcurrentLinkedQueue<RegisterOp>();
         current = ByteBuffer.allocate(16384);
     }
@@ -188,7 +188,7 @@ public class Network {
     }
 
     private void writeNext(SocketChannel ch, Network net) {
-        Queue<EmptyMessage> q = messagesToSend.get(IOUtil.getAddress(ch));
+        Queue<SimpleMessage> q = messagesToSend.get(IOUtil.getAddress(ch));
         try {
             do {
                 ByteBuffer b = q.poll().send();
@@ -206,10 +206,10 @@ public class Network {
         return messagesReceived.poll();
     }
 
-    public void postMessage(InetSocketAddress peer, EmptyMessage message) throws IOException {
-        Queue<EmptyMessage> q = messagesToSend.get(peer);
+    public void postMessage(InetSocketAddress peer, SimpleMessage message) throws IOException {
+        Queue<SimpleMessage> q = messagesToSend.get(peer);
         if (q == null) {
-            q = new ConcurrentLinkedQueue<EmptyMessage>();
+            q = new ConcurrentLinkedQueue<SimpleMessage>();
             messagesToSend.put(peer, q);
         }
         q.add(message);

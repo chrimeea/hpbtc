@@ -4,7 +4,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class HandshakeMessage extends EmptyMessage {
+public class HandshakeMessage extends SimpleMessage {
 
     private byte[] infoHash;
     private byte[] peerId;
