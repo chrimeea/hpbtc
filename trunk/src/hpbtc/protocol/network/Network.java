@@ -4,6 +4,7 @@
  */
 package hpbtc.protocol.network;
 
+import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -47,6 +48,22 @@ public class Network {
         current = ByteBuffer.allocate(16384);
     }
 
+    public void cancelPieceMessage(int begin, int index, int length, InetSocketAddress peer) {
+        Queue<SimpleMessage> q = messagesToSend.get(peer);
+        if (q != null) {
+            Iterator<SimpleMessage> i = q.iterator();
+            while (i.hasNext()) {
+                SimpleMessage m = i.next();
+                if (m instanceof PieceMessage) {
+                    PieceMessage pm = (PieceMessage) m;
+                    if (pm.getIndex() == index && pm.getBegin() == begin && pm.getLength() == length) {
+                        i.remove();
+                    }
+                }
+            }
+        }
+    }
+    
     public void connect() throws IOException {
         int port = MIN_PORT;
         serverCh = ServerSocketChannel.open();
