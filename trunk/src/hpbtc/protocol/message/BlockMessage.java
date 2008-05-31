@@ -2,7 +2,7 @@ package hpbtc.protocol.message;
 
 import java.nio.ByteBuffer;
 
-public class BlockMessage extends EmptyMessage {
+public class BlockMessage extends SimpleMessage {
 
     private int index;
     private int begin;

@@ -1,6 +1,6 @@
 package hpbtc.protocol.network;
 
-import hpbtc.protocol.message.EmptyMessage;
+import hpbtc.protocol.message.SimpleMessage;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
@@ -63,7 +63,7 @@ public class NetworkTest {
         Network c = new Network();
         c.connect();
         InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(), ch.getLocalPort());
-        c.postMessage(a, new EmptyMessage() {
+        c.postMessage(a, new SimpleMessage() {
 
             @Override
             public ByteBuffer send() {
