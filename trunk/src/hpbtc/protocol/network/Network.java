@@ -192,7 +192,9 @@ public class Network {
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
         }
-        messagesReceived.add(new RawMessage(IOUtil.getAddress(ch)));
+        InetSocketAddress a = IOUtil.getAddress(ch);
+        messagesToSend.remove(a);
+        messagesReceived.add(new RawMessage(a));
         synchronized (net) {
             net.notify();
         }
