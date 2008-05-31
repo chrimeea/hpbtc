@@ -42,6 +42,10 @@ public class PieceMessage extends SimpleMessage {
         return bb;
     }
 
+    public int getLength() {
+        return messageLength - 9;
+    }
+    
     public ByteBuffer getPiece() {
         return piece;
     }
