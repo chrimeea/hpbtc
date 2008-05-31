@@ -38,14 +38,15 @@ public class Network {
     private Queue<RegisterOp> registered;
     private Map<InetSocketAddress, Queue<SimpleMessage>> messagesToSend;
     private Queue<RawMessage> messagesReceived;
-    private ByteBuffer current;
+    private ByteBuffer currentRead;
     private boolean running;
+    private ByteBuffer currentWrite;
 
     public Network() {
         messagesReceived = new ConcurrentLinkedQueue<RawMessage>();
         messagesToSend = new ConcurrentHashMap<InetSocketAddress, Queue<SimpleMessage>>();
         registered = new ConcurrentLinkedQueue<RegisterOp>();
-        current = ByteBuffer.allocate(16384);
+        currentRead = ByteBuffer.allocate(16384);
     }
 
     public void cancelPieceMessage(int begin, int index, int length, InetSocketAddress peer) {
@@ -63,7 +64,7 @@ public class Network {
             }
         }
     }
-    
+
     public void connect() throws IOException {
         int port = MIN_PORT;
         serverCh = ServerSocketChannel.open();
@@ -167,17 +168,17 @@ public class Network {
     private void readMessage(SocketChannel ch, Network net) {
         int i;
         try {
-            i = IOUtil.readFromChannel(ch, current);
+            i = IOUtil.readFromChannel(ch, currentRead);
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
-            i = current.position();
+            i = currentRead.position();
             disconnectedByPeer(ch, net);
         }
         if (i > 0) {
             byte[] b = new byte[i];
-            current.rewind();
-            current.get(b);
-            current.clear();
+            currentRead.rewind();
+            currentRead.get(b);
+            currentRead.clear();
             messagesReceived.add(new RawMessage(IOUtil.getAddress(ch), b));
             synchronized (net) {
                 net.notify();
@@ -205,14 +206,12 @@ public class Network {
     }
 
     private void writeNext(SocketChannel ch, Network net) {
-        Queue<SimpleMessage> q = messagesToSend.get(IOUtil.getAddress(ch));
+        if (currentWrite == null || currentWrite.remaining() == 0) {
+            Queue<SimpleMessage> q = messagesToSend.get(IOUtil.getAddress(ch));
+            currentWrite = q.poll().send();
+        }
         try {
-            do {
-                ByteBuffer b = q.poll().send();
-                do {
-                    IOUtil.writeToChannel(ch, b);
-                } while (b.remaining() == 0);
-            } while (!q.isEmpty());
+            IOUtil.writeToChannel(ch, currentWrite);
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
             disconnectedByPeer(ch, net);
@@ -274,8 +273,11 @@ public class Network {
                             if (key.isValid() && key.isWritable()) {
                                 ch.register(selector, key.interestOps() & ~SelectionKey.OP_WRITE);
                                 writeNext(ch, net);
-                                if (ch.isOpen() && !messagesToSend.isEmpty()) {
-                                    ch.register(selector, key.interestOps() | SelectionKey.OP_WRITE);
+                                if (ch.isOpen()) {
+                                    Queue<SimpleMessage> q = messagesToSend.get(IOUtil.getAddress(ch));
+                                    if (!q.isEmpty()) {
+                                        ch.register(selector, key.interestOps() | SelectionKey.OP_WRITE);
+                                    }
                                 }
                             }
                         }
