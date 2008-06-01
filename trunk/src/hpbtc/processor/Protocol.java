@@ -189,15 +189,18 @@ public class Protocol {
     }
 
     private void processChoke(InetSocketAddress address) {
+        peerRep.setPeerChoking(address, true);
     }
 
     private void processHave(int index, InetSocketAddress address) {
     }
 
     private void processInterested(InetSocketAddress address) {
+        peerRep.setPeerInterested(address, true);
     }
 
     private void processNotInterested(InetSocketAddress address) {
+        peerRep.setPeerInterested(address, false);
     }
 
     private void processPiece(int begin, int index, ByteBuffer piece, InetSocketAddress address) {
@@ -207,5 +210,6 @@ public class Protocol {
     }
 
     private void processUnchoke(InetSocketAddress address) {
+        peerRep.setPeerChoking(address, false);
     }
 }
