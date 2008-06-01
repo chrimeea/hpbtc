@@ -179,7 +179,13 @@ public class Protocol {
         peerRep.setPieces(address, pieces);
     }
 
-    private void processCancel(int begin, int index, int length, InetSocketAddress address) {
+    private void processCancel(int begin, int index, int length, InetSocketAddress address) throws IOException {
+        byte[] infoHash = peerRep.getInfoHash(address);
+        if (index >= torrentRep.getNrPieces(infoHash) ||
+            begin >= torrentRep.getPieceLength(infoHash)) {
+            throw new IOException("wrong message");
+        }
+        network.cancelPieceMessage(begin, index, length, address);
     }
 
     private void processChoke(InetSocketAddress address) {

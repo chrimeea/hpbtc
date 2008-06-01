@@ -42,4 +42,8 @@ public class TorrentRepository {
     public long getNrPieces(byte[] infoHash) {
         return getTorrent(infoHash).getNrPieces();
     }
+    
+    public long getPieceLength(byte[] infoHash) {
+        return getTorrent(infoHash).getPieceLength();
+    }
 }
