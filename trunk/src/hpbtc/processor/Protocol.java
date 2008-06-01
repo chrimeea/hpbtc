@@ -215,6 +215,7 @@ public class Protocol {
             begin >= torrentRep.getPieceLength(infoHash)) {
             throw new IOException("wrong message");
         }
+        //TODO process piece
     }
     
     private void processRequest(int begin, int index, int length, InetSocketAddress address) throws IOException {
@@ -224,6 +225,7 @@ public class Protocol {
             begin >= pieceLength || begin + length > pieceLength) {
             throw new IOException("wrong message");
         }
+        //TODO proces srequest
     }
 
     private void processUnchoke(InetSocketAddress address) {
