@@ -192,7 +192,12 @@ public class Protocol {
         peerRep.setPeerChoking(address, true);
     }
 
-    private void processHave(int index, InetSocketAddress address) {
+    private void processHave(int index, InetSocketAddress address) throws IOException {
+        byte[] infoHash = peerRep.getInfoHash(address);
+        if (index >= torrentRep.getNrPieces(infoHash)) {
+            throw new IOException("wrong message");
+        }
+        peerRep.setPiece(address, index);
     }
 
     private void processInterested(InetSocketAddress address) {
