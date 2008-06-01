@@ -12,13 +12,32 @@ public class PeerInfo extends Peer {
     
     private boolean messagesReceived;
     private BitSet pieces;
+    private boolean peerChoking;
+    private boolean peerInterested;
 
     public PeerInfo(InetSocketAddress address, byte[] id) {
         super(address, id);
+        peerChoking = true;
     }
     
     public PeerInfo(InetSocketAddress address) {
         super(address);
+    }
+    
+    public void setPeerInterested(boolean interested) {
+        peerInterested = interested;
+    }
+    
+    public boolean isPeerInterested() {
+        return peerInterested;
+    }
+    
+    public void setPeerChoking(boolean choking) {
+        peerChoking = choking;
+    }
+    
+    public boolean isPeerChoking() {
+        return peerChoking;
     }
     
     public void setPieces(BitSet bs) {

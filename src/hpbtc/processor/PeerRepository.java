@@ -79,4 +79,12 @@ public class PeerRepository {
     public void setPieces(InetSocketAddress address, BitSet pieces) {
         getPeer(address).setPieces(pieces);
     }
+    
+    public void setPeerChoking(InetSocketAddress address, boolean choking) {
+        getPeer(address).setPeerChoking(choking);
+    }
+    
+    public void setPeerInterested(InetSocketAddress address, boolean interested) {
+        getPeer(address).setPeerInterested(interested);
+    }
 }
