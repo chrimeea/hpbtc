@@ -225,7 +225,7 @@ public class Protocol {
             begin >= pieceLength || begin + length > pieceLength) {
             throw new IOException("wrong message");
         }
-        //TODO proces srequest
+        //TODO process request
     }
 
     private void processUnchoke(InetSocketAddress address) {
