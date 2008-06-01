@@ -20,7 +20,7 @@ public class TorrentRepository {
         torrents = new HashSet<TorrentInfo>();
     }
     
-    public TorrentInfo getTorrent(byte[] infoHash) {
+    private TorrentInfo getTorrent(byte[] infoHash) {
         for (TorrentInfo t : torrents) {
             if (Arrays.equals(t.getInfoHash(), infoHash)) {
                 return t;
@@ -45,5 +45,9 @@ public class TorrentRepository {
     
     public long getPieceLength(byte[] infoHash) {
         return getTorrent(infoHash).getPieceLength();
+    }
+    
+    public byte[] getPieceHash(byte[] infoHash, int index) {
+        return getTorrent(infoHash).getPieceHash(index);
     }
 }

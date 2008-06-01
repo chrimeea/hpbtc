@@ -28,7 +28,7 @@ public class TorrentInfo {
     private List<BTFile> files;
     private long fileLength;
     private long nrPieces;
-    private String pieceHash;
+    private byte[] pieceHash;
     private Date creationDate;
     private String comment;
     private String createdBy;
@@ -87,7 +87,7 @@ public class TorrentInfo {
         if (fileLength % pieceLength > 0) {
             nrPieces++;
         }
-        pieceHash = (String) info.get("pieces");
+        pieceHash = ((String) info.get("pieces")).getBytes(encoding);
     }
 
     private static byte[] computeInfoHash(Map<String, Object> info) throws NoSuchAlgorithmException, IOException {
@@ -123,8 +123,9 @@ public class TorrentInfo {
         return multiple;
     }
 
-    public String getPieceHash() {
-        return pieceHash;
+    public byte[] getPieceHash(int index) {
+        int i = index * 20;
+        return Arrays.copyOfRange(pieceHash, i, i + 20);
     }
 
     public List<LinkedList<String>> getTrackers() {

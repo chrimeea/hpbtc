@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -208,10 +209,21 @@ public class Protocol {
         peerRep.setPeerInterested(address, false);
     }
 
-    private void processPiece(int begin, int index, ByteBuffer piece, InetSocketAddress address) {
+    private void processPiece(int begin, int index, ByteBuffer piece, InetSocketAddress address) throws IOException {
+        byte[] infoHash = peerRep.getInfoHash(address);
+        if (index >= torrentRep.getNrPieces(infoHash) ||
+            begin >= torrentRep.getPieceLength(infoHash)) {
+            throw new IOException("wrong message");
+        }
     }
-
-    private void processRequest(int begin, int index, int length, InetSocketAddress address) {
+    
+    private void processRequest(int begin, int index, int length, InetSocketAddress address) throws IOException {
+        byte[] infoHash = peerRep.getInfoHash(address);
+        long pieceLength = torrentRep.getPieceLength(infoHash);
+        if (index >= torrentRep.getNrPieces(infoHash) ||
+            begin >= pieceLength || begin + length > pieceLength) {
+            throw new IOException("wrong message");
+        }
     }
 
     private void processUnchoke(InetSocketAddress address) {
