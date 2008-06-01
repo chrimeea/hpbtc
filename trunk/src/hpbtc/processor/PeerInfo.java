@@ -44,6 +44,10 @@ public class PeerInfo extends Peer {
         pieces = bs;
     }
     
+    public void setPiece(int index) {
+        pieces.set(index);
+    }
+    
     public boolean isMessagesReceived() {
         return messagesReceived;
     }

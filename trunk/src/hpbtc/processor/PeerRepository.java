@@ -80,6 +80,10 @@ public class PeerRepository {
         getPeer(address).setPieces(pieces);
     }
     
+    public void setPiece(InetSocketAddress address, int index) {
+        getPeer(address).setPiece(index);
+    }
+    
     public void setPeerChoking(InetSocketAddress address, boolean choking) {
         getPeer(address).setPeerChoking(choking);
     }
