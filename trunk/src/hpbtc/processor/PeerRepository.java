@@ -1,12 +1,10 @@
 package hpbtc.processor;
 
+import hpbtc.protocol.torrent.Peer;
 import java.net.InetSocketAddress;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -14,81 +12,52 @@ import java.util.Set;
  */
 public class PeerRepository {
 
-    private Map<byte[], Set<PeerInfo>> peerInfo;
+    private Map<InetSocketAddress, Peer> peerInfo;
 
     public PeerRepository() {
-        peerInfo = new HashMap<byte[], Set<PeerInfo>>();
-    }
-
-    private PeerInfo getPeer(InetSocketAddress address) {
-        for (Set<PeerInfo> s : peerInfo.values()) {
-            for (PeerInfo p : s) {
-                if (p.getAddress().equals(address)) {
-                    return p;
-                }
-            }
-        }
-        return null;
+        peerInfo = new HashMap<InetSocketAddress, Peer>();
     }
 
     public boolean isHandshakeReceived(InetSocketAddress address) {
-        return getPeer(address) != null;
+        return peerInfo.get(address) != null;
     }
 
     public void removePeer(InetSocketAddress address) {
-        for (Set<PeerInfo> s : peerInfo.values()) {
-            Iterator<PeerInfo> pIt = s.iterator();
-            while (pIt.hasNext()) {
-                PeerInfo p = pIt.next();
-                if (p.getAddress().equals(address)) {
-                    pIt.remove();
-                }
-            }
-        }
+        peerInfo.remove(address);
     }
 
     public void addPeer(InetSocketAddress address, byte[] peerId, byte[] infoHash) {
-        Set<PeerInfo> p = peerInfo.get(infoHash);
-        if (p == null) {
-            p = new HashSet<PeerInfo>();
-            peerInfo.put(infoHash, p);
-        }
-        p.add(new PeerInfo(address, peerId));
+        Peer p = new Peer(address, peerId);
+        p.setInfoHash(infoHash);
+        peerInfo.put(address, p);
     }
 
     public boolean isMessagesReceived(InetSocketAddress address) {
-        PeerInfo peer = getPeer(address);
+        Peer peer = peerInfo.get(address);
         return peer == null ? false : peer.isMessagesReceived();
     }
 
     public void setMessagesReceived(InetSocketAddress address) {
-        getPeer(address).setMessagesReceived();
+        peerInfo.get(address).setMessagesReceived();
     }
 
     public byte[] getInfoHash(InetSocketAddress address) {
-        for (byte[] b : peerInfo.keySet()) {
-            for (PeerInfo p: peerInfo.get(b)) {
-                if (p.getAddress().equals(address)) {
-                    return b;
-                }
-            }
-        }
-        return null;
+        return peerInfo.get(address).getInfoHash();
     }
     
     public void setPieces(InetSocketAddress address, BitSet pieces) {
-        getPeer(address).setPieces(pieces);
+        peerInfo.get(address).setPieces(pieces);
     }
     
     public void setPiece(InetSocketAddress address, int index) {
-        getPeer(address).setPiece(index);
+        peerInfo.get(address).setPiece(index);
     }
     
     public void setPeerChoking(InetSocketAddress address, boolean choking) {
-        getPeer(address).setPeerChoking(choking);
+        peerInfo.get(address).setPeerChoking(choking);
     }
     
     public void setPeerInterested(InetSocketAddress address, boolean interested) {
-        getPeer(address).setPeerInterested(interested);
+        peerInfo.get(address).setPeerInterested(interested);
     }
 }

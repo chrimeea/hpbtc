@@ -1,12 +1,11 @@
 package hpbtc.processor;
 
-import hpbtc.protocol.torrent.TorrentInfo;
+import hpbtc.protocol.torrent.Torrent;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -14,40 +13,32 @@ import java.util.Set;
  */
 public class TorrentRepository {
 
-    private Set<TorrentInfo> torrents;
+    private Map<byte[], Torrent> torrents;
     
     public TorrentRepository() {
-        torrents = new HashSet<TorrentInfo>();
+        torrents = new HashMap<byte[], Torrent>();
     }
     
-    private TorrentInfo getTorrent(byte[] infoHash) {
-        for (TorrentInfo t : torrents) {
-            if (Arrays.equals(t.getInfoHash(), infoHash)) {
-                return t;
-            }
-        }
-        return null;
-    }
-
     public boolean haveTorrent(byte[] infoHash) {
-        return getTorrent(infoHash) != null;
+        return torrents.containsKey(infoHash);
     }
     
     public void addTorrent(String fileName) throws IOException, NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
-        torrents.add(new TorrentInfo(fis));
+        Torrent ti = new Torrent(fis);
+        torrents.put(ti.getInfoHash(), ti);
         fis.close();
     }
     
     public long getNrPieces(byte[] infoHash) {
-        return getTorrent(infoHash).getNrPieces();
+        return torrents.get(infoHash).getNrPieces();
     }
     
     public long getPieceLength(byte[] infoHash) {
-        return getTorrent(infoHash).getPieceLength();
+        return torrents.get(infoHash).getPieceLength();
     }
     
     public byte[] getPieceHash(byte[] infoHash, int index) {
-        return getTorrent(infoHash).getPieceHash(index);
+        return torrents.get(infoHash).getPieceHash(index);
     }
 }
