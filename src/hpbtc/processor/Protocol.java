@@ -12,13 +12,10 @@ import hpbtc.protocol.torrent.Peer;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -31,14 +28,12 @@ public class Protocol {
     private static Logger logger = Logger.getLogger(Protocol.class.getName());
     private TorrentRepository torrentRep;
     private Network network;
-    private Map<InetSocketAddress, Peer> peerInfo;
     private byte[] peerId;
     private PieceRepository pieceRep;
 
     public Protocol() {
         torrentRep = new TorrentRepository();
         network = new Network();
-        peerInfo = new HashMap<InetSocketAddress, Peer>();
         pieceRep = new PieceRepository();
         generateId();
     }
@@ -86,7 +81,7 @@ public class Protocol {
                         } catch (IOException ioe) {
                             logger.warning(ioe.getLocalizedMessage());
                             try {
-                                network.closeConnection(message.getPeerAddress());
+                                network.closeConnection(message.getPeer());
                             } catch (IOException e) {
                                 logger.warning(e.getLocalizedMessage());
                             }
@@ -99,11 +94,10 @@ public class Protocol {
 
     private void process(RawMessage data) throws IOException {
         if (data.isDisconnect()) {
-            peerInfo.remove(data.getPeerAddress());
             return;
         }
         ByteBuffer current = ByteBuffer.wrap(data.getMessage());
-        Peer peer = peerInfo.get(data.getPeerAddress());
+        Peer peer = data.getPeer();
         do {
             if (peer != null) {
                 int len = current.getInt();
@@ -149,7 +143,7 @@ public class Protocol {
                 }
             } else {
                 HandshakeMessage mHand = new HandshakeMessage(current);
-                peer = new Peer(data.getPeerAddress(), mHand.getPeerId());
+                peer.setId(mHand.getPeerId());
                 peer.setInfoHash(mHand.getInfoHash());
                 processHandshake(mHand.getProtocol(), peer);
             }
@@ -159,9 +153,8 @@ public class Protocol {
     private void processHandshake(byte[] protocol, Peer peer) throws IOException {
         byte[] infoHash = peer.getInfoHash();
         if (Arrays.equals(protocol, getSupportedProtocol()) && torrentRep.haveTorrent(infoHash)) {
-            peerInfo.put(peer.getAddress(), peer);
             HandshakeMessage reply = new HandshakeMessage(infoHash, peerId, protocol);
-            network.postMessage(peer.getAddress(), reply);
+            network.postMessage(peer, reply);
         } else {
             throw new IOException("wrong message");
         }
@@ -193,7 +186,7 @@ public class Protocol {
             begin >= torrentRep.getPieceLength(infoHash)) {
             throw new IOException("wrong message");
         }
-        network.cancelPieceMessage(begin, index, length, peer.getAddress());
+        network.cancelPieceMessage(begin, index, length, peer);
     }
 
     private void processChoke(Peer peer) {
@@ -234,7 +227,7 @@ public class Protocol {
         }
         ByteBuffer piece = pieceRep.getPiece(infoHash, begin, index, length);
         PieceMessage pm = new PieceMessage(begin, index, piece);
-        network.postMessage(peer.getAddress(), pm);
+        network.postMessage(peer, pm);
     }
 
     private void processUnchoke(Peer peer) {

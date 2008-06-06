@@ -1,6 +1,6 @@
 package hpbtc.protocol.network;
 
-import java.net.InetSocketAddress;
+import hpbtc.protocol.torrent.Peer;
 
 /**
  *
@@ -9,16 +9,16 @@ import java.net.InetSocketAddress;
 public class RawMessage {
     
     private byte[] message;
-    private InetSocketAddress peerAddress;
+    private Peer peer;
     private boolean disconnect;
     
-    public RawMessage(InetSocketAddress peer, byte[] message) {
+    public RawMessage(Peer peer, byte[] message) {
         this.message = message;
-        this.peerAddress = peer;
+        this.peer = peer;
     }
     
-    public RawMessage(InetSocketAddress peer) {
-        this.peerAddress = peer;
+    public RawMessage(Peer peer) {
+        this.peer = peer;
         disconnect = true;
     }
     
@@ -30,7 +30,7 @@ public class RawMessage {
         return message;
     }
     
-    public InetSocketAddress getPeerAddress() {
-        return peerAddress;
+    public Peer getPeer() {
+        return peer;
     }
 }

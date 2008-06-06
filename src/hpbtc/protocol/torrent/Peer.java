@@ -1,8 +1,9 @@
 package hpbtc.protocol.torrent;
 
 import java.net.InetSocketAddress;
-import java.util.Arrays;
+import java.nio.channels.SocketChannel;
 import java.util.BitSet;
+import util.IOUtil;
 
 /**
  *
@@ -10,13 +11,14 @@ import java.util.BitSet;
  */
 public class Peer {
 
-    private InetSocketAddress address;
+    private SocketChannel channel;
     private byte[] id;
     private boolean messagesReceived;
     private BitSet pieces;
     private boolean peerChoking;
     private boolean peerInterested;
     private byte[] infoHash;
+    private InetSocketAddress address;
     
     public Peer(InetSocketAddress address, byte[] id) {
         this.address = address;
@@ -24,36 +26,32 @@ public class Peer {
         peerChoking = true;
     }
     
-    public Peer(InetSocketAddress address) {
-        this(address, null);
+    public Peer(SocketChannel channel) {
+        this.channel = channel;
+        this.address = IOUtil.getAddress(channel);
+        peerChoking = true;
     }
     
     public byte[] getId() {
         return id;
     }
-    
+
     public InetSocketAddress getAddress() {
         return address;
     }
+    
+    public SocketChannel getChannel() {
+        return channel;
+    }
 
+    public void setChannel(SocketChannel channel) {
+        this.channel = channel;
+    }
+    
     public void setId(byte[] id) {
         this.id = id;
     }
-    
-    @Override
-    public boolean equals(Object arg) {
-        if (arg instanceof Peer && arg != null) {
-            Peer obj = (Peer) arg;
-            return Arrays.equals(id, obj.id);
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return new String(id).hashCode();
-    }
-    
+        
     public void setInfoHash(byte[] infoHash) {
         this.infoHash = infoHash;
     }
