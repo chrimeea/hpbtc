@@ -9,16 +9,16 @@ import java.net.InetSocketAddress;
 public class RawMessage {
     
     private byte[] message;
-    private InetSocketAddress peer;
+    private InetSocketAddress peerAddress;
     private boolean disconnect;
     
     public RawMessage(InetSocketAddress peer, byte[] message) {
         this.message = message;
-        this.peer = peer;
+        this.peerAddress = peer;
     }
     
     public RawMessage(InetSocketAddress peer) {
-        this.peer = peer;
+        this.peerAddress = peer;
         disconnect = true;
     }
     
@@ -30,7 +30,7 @@ public class RawMessage {
         return message;
     }
     
-    public InetSocketAddress getPeer() {
-        return peer;
+    public InetSocketAddress getPeerAddress() {
+        return peerAddress;
     }
 }
