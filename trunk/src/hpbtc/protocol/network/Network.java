@@ -6,6 +6,7 @@ package hpbtc.protocol.network;
 
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
+import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -18,7 +19,6 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
@@ -36,7 +36,7 @@ public class Network {
     private ServerSocketChannel serverCh;
     private Selector selector;
     private Queue<RegisterOp> registered;
-    private Map<InetSocketAddress, Queue<SimpleMessage>> messagesToSend;
+    private Map<Peer, Queue<SimpleMessage>> messagesToSend;
     private Queue<RawMessage> messagesReceived;
     private ByteBuffer currentRead;
     private boolean running;
@@ -44,12 +44,12 @@ public class Network {
 
     public Network() {
         messagesReceived = new ConcurrentLinkedQueue<RawMessage>();
-        messagesToSend = new ConcurrentHashMap<InetSocketAddress, Queue<SimpleMessage>>();
+        messagesToSend = new ConcurrentHashMap<Peer, Queue<SimpleMessage>>();
         registered = new ConcurrentLinkedQueue<RegisterOp>();
         currentRead = ByteBuffer.allocate(16384);
     }
 
-    public void cancelPieceMessage(int begin, int index, int length, InetSocketAddress peer) {
+    public void cancelPieceMessage(int begin, int index, int length, Peer peer) {
         Queue<SimpleMessage> q = messagesToSend.get(peer);
         if (q != null) {
             Iterator<SimpleMessage> i = q.iterator();
@@ -129,33 +129,20 @@ public class Network {
         return serverCh.socket().getLocalPort();
     }
 
-    private SocketChannel findByAddress(InetSocketAddress peer) {
-        Set<SelectionKey> keys = selector.keys();
-        for (SelectionKey k : keys) {
-            SelectableChannel ch = k.channel();
-            if (ch instanceof SocketChannel) {
-                SocketChannel sc = (SocketChannel) ch;
-                if (((InetSocketAddress) sc.socket().getRemoteSocketAddress()).equals(peer)) {
-                    return sc;
-                }
-            }
-        }
-        return null;
-    }
-
-    private void registerNow(InetSocketAddress peer, int op) throws IOException {
-        SocketChannel ch = findByAddress(peer);
+    private void registerNow(Peer peer, int op) throws IOException {
+        SocketChannel ch = peer.getChannel();
         if (ch != null) {
             if ((ch.keyFor(selector).interestOps() & op) == 0) {
-                registered.add(new RegisterOp(op, ch));
+                registered.add(new RegisterOp(op, peer));
             }
         } else {
             ch = SocketChannel.open();
             ch.configureBlocking(false);
-            if (ch.connect(peer)) {
-                registered.add(new RegisterOp(op, ch));
+            peer.setChannel(ch);
+            if (ch.connect(peer.getAddress())) {
+                registered.add(new RegisterOp(op, peer));
             } else {
-                registered.add(new RegisterOp(SelectionKey.OP_CONNECT | op, ch));
+                registered.add(new RegisterOp(SelectionKey.OP_CONNECT | op, peer));
             }
         }
         selector.wakeup();
@@ -165,58 +152,57 @@ public class Network {
         return !messagesReceived.isEmpty();
     }
 
-    private void readMessage(SocketChannel ch, Network net) {
+    private void readMessage(Peer peer, Network net) {
         int i;
         try {
-            i = IOUtil.readFromChannel(ch, currentRead);
+            i = IOUtil.readFromChannel(peer.getChannel(), currentRead);
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
             i = currentRead.position();
-            disconnectedByPeer(ch, net);
+            disconnectedByPeer(peer, net);
         }
         if (i > 0) {
             byte[] b = new byte[i];
             currentRead.rewind();
             currentRead.get(b);
             currentRead.clear();
-            messagesReceived.add(new RawMessage(IOUtil.getAddress(ch), b));
+            messagesReceived.add(new RawMessage(peer, b));
             synchronized (net) {
                 net.notify();
             }
         }
     }
 
-    private void disconnectedByPeer(SocketChannel ch, Network net) {
+    private void disconnectedByPeer(Peer peer, Network net) {
         try {
-            ch.close();
+            closeConnection(peer);
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
         }
-        InetSocketAddress a = IOUtil.getAddress(ch);
-        messagesToSend.remove(a);
-        messagesReceived.add(new RawMessage(a));
+        messagesToSend.remove(peer);
+        messagesReceived.add(new RawMessage(peer));
         synchronized (net) {
             net.notify();
         }
     }
 
-    public void closeConnection(InetSocketAddress address) throws IOException {
-        SocketChannel ch = findByAddress(address);
+    public void closeConnection(Peer peer) throws IOException {
+        SocketChannel ch = peer.getChannel();
         if (ch != null) {
             ch.close();
         }
     }
 
-    private void writeNext(SocketChannel ch, Network net) {
+    private void writeNext(Peer peer, Network net) {
         if (currentWrite == null || currentWrite.remaining() == 0) {
-            Queue<SimpleMessage> q = messagesToSend.get(IOUtil.getAddress(ch));
+            Queue<SimpleMessage> q = messagesToSend.get(peer);
             currentWrite = q.poll().send();
         }
         try {
-            IOUtil.writeToChannel(ch, currentWrite);
+            IOUtil.writeToChannel(peer.getChannel(), currentWrite);
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
-            disconnectedByPeer(ch, net);
+            disconnectedByPeer(peer, net);
         }
     }
 
@@ -224,7 +210,7 @@ public class Network {
         return messagesReceived.poll();
     }
 
-    public void postMessage(InetSocketAddress peer, SimpleMessage message) throws IOException {
+    public void postMessage(Peer peer, SimpleMessage message) throws IOException {
         Queue<SimpleMessage> q = messagesToSend.get(peer);
         if (q == null) {
             q = new ConcurrentLinkedQueue<SimpleMessage>();
@@ -239,12 +225,12 @@ public class Network {
             int n = selector.select();
             RegisterOp ro = registered.poll();
             while (ro != null) {
-                SelectableChannel q = ro.channel;
+                SelectableChannel q = ro.peer.getChannel();
                 SelectionKey w = q.keyFor(selector);
                 if (w != null && w.isValid()) {
-                    q.register(selector, w.interestOps() | ro.operation);
+                    q.register(selector, w.interestOps() | ro.operation, ro.peer);
                 } else if (w == null) {
-                    q.register(selector, ro.operation);
+                    q.register(selector, ro.operation, ro.peer);
                 }
                 ro = registered.poll();
             }
@@ -259,26 +245,27 @@ public class Network {
                     if (key.isAcceptable()) {
                         SocketChannel chan = serverCh.accept();
                         chan.configureBlocking(false);
-                        chan.register(selector, SelectionKey.OP_READ);
+                        chan.register(selector, SelectionKey.OP_READ, new Peer(chan));
                     } else {
+                        Peer peer = (Peer) key.attachment();
                         SocketChannel ch = (SocketChannel) key.channel();
                         if (key.isConnectable() && ch.finishConnect()) {
-                            ch.register(selector, (key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT);
+                            ch.register(selector, (key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT, peer);
                         } else {
                             if (key.isReadable()) {
-                                ch.register(selector, key.interestOps() & ~SelectionKey.OP_READ);
-                                readMessage(ch, net);
+                                ch.register(selector, key.interestOps() & ~SelectionKey.OP_READ, peer);
+                                readMessage(peer, net);
                                 if (ch.isOpen()) {
-                                    ch.register(selector, key.interestOps() | SelectionKey.OP_READ);
+                                    ch.register(selector, key.interestOps() | SelectionKey.OP_READ, peer);
                                 }
                             }
                             if (key.isValid() && key.isWritable()) {
-                                ch.register(selector, key.interestOps() & ~SelectionKey.OP_WRITE);
-                                writeNext(ch, net);
+                                ch.register(selector, key.interestOps() & ~SelectionKey.OP_WRITE, peer);
+                                writeNext(peer, net);
                                 if (ch.isOpen()) {
-                                    Queue<SimpleMessage> q = messagesToSend.get(IOUtil.getAddress(ch));
+                                    Queue<SimpleMessage> q = messagesToSend.get(peer);
                                     if (!q.isEmpty()) {
-                                        ch.register(selector, key.interestOps() | SelectionKey.OP_WRITE);
+                                        ch.register(selector, key.interestOps() | SelectionKey.OP_WRITE, peer);
                                     }
                                 }
                             }
@@ -291,12 +278,12 @@ public class Network {
 
     private class RegisterOp {
 
-        private SelectableChannel channel;
+        private Peer peer;
         private int operation;
 
-        private RegisterOp(int op, SelectableChannel channel) {
+        private RegisterOp(int op, Peer peer) {
             this.operation = op;
-            this.channel = channel;
+            this.peer = peer;
         }
     }
 }

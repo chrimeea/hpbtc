@@ -1,6 +1,7 @@
 package hpbtc.protocol.network;
 
 import hpbtc.protocol.message.SimpleMessage;
+import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
@@ -10,6 +11,7 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import org.junit.Test;
+import util.IOUtil;
 
 /**
  *
@@ -34,7 +36,7 @@ public class NetworkTest {
         }
         RawMessage m = c.takeMessage();
         Socket s = ch.socket();
-        InetSocketAddress a = m.getPeerAddress();
+        InetSocketAddress a = IOUtil.getAddress(m.getPeer().getChannel());
         InetAddress remoteAddress = s.getLocalAddress();
         int remotePort = s.getLocalPort();
         assert a.getAddress().equals(remoteAddress);
@@ -50,7 +52,7 @@ public class NetworkTest {
             } while (!c.hasUnreadMessages());
         }
         m = c.takeMessage();
-        a = m.getPeerAddress();
+        a = m.getPeer().getAddress();
         assert m.isDisconnect();
         assert a.getAddress().equals(remoteAddress);
         assert a.getPort() == remotePort;
@@ -63,7 +65,7 @@ public class NetworkTest {
         Network c = new Network();
         c.connect();
         InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(), ch.getLocalPort());
-        c.postMessage(a, new SimpleMessage() {
+        c.postMessage(new Peer(a, "X".getBytes("US-ASCII")), new SimpleMessage() {
 
             @Override
             public ByteBuffer send() {

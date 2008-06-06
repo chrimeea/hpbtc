@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Set;
 import org.junit.Test;
@@ -52,9 +53,9 @@ public class TrackerTest {
         assert ti.getIncomplete() == 9;
         Set<Peer> peers = ti.getPeers();
         assert peers.size() == 2;
-        Peer p = new Peer(new InetSocketAddress("localhost", 9000), "1P".getBytes("US-ASCII"));
-        assert peers.contains(p);
-        p = new Peer(new InetSocketAddress("localhost", 3003), "2P".getBytes("US-ASCII"));
-        assert peers.contains(p);
+        for (Peer p : peers) {
+            assert Arrays.equals(p.getId(), "1P".getBytes("US-ASCII")) ||
+                    Arrays.equals(p.getId(), "2P".getBytes("US-ASCII"));
+        }
     }
 }
