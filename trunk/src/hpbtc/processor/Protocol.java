@@ -9,13 +9,17 @@ import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.RawMessage;
 import hpbtc.protocol.torrent.Peer;
+import hpbtc.protocol.torrent.Torrent;
 import java.io.EOFException;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -26,13 +30,13 @@ import java.util.logging.Logger;
 public class Protocol {
 
     private static Logger logger = Logger.getLogger(Protocol.class.getName());
-    private TorrentRepository torrentRep;
+    private Map<byte[], Torrent> torrents;
     private Network network;
     private byte[] peerId;
     private PieceRepository pieceRep;
 
     public Protocol() {
-        torrentRep = new TorrentRepository();
+        torrents = new HashMap<byte[], Torrent>();
         network = new Network();
         pieceRep = new PieceRepository();
         generateId();
@@ -51,7 +55,11 @@ public class Protocol {
     }
 
     public void download(String fileName) throws IOException, NoSuchAlgorithmException {
-        torrentRep.addTorrent(fileName);
+        FileInputStream fis = new FileInputStream(fileName);
+        Torrent ti = new Torrent(fis);
+        torrents.put(ti.getInfoHash(), ti);
+        fis.close();
+        torrents.put(ti.getInfoHash(), ti);
     }
 
     public void stopProtocol() {
@@ -152,7 +160,7 @@ public class Protocol {
 
     private void processHandshake(byte[] protocol, Peer peer) throws IOException {
         byte[] infoHash = peer.getInfoHash();
-        if (Arrays.equals(protocol, getSupportedProtocol()) && torrentRep.haveTorrent(infoHash)) {
+        if (Arrays.equals(protocol, getSupportedProtocol()) && torrents.containsKey(infoHash)) {
             HandshakeMessage reply = new HandshakeMessage(infoHash, peerId, protocol);
             network.postMessage(peer, reply);
         } else {
@@ -172,7 +180,7 @@ public class Protocol {
         if (peer.isMessagesReceived()) {
             throw new IOException("wrong message");
         } else {
-            long nrPieces = torrentRep.getNrPieces(peer.getInfoHash());
+            long nrPieces = torrents.get(peer.getInfoHash()).getNrPieces();
             if (pieces.length() > nrPieces || len != Math.ceil(nrPieces / 8.0)) {
                 throw new IOException("wrong message");
             }
@@ -181,9 +189,9 @@ public class Protocol {
     }
 
     private void processCancel(int begin, int index, int length, Peer peer) throws IOException {
-        byte[] infoHash = peer.getInfoHash();
-        if (index >= torrentRep.getNrPieces(infoHash) ||
-            begin >= torrentRep.getPieceLength(infoHash)) {
+        Torrent t = torrents.get(peer.getInfoHash());
+        if (index >= t.getNrPieces() ||
+            begin >= t.getPieceLength()) {
             throw new IOException("wrong message");
         }
         network.cancelPieceMessage(begin, index, length, peer);
@@ -194,7 +202,8 @@ public class Protocol {
     }
 
     private void processHave(int index, Peer peer) throws IOException {
-        if (index >= torrentRep.getNrPieces(peer.getInfoHash())) {
+        Torrent t = torrents.get(peer.getInfoHash());
+        if (index >= t.getNrPieces()) {
             throw new IOException("wrong message");
         }
         peer.setPiece(index);
@@ -210,8 +219,9 @@ public class Protocol {
 
     private void processPiece(int begin, int index, ByteBuffer piece, Peer peer) throws IOException {
         byte[] infoHash = peer.getInfoHash();
-        if (index >= torrentRep.getNrPieces(infoHash) ||
-            begin >= torrentRep.getPieceLength(infoHash)) {
+        Torrent t = torrents.get(infoHash);
+        if (index >= t.getNrPieces() ||
+            begin >= t.getPieceLength()) {
             throw new IOException("wrong message");
         }
         pieceRep.savePiece(infoHash, begin, index, piece);
@@ -219,8 +229,9 @@ public class Protocol {
     
     private void processRequest(int begin, int index, int length, Peer peer) throws IOException {
         byte[] infoHash = peer.getInfoHash();
-        long pieceLength = torrentRep.getPieceLength(infoHash);
-        if (index >= torrentRep.getNrPieces(infoHash) ||
+        Torrent t = torrents.get(infoHash);
+        long pieceLength = t.getPieceLength();
+        if (index >= t.getNrPieces() ||
             begin >= pieceLength || begin + length > pieceLength ||
             !pieceRep.isPiece(infoHash, index)) {
             throw new IOException("wrong message");
