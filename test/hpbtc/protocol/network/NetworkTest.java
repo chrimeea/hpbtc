@@ -34,7 +34,7 @@ public class NetworkTest {
         }
         RawMessage m = c.takeMessage();
         Socket s = ch.socket();
-        InetSocketAddress a = m.getPeer();
+        InetSocketAddress a = m.getPeerAddress();
         InetAddress remoteAddress = s.getLocalAddress();
         int remotePort = s.getLocalPort();
         assert a.getAddress().equals(remoteAddress);
@@ -50,7 +50,7 @@ public class NetworkTest {
             } while (!c.hasUnreadMessages());
         }
         m = c.takeMessage();
-        a = m.getPeer();
+        a = m.getPeerAddress();
         assert m.isDisconnect();
         assert a.getAddress().equals(remoteAddress);
         assert a.getPort() == remotePort;

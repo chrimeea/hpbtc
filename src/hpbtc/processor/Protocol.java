@@ -8,6 +8,7 @@ import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.RawMessage;
+import hpbtc.protocol.torrent.Peer;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -16,6 +17,8 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.logging.Logger;
 
@@ -28,14 +31,14 @@ public class Protocol {
     private static Logger logger = Logger.getLogger(Protocol.class.getName());
     private TorrentRepository torrentRep;
     private Network network;
-    private PeerRepository peerRep;
+    private Map<InetSocketAddress, Peer> peerInfo;
     private byte[] peerId;
     private PieceRepository pieceRep;
 
     public Protocol() {
         torrentRep = new TorrentRepository();
         network = new Network();
-        peerRep = new PeerRepository();
+        peerInfo = new HashMap<InetSocketAddress, Peer>();
         pieceRep = new PieceRepository();
         generateId();
     }
@@ -83,7 +86,7 @@ public class Protocol {
                         } catch (IOException ioe) {
                             logger.warning(ioe.getLocalizedMessage());
                             try {
-                                network.closeConnection(message.getPeer());
+                                network.closeConnection(message.getPeerAddress());
                             } catch (IOException e) {
                                 logger.warning(e.getLocalizedMessage());
                             }
@@ -96,13 +99,13 @@ public class Protocol {
 
     private void process(RawMessage data) throws IOException {
         if (data.isDisconnect()) {
-            peerRep.removePeer(data.getPeer());
+            peerInfo.remove(data.getPeerAddress());
             return;
         }
         ByteBuffer current = ByteBuffer.wrap(data.getMessage());
-        InetSocketAddress address = data.getPeer();
+        Peer peer = peerInfo.get(data.getPeerAddress());
         do {
-            if (peerRep.isHandshakeReceived(address)) {
+            if (peer != null) {
                 int len = current.getInt();
                 if (len > 0) {
                     byte disc = current.get();
@@ -112,50 +115,53 @@ public class Protocol {
                     switch (disc) {
                         case SimpleMessage.TYPE_BITFIELD:
                             BitfieldMessage mBit = new BitfieldMessage(current, len);
-                            processBitfield(mBit.getBitfield(), len, address);
+                            processBitfield(mBit.getBitfield(), len, peer);
                             break;
                         case SimpleMessage.TYPE_CANCEL:
                             BlockMessage mCan = new BlockMessage(current, SimpleMessage.TYPE_CANCEL);
-                            processCancel(mCan.getBegin(), mCan.getIndex(), mCan.getLength(), address);
+                            processCancel(mCan.getBegin(), mCan.getIndex(), mCan.getLength(), peer);
                             break;
                         case SimpleMessage.TYPE_CHOKE:
-                            processChoke(address);
+                            processChoke(peer);
                             break;
                         case SimpleMessage.TYPE_HAVE:
                             HaveMessage mHave = new HaveMessage(current);
-                            processHave(mHave.getIndex(), address);
+                            processHave(mHave.getIndex(), peer);
                             break;
                         case SimpleMessage.TYPE_INTERESTED:
-                            processInterested(address);
+                            processInterested(peer);
                             break;
                         case SimpleMessage.TYPE_NOT_INTERESTED:
-                            processNotInterested(address);
+                            processNotInterested(peer);
                             break;
                         case SimpleMessage.TYPE_PIECE:
                             PieceMessage mPiece = new PieceMessage(current, len);
-                            processPiece(mPiece.getBegin(), mPiece.getIndex(), mPiece.getPiece(), address);
+                            processPiece(mPiece.getBegin(), mPiece.getIndex(), mPiece.getPiece(), peer);
                             break;
                         case SimpleMessage.TYPE_REQUEST:
                             BlockMessage mReq = new BlockMessage(current, SimpleMessage.TYPE_REQUEST);
-                            processRequest(mReq.getBegin(), mReq.getIndex(), mReq.getLength(), address);
+                            processRequest(mReq.getBegin(), mReq.getIndex(), mReq.getLength(), peer);
                             break;
                         case SimpleMessage.TYPE_UNCHOKE:
-                            processUnchoke(address);
+                            processUnchoke(peer);
                     }
-                    peerRep.setMessagesReceived(address);
+                    peer.setMessagesReceived();
                 }
             } else {
                 HandshakeMessage mHand = new HandshakeMessage(current);
-                processHandshake(mHand.getInfoHash(), mHand.getPeerId(), mHand.getProtocol(), data.getPeer());
+                peer = new Peer(data.getPeerAddress(), mHand.getPeerId());
+                peer.setInfoHash(mHand.getInfoHash());
+                processHandshake(mHand.getProtocol(), peer);
             }
         } while (current.remaining() > 0);
     }
 
-    private void processHandshake(byte[] infoHash, byte[] pid, byte[] protocol, InetSocketAddress address) throws IOException {
+    private void processHandshake(byte[] protocol, Peer peer) throws IOException {
+        byte[] infoHash = peer.getInfoHash();
         if (Arrays.equals(protocol, getSupportedProtocol()) && torrentRep.haveTorrent(infoHash)) {
-            peerRep.addPeer(address, pid, infoHash);
+            peerInfo.put(peer.getAddress(), peer);
             HandshakeMessage reply = new HandshakeMessage(infoHash, peerId, protocol);
-            network.postMessage(address, reply);
+            network.postMessage(peer.getAddress(), reply);
         } else {
             throw new IOException("wrong message");
         }
@@ -169,49 +175,48 @@ public class Protocol {
         return protocol;
     }
     
-    private void processBitfield(BitSet pieces, int len, InetSocketAddress address) throws IOException {
-        if (peerRep.isMessagesReceived(address)) {
+    private void processBitfield(BitSet pieces, int len, Peer peer) throws IOException {
+        if (peer.isMessagesReceived()) {
             throw new IOException("wrong message");
         } else {
-            long nrPieces = torrentRep.getNrPieces(peerRep.getInfoHash(address));
+            long nrPieces = torrentRep.getNrPieces(peer.getInfoHash());
             if (pieces.length() > nrPieces || len != Math.ceil(nrPieces / 8.0)) {
                 throw new IOException("wrong message");
             }
         }
-        peerRep.setPieces(address, pieces);
+        peer.setPieces(pieces);
     }
 
-    private void processCancel(int begin, int index, int length, InetSocketAddress address) throws IOException {
-        byte[] infoHash = peerRep.getInfoHash(address);
+    private void processCancel(int begin, int index, int length, Peer peer) throws IOException {
+        byte[] infoHash = peer.getInfoHash();
         if (index >= torrentRep.getNrPieces(infoHash) ||
             begin >= torrentRep.getPieceLength(infoHash)) {
             throw new IOException("wrong message");
         }
-        network.cancelPieceMessage(begin, index, length, address);
+        network.cancelPieceMessage(begin, index, length, peer.getAddress());
     }
 
-    private void processChoke(InetSocketAddress address) {
-        peerRep.setPeerChoking(address, true);
+    private void processChoke(Peer peer) {
+        peer.setPeerChoking(true);
     }
 
-    private void processHave(int index, InetSocketAddress address) throws IOException {
-        byte[] infoHash = peerRep.getInfoHash(address);
-        if (index >= torrentRep.getNrPieces(infoHash)) {
+    private void processHave(int index, Peer peer) throws IOException {
+        if (index >= torrentRep.getNrPieces(peer.getInfoHash())) {
             throw new IOException("wrong message");
         }
-        peerRep.setPiece(address, index);
+        peer.setPiece(index);
     }
 
-    private void processInterested(InetSocketAddress address) {
-        peerRep.setPeerInterested(address, true);
+    private void processInterested(Peer peer) {
+        peer.setPeerInterested(true);
     }
 
-    private void processNotInterested(InetSocketAddress address) {
-        peerRep.setPeerInterested(address, false);
+    private void processNotInterested(Peer peer) {
+        peer.setPeerInterested(false);
     }
 
-    private void processPiece(int begin, int index, ByteBuffer piece, InetSocketAddress address) throws IOException {
-        byte[] infoHash = peerRep.getInfoHash(address);
+    private void processPiece(int begin, int index, ByteBuffer piece, Peer peer) throws IOException {
+        byte[] infoHash = peer.getInfoHash();
         if (index >= torrentRep.getNrPieces(infoHash) ||
             begin >= torrentRep.getPieceLength(infoHash)) {
             throw new IOException("wrong message");
@@ -219,8 +224,8 @@ public class Protocol {
         pieceRep.savePiece(infoHash, begin, index, piece);
     }
     
-    private void processRequest(int begin, int index, int length, InetSocketAddress address) throws IOException {
-        byte[] infoHash = peerRep.getInfoHash(address);
+    private void processRequest(int begin, int index, int length, Peer peer) throws IOException {
+        byte[] infoHash = peer.getInfoHash();
         long pieceLength = torrentRep.getPieceLength(infoHash);
         if (index >= torrentRep.getNrPieces(infoHash) ||
             begin >= pieceLength || begin + length > pieceLength ||
@@ -229,10 +234,10 @@ public class Protocol {
         }
         ByteBuffer piece = pieceRep.getPiece(infoHash, begin, index, length);
         PieceMessage pm = new PieceMessage(begin, index, piece);
-        network.postMessage(address, pm);
+        network.postMessage(peer.getAddress(), pm);
     }
 
-    private void processUnchoke(InetSocketAddress address) {
-        peerRep.setPeerChoking(address, false);
+    private void processUnchoke(Peer peer) {
+        peer.setPeerChoking(false);
     }
 }
