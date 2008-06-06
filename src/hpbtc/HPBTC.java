@@ -6,7 +6,7 @@ package hpbtc;
 
 import hpbtc.processor.Protocol;
 import hpbtc.protocol.network.Network;
-import hpbtc.protocol.torrent.TorrentInfo;
+import hpbtc.protocol.torrent.Torrent;
 import java.io.FileInputStream;
 import java.util.logging.Logger;
 import java.io.IOException;

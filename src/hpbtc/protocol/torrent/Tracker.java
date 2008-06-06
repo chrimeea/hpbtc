@@ -18,9 +18,9 @@ import java.util.logging.Logger;
  *
  * @author Cristian Mocanu
  */
-public class TrackerInfo {
+public class Tracker {
 
-    private static Logger logger = Logger.getLogger(TrackerInfo.class.getName());
+    private static Logger logger = Logger.getLogger(Tracker.class.getName());
     private long complete;
     private long interval;
     private long incomplete;
@@ -33,7 +33,7 @@ public class TrackerInfo {
     private String encoding;
     private Set<Peer> peers;
 
-    public TrackerInfo(byte[] infoHash, byte[] pid, int port, List<LinkedList<String>> trackers) {
+    public Tracker(byte[] infoHash, byte[] pid, int port, List<LinkedList<String>> trackers) {
         this.infoHash = infoHash;
         this.pid = pid;
         this.port = port;

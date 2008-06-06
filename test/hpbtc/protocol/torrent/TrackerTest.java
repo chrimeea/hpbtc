@@ -16,7 +16,7 @@ import org.junit.Test;
  *
  * @author Cristian Mocanu
  */
-public class TrackerInfoTest {
+public class TrackerTest {
 
     @Test
     public void testConnectToTracker() throws IOException {
@@ -42,7 +42,7 @@ public class TrackerInfoTest {
         l.add("http://localhost:8001/test");
         l.add("http://localhost:8000/test");
         t.add(l);
-        TrackerInfo ti = new TrackerInfo("INFOHASH".getBytes("US-ASCII"),
+        Tracker ti = new Tracker("INFOHASH".getBytes("US-ASCII"),
                 "PID".getBytes("US-ASCII"), 2000, t);
         ti.updateTracker("started", 1, 2, 3, 4);
         server.stop(0);

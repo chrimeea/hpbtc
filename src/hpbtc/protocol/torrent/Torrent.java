@@ -19,7 +19,7 @@ import java.util.Map;
  *
  * @author Cristian Mocanu
  */
-public class TorrentInfo {
+public class Torrent {
 
     private List<LinkedList<String>> trackers;
     private byte[] infoHash;
@@ -34,7 +34,7 @@ public class TorrentInfo {
     private String createdBy;
     private String encoding;
 
-    public TorrentInfo(InputStream is) throws IOException, NoSuchAlgorithmException {
+    public Torrent(InputStream is) throws IOException, NoSuchAlgorithmException {
         BencodingReader parser = new BencodingReader(is);
         Map<String, Object> meta = parser.readNextDictionary();
         Map<String, Object> info = (Map) meta.get("info");
@@ -150,8 +150,8 @@ public class TorrentInfo {
     
     @Override
     public boolean equals(Object arg0) {
-        if (arg0 instanceof TorrentInfo) {
-            TorrentInfo t = (TorrentInfo) arg0;
+        if (arg0 instanceof Torrent) {
+            Torrent t = (Torrent) arg0;
             return Arrays.equals(infoHash, t.infoHash);
         } else {
             return false;
