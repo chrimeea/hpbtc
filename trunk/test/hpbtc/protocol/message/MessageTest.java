@@ -149,4 +149,17 @@ public class MessageTest {
         assert m.getLength() == 3;
         assert m.getMessageLength() == 13;
     }
+    
+    @Test
+    public void testWriteBlock() {
+        BlockMessage m = new BlockMessage(1, 2, 3, SimpleMessage.TYPE_CANCEL);
+        ByteBuffer bb = m.send();
+        bb.rewind();
+        assert bb.getInt() == 13;
+        assert bb.get() == SimpleMessage.TYPE_CANCEL;
+        assert bb.getInt() == 2;
+        assert bb.getInt() == 1;
+        assert bb.getInt() == 3;
+        assert bb.remaining() == 0;
+    }
 }
