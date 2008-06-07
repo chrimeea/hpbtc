@@ -162,4 +162,14 @@ public class MessageTest {
         assert bb.getInt() == 3;
         assert bb.remaining() == 0;
     }
+    
+    @Test
+    public void testWriteSimple() {
+        SimpleMessage m = new SimpleMessage(0, SimpleMessage.TYPE_INTERESTED);
+        ByteBuffer bb = m.send();
+        bb.rewind();
+        assert bb.getInt() == 1;
+        assert bb.get() == SimpleMessage.TYPE_INTERESTED;
+        assert bb.remaining() == 0;
+    }
 }
