@@ -23,7 +23,7 @@ public class BitfieldMessage extends SimpleMessage {
     }
     
     public BitfieldMessage(BitSet pieces, int nPieces) {
-        super(1 + (int) Math.ceil(nPieces / 8.0), TYPE_BITFIELD);
+        super((int) Math.ceil(nPieces / 8.0), TYPE_BITFIELD);
         this.pieces = pieces;
     }
 
