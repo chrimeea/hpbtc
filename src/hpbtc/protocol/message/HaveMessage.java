@@ -15,12 +15,12 @@ public class HaveMessage extends SimpleMessage {
     private int index;
     
     public HaveMessage(ByteBuffer message) {
-        super(5, TYPE_HAVE);
+        super(4, TYPE_HAVE);
         index = message.getInt();
     }
     
     public HaveMessage(int index) {
-        super(5, TYPE_HAVE);
+        super(4, TYPE_HAVE);
         this.index = index;
     }
 

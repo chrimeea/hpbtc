@@ -240,7 +240,7 @@ public class Protocol {
             throw new IOException("wrong message");
         }
         ByteBuffer piece = pieceRep.getPiece(infoHash, begin, index, length);
-        PieceMessage pm = new PieceMessage(begin, index, piece);
+        PieceMessage pm = new PieceMessage(begin, index, piece, length);
         network.postMessage(peer, pm);
     }
 

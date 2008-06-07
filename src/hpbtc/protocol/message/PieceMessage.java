@@ -23,8 +23,8 @@ public class PieceMessage extends SimpleMessage {
         piece = message;
     }
 
-    public PieceMessage(int begin, int index, ByteBuffer piece) {
-        super(9 + piece.remaining(), TYPE_PIECE);
+    public PieceMessage(int begin, int index, ByteBuffer piece, int len) {
+        super(8 + len, TYPE_PIECE);
         this.begin = begin;
         this.index = index;
         this.piece = piece;

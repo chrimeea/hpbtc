@@ -31,6 +31,7 @@ public class MessageTest {
         assert bs.nextSetBit(10) == 10;
         assert bs.nextSetBit(11) == 11;
         assert bs.nextSetBit(12) == -1;
+        assert m.getMessageLength() == 4;
     }
     
     @Test
@@ -88,6 +89,7 @@ public class MessageTest {
         bb.rewind();
         HaveMessage m = new HaveMessage(bb);
         assert m.getIndex() == 1234;
+        assert m.getMessageLength() == 5;
     }
     
     @Test
@@ -99,5 +101,22 @@ public class MessageTest {
         assert bb.get() == SimpleMessage.TYPE_HAVE;
         assert bb.getInt() == 548677;
         assert bb.remaining() == 0;
+    }
+    
+    @Test
+    public void testReadPiece() {
+        ByteBuffer bb = ByteBuffer.allocate(12);
+        bb.putInt(123);
+        bb.putInt(456);
+        bb.putInt(46734);
+        bb.rewind();
+        PieceMessage m = new PieceMessage(bb, 12);
+        ByteBuffer b = m.getPiece();
+        assert m.getBegin() == 123;
+        assert m.getIndex() == 456;
+        assert b.getInt() == 46734;
+        assert b.remaining() == 0;
+        assert m.getLength() == 4;
+        assert m.getMessageLength() == 13;
     }
 }
