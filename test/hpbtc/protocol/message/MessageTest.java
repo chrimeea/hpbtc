@@ -73,12 +73,31 @@ public class MessageTest {
         byte[] p = new byte[19];
         bb.get(p);
         assert "BitTorrent protocol".equals(new String(p, "US-ASCII"));
-        long l = bb.getLong();
-        assert l == 0L;
+        assert bb.getLong() == 0L;
         byte[] i = new byte[20];
         bb.get(i);
         assert "01234567890123456789".equals(new String(i, "US-ASCII"));
         bb.get(i);
         assert "ABCDEFGHIJKLMNOPQRST".equals(new String(i, "US-ASCII"));
+    }
+    
+    @Test
+    public void testReadHave() {
+        ByteBuffer bb = ByteBuffer.allocate(9);
+        bb.putInt(1234);
+        bb.rewind();
+        HaveMessage m = new HaveMessage(bb);
+        assert m.getIndex() == 1234;
+    }
+    
+    @Test
+    public void testWriteHave() {
+        HaveMessage m = new HaveMessage(548677);
+        ByteBuffer bb = m.send();
+        bb.rewind();
+        assert bb.getInt() == 5;
+        assert bb.get() == SimpleMessage.TYPE_HAVE;
+        assert bb.getInt() == 548677;
+        assert bb.remaining() == 0;
     }
 }
