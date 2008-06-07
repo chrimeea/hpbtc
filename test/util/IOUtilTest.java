@@ -108,4 +108,17 @@ public class IOUtilTest {
         assert bs.nextSetBit(11) == 13;
         assert bs.nextSetBit(14) == -1;
     }
+    
+    @Test
+    public void testBitsToBytes() {
+        BitSet bs = new BitSet(16);
+        bs.set(7);
+        bs.set(9);
+        bs.set(10);
+        bs.set(13);
+        ByteBuffer bb = IOUtil.bitsToBytes(bs);
+        bb.rewind();
+        assert bb.getShort() == 356;
+        assert bb.remaining() == 0;
+    }
 }

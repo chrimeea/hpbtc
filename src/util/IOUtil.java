@@ -68,13 +68,13 @@ public class IOUtil {
     }
     
     public static ByteBuffer bitsToBytes(BitSet bs) {
-        int len = bs.size();
-        ByteBuffer bb = ByteBuffer.allocate(len);
+        int len = bs.length();
+        ByteBuffer dest = ByteBuffer.allocate((int) Math.ceil(len / 8.0));
         byte x = 0;
         byte y = (byte) -128;
         for (int i = 0; i < len; i++) {
             if (i % 8 == 0 && i != 0) {
-                bb.put(x);
+                dest.put(x);
                 x = 0;
                 y = (byte) -128;
             }
@@ -86,6 +86,9 @@ public class IOUtil {
                 y ^= (byte) -128;
             }
         }
-        return bb;
+        if (dest.remaining() > 0) {
+            dest.put(x);
+        }
+        return dest;
     }
 }
