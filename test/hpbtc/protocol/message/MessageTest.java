@@ -1,12 +1,13 @@
 package hpbtc.protocol.message;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import org.junit.Test;
 
 /**
  *
- * @author Administrator
+ * @author Chris
  */
 public class MessageTest {
 
@@ -45,5 +46,39 @@ public class MessageTest {
         assert bb.getShort() == 29126;
         assert bb.get() == 0;
         assert bb.remaining() == 0;
+    }
+    
+    @Test
+    public void testReadHandshake() throws UnsupportedEncodingException {
+        ByteBuffer bb = ByteBuffer.allocate(68);
+        bb.put("BitTorrent protocol".getBytes("US-ASCII"));
+        bb.putLong(0L);
+        bb.put("01234567890123456789".getBytes("US-ASCII"));
+        bb.put("ABCDEFGHIJKLMNOPQRST".getBytes("US-ASCII"));
+        bb.rewind();
+        HandshakeMessage m = new HandshakeMessage(bb);
+        assert "BitTorrent protocol".equals(new String(m.getProtocol(), "US-ASCII"));
+        assert "01234567890123456789".equals(new String(m.getInfoHash(), "US-ASCII"));
+        assert "ABCDEFGHIJKLMNOPQRST".equals(new String(m.getPeerId(), "US-ASCII"));
+    }
+    
+    @Test
+    public void testWriteHandshake() throws UnsupportedEncodingException {
+        HandshakeMessage m = new HandshakeMessage(
+                "01234567890123456789".getBytes("US-ASCII"),
+                "ABCDEFGHIJKLMNOPQRST".getBytes("US-ASCII"),
+                "BitTorrent protocol".getBytes("US-ASCII"));
+        ByteBuffer bb = m.send();
+        bb.rewind();
+        byte[] p = new byte[19];
+        bb.get(p);
+        assert "BitTorrent protocol".equals(new String(p, "US-ASCII"));
+        long l = bb.getLong();
+        assert l == 0L;
+        byte[] i = new byte[20];
+        bb.get(i);
+        assert "01234567890123456789".equals(new String(i, "US-ASCII"));
+        bb.get(i);
+        assert "ABCDEFGHIJKLMNOPQRST".equals(new String(i, "US-ASCII"));
     }
 }
