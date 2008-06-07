@@ -19,6 +19,7 @@ public class Peer {
     private boolean peerInterested;
     private byte[] infoHash;
     private InetSocketAddress address;
+    private boolean handshakeReceived;
     
     public Peer(InetSocketAddress address, byte[] id) {
         this.address = address;
@@ -30,6 +31,14 @@ public class Peer {
         this.channel = channel;
         this.address = IOUtil.getAddress(channel);
         peerChoking = true;
+    }
+
+    public boolean isHandshakeReceived() {
+        return handshakeReceived;
+    }
+
+    public void setHandshakeReceived() {
+        this.handshakeReceived = true;
     }
     
     public byte[] getId() {

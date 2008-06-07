@@ -107,7 +107,7 @@ public class Protocol {
         ByteBuffer current = ByteBuffer.wrap(data.getMessage());
         Peer peer = data.getPeer();
         do {
-            if (peer != null) {
+            if (peer.isHandshakeReceived()) {
                 int len = current.getInt();
                 if (len > 0) {
                     byte disc = current.get();
@@ -151,21 +151,21 @@ public class Protocol {
                 }
             } else {
                 HandshakeMessage mHand = new HandshakeMessage(current);
-                peer.setId(mHand.getPeerId());
-                peer.setInfoHash(mHand.getInfoHash());
-                processHandshake(mHand.getProtocol(), peer);
+                processHandshake(mHand.getProtocol(), peer, mHand.getPeerId(), mHand.getInfoHash());
             }
         } while (current.remaining() > 0);
     }
 
-    private void processHandshake(byte[] protocol, Peer peer) throws IOException {
-        byte[] infoHash = peer.getInfoHash();
+    private void processHandshake(byte[] protocol, Peer peer, byte[] pid, byte[] infoHash) throws IOException {
         if (Arrays.equals(protocol, getSupportedProtocol()) && torrents.containsKey(infoHash)) {
             HandshakeMessage reply = new HandshakeMessage(infoHash, peerId, protocol);
             network.postMessage(peer, reply);
         } else {
             throw new IOException("wrong message");
         }
+        peer.setId(pid);
+        peer.setInfoHash(infoHash);
+        peer.setHandshakeReceived();
     }
 
     private byte[] getSupportedProtocol() throws UnsupportedEncodingException {
