@@ -36,7 +36,7 @@ public class HandshakeMessage extends SimpleMessage {
 
     @Override
     public ByteBuffer send() {
-        ByteBuffer bb = ByteBuffer.allocate(68);
+        ByteBuffer bb = ByteBuffer.allocate(67);
         bb.put(protocol);
         bb.putLong(0L);
         bb.put(infoHash);
