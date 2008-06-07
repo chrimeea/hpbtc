@@ -67,9 +67,8 @@ public class IOUtil {
         return pieces;
     }
     
-    public static ByteBuffer bitsToBytes(BitSet bs) {
+    public static void bitsToBytes(BitSet bs, ByteBuffer dest) {
         int len = bs.length();
-        ByteBuffer dest = ByteBuffer.allocate((int) Math.ceil(len / 8.0));
         byte x = 0;
         byte y = (byte) -128;
         for (int i = 0; i < len; i++) {
@@ -89,6 +88,5 @@ public class IOUtil {
         if (dest.remaining() > 0) {
             dest.put(x);
         }
-        return dest;
     }
 }

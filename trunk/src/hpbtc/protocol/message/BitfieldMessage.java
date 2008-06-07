@@ -17,13 +17,13 @@ public class BitfieldMessage extends SimpleMessage {
     
     private BitSet pieces;
     
-    public BitfieldMessage(ByteBuffer message, int len) throws IOException {
+    public BitfieldMessage(ByteBuffer message, int len) {
         super(len, TYPE_BITFIELD);
         pieces = IOUtil.bytesToBits(message);
     }
     
-    public BitfieldMessage(BitSet pieces) {
-        super((int) Math.ceil(pieces.size() / 8.0), TYPE_BITFIELD);
+    public BitfieldMessage(BitSet pieces, int nPieces) {
+        super(1 + (int) Math.ceil(nPieces / 8.0), TYPE_BITFIELD);
         this.pieces = pieces;
     }
 
@@ -33,7 +33,7 @@ public class BitfieldMessage extends SimpleMessage {
     @Override
     public ByteBuffer send() {
         ByteBuffer bb = super.send();
-        bb.put(IOUtil.bitsToBytes(pieces));
+        IOUtil.bitsToBytes(pieces, bb);
         return bb;
     }
     
