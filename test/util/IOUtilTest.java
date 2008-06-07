@@ -2,6 +2,7 @@ package util;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.BitSet;
 import org.junit.Test;
 
 /**
@@ -93,5 +94,18 @@ public class IOUtilTest {
         int rep = IOUtil.writeToChannel(ch, ByteBuffer.allocate(0));
         assert rep == 0 : "Incorrect bytes read";
         assert ch.remaining() == 1 : "Incorrect buffer state";
+    }
+    
+    @Test
+    public void testBytesToBits() {
+        ByteBuffer bb = ByteBuffer.allocate(2);
+        bb.putShort((short) 356);
+        bb.rewind();
+        BitSet bs = IOUtil.bytesToBits(bb);
+        assert bs.nextSetBit(0) == 7;
+        assert bs.nextSetBit(8) == 9;
+        assert bs.nextSetBit(10) == 10;
+        assert bs.nextSetBit(11) == 13;
+        assert bs.nextSetBit(14) == -1;
     }
 }
