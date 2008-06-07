@@ -135,4 +135,18 @@ public class MessageTest {
         assert s.getInt() == 99;
         assert s.remaining() == 0;
     }
+    
+    @Test
+    public void testReadBlock() {
+        ByteBuffer bb = ByteBuffer.allocate(12);
+        bb.putInt(1);
+        bb.putInt(2);
+        bb.putInt(3);
+        bb.rewind();
+        BlockMessage m = new BlockMessage(bb, SimpleMessage.TYPE_REQUEST);
+        assert m.getBegin() == 2;
+        assert m.getIndex() == 1;
+        assert m.getLength() == 3;
+        assert m.getMessageLength() == 13;
+    }
 }

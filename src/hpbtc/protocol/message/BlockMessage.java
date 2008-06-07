@@ -9,14 +9,14 @@ public class BlockMessage extends SimpleMessage {
     private int length;
     
     public BlockMessage(ByteBuffer message, byte disc) {
-        super(13, disc);
+        super(12, disc);
         index = message.getInt();
         begin = message.getInt();
         length = message.getInt();
     }
     
     public BlockMessage(int begin, int index, int length, byte disc) {
-        super(13, disc);
+        super(12, disc);
         this.index = index;
         this.begin = begin;
         this.length = length;
