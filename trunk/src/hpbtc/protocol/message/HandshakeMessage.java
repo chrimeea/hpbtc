@@ -1,7 +1,5 @@
 package hpbtc.protocol.message;
 
-import java.io.EOFException;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class HandshakeMessage extends SimpleMessage {
@@ -10,18 +8,17 @@ public class HandshakeMessage extends SimpleMessage {
     private byte[] peerId;
     private byte[] protocol;
 
-    public HandshakeMessage(ByteBuffer message) throws IOException {
-        if (message.remaining() < 48) {
-            throw new EOFException("wrong hanshake");
-        }
-        message.limit(20);
+    public HandshakeMessage(ByteBuffer message) {
+        message.limit(19);
+        protocol = new byte[19];
         message.get(protocol);
-        message.limit(48);
-        message.position(28);
+        message.limit(47);
+        message.position(27);
+        infoHash = new byte[20];
         message.get(infoHash);
-        if (message.remaining() >= 20) {
-            message.limit(68);
-            message.position(48);
+        if (message.capacity() >= 67) {
+            message.limit(67);
+            message.position(47);
             peerId = new byte[20];
             message.get(peerId);
         }
@@ -37,12 +34,11 @@ public class HandshakeMessage extends SimpleMessage {
         return peerId;
     }
 
+    @Override
     public ByteBuffer send() {
         ByteBuffer bb = ByteBuffer.allocate(68);
         bb.put(protocol);
-        for (int i = 0; i < 8; i++) {
-            bb.put((byte) 0);
-        }
+        bb.putLong(0L);
         bb.put(infoHash);
         bb.put(peerId);
         return bb;

@@ -150,6 +150,9 @@ public class Protocol {
                     peer.setMessagesReceived();
                 }
             } else {
+                if (current.remaining() < 48) {
+                    throw new EOFException("wrong hanshake");
+                }
                 HandshakeMessage mHand = new HandshakeMessage(current);
                 processHandshake(mHand.getProtocol(), peer, mHand.getPeerId(), mHand.getInfoHash());
             }
