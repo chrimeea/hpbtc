@@ -116,9 +116,9 @@ public class IOUtilTest {
         bs.set(9);
         bs.set(10);
         bs.set(13);
-        ByteBuffer bb = IOUtil.bitsToBytes(bs);
+        ByteBuffer bb = ByteBuffer.allocate(2);
+        IOUtil.bitsToBytes(bs, bb);
         bb.rewind();
         assert bb.getShort() == 356;
-        assert bb.remaining() == 0;
     }
 }
