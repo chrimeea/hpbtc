@@ -18,8 +18,8 @@ public class PieceMessage extends SimpleMessage {
     
     public PieceMessage(ByteBuffer message, int len) {
         super(len, TYPE_PIECE);
-        begin = message.getInt();
         index = message.getInt();
+        begin = message.getInt();
         piece = message;
     }
 

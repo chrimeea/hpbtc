@@ -106,8 +106,8 @@ public class MessageTest {
     @Test
     public void testReadPiece() {
         ByteBuffer bb = ByteBuffer.allocate(12);
-        bb.putInt(123);
         bb.putInt(456);
+        bb.putInt(123);
         bb.putInt(46734);
         bb.rewind();
         PieceMessage m = new PieceMessage(bb, 12);
@@ -118,5 +118,21 @@ public class MessageTest {
         assert b.remaining() == 0;
         assert m.getLength() == 4;
         assert m.getMessageLength() == 13;
+    }
+    
+    @Test
+    public void testWritePiece() {
+        ByteBuffer bb = ByteBuffer.allocate(4);
+        bb.putInt(99);
+        bb.rewind();
+        PieceMessage m = new PieceMessage(11, 70, bb, 4);
+        ByteBuffer s = m.send();
+        s.rewind();
+        assert s.getInt() == 13;
+        assert s.get() == SimpleMessage.TYPE_PIECE;
+        assert s.getInt() == 70;
+        assert s.getInt() == 11;
+        assert s.getInt() == 99;
+        assert s.remaining() == 0;
     }
 }
