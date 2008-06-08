@@ -76,6 +76,8 @@ public class Protocol {
                         try {
                             message = network.takeMessage();
                             process(message);
+                        } catch (NoSuchAlgorithmException noe) {
+                            logger.severe(noe.getLocalizedMessage());
                         } catch (IOException ioe) {
                             logger.warning(ioe.getLocalizedMessage());
                             try {
@@ -90,7 +92,7 @@ public class Protocol {
         }).start();
     }
 
-    private void process(RawMessage data) throws IOException {
+    private void process(RawMessage data) throws IOException, NoSuchAlgorithmException {
         if (data.isDisconnect()) {
             return;
         }
