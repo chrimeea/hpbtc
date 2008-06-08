@@ -39,6 +39,7 @@ public class Torrent {
     private int chunkSize = 16384;
     private BitSet[] pieces;
     private FileStore fileStore;
+    private int offset;
 
     public Torrent(FileStore fileStore, InputStream is, File rootFolder)
             throws IOException, NoSuchAlgorithmException {
@@ -106,13 +107,16 @@ public class Torrent {
         return pieces[index].cardinality() == chunkSize;
     }
 
-    public void savePiece(int begin, int index, ByteBuffer piece) {
+    public void savePiece(int begin, int index, ByteBuffer piece)
+            throws NoSuchAlgorithmException {
         pieces[index].set(begin / chunkSize, 1 + (begin + piece.remaining()) / chunkSize);
-    //TODO save to filestore
-    //TODO daca piesa e completa verifica hashul
+        fileStore.saveFileChunk(getFileList(begin, index, piece.remaining()), offset, piece);
+        if (isPieceComplete(index) && !isHashCorrect(index)) {
+            pieces[index].clear();
+        }
     }
 
-    public ByteBuffer loadPiece(int begin, int index, int length) {
+    private List<BTFile> getFileList(int begin, int index, int length) {
         int o = index * chunkSize + begin;
         Iterator<BTFile> i = files.iterator();
         BTFile f;
@@ -120,19 +124,24 @@ public class Torrent {
             f = i.next();
             o -= f.getLength();
         } while (o > 0);
-        int b = o + f.getLength();
+        offset = o + f.getLength();
         List<BTFile> fls = new LinkedList<BTFile>();
-        o = length + o;
+        o += length;
         fls.add(f);
         while (o >= 0) {
             f = i.next();
             fls.add(f);
             o -= f.getLength();
         }
-        return fileStore.loadFileChunk(fls, b, length);
+        return fls;
+    }
+    
+    public ByteBuffer loadPiece(int begin, int index, int length) {
+        return fileStore.loadFileChunk(getFileList(begin, index, length), offset, length);
     }
 
-    private static byte[] computeInfoHash(Map<String, Object> info) throws NoSuchAlgorithmException, IOException {
+    private static byte[] computeInfoHash(Map<String, Object> info)
+            throws NoSuchAlgorithmException, IOException {
         MessageDigest md = MessageDigest.getInstance("SHA1");
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         BencodingWriter w = new BencodingWriter(os);
@@ -165,10 +174,9 @@ public class Torrent {
         return multiple;
     }
 
-    private boolean isHashCorrect(ByteBuffer bb, int index) throws NoSuchAlgorithmException {
+    private boolean isHashCorrect(int index) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA1");
-        bb.rewind();
-        md.update(bb);
+        md.update(loadPiece(0, index, pieceLength));
         int i = index * 20;
         return Arrays.equals(md.digest(), Arrays.copyOfRange(pieceHash, i, i + 20));
     }
