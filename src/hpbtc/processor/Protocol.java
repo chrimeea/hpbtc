@@ -18,7 +18,6 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.logging.Logger;
 
 /**
@@ -147,7 +146,7 @@ public class Protocol {
                     }
                     peer.setMessagesReceived();
                 }
-            } else if (current.remaining() >= 48) {
+            } else if (current.remaining() >= 47) {
                 HandshakeMessage mHand = new HandshakeMessage(current);
                 if (validator.validateHandshakeMessage(mHand, peer)) {
                     processor.processHandshake(mHand, peer);
