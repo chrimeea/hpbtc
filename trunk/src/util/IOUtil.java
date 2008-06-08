@@ -4,7 +4,10 @@
  */
 package util;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
@@ -88,5 +91,21 @@ public class IOUtil {
         if (dest.remaining() > 0) {
             dest.put(x);
         }
+    }
+    
+    public static void writeToFile(File file, int begin, ByteBuffer piece) 
+        throws IOException {
+        RandomAccessFile r = new RandomAccessFile(file, "rw");
+        r.seek(begin);
+        writeToChannel(r.getChannel(), piece);
+        r.close();
+    }
+    
+    public static void readFromFile(File file, int begin, ByteBuffer dest)
+        throws IOException {
+        RandomAccessFile r = new RandomAccessFile(file, "rw");
+        r.seek(begin);
+        readFromChannel(r.getChannel(), dest);
+        r.close();
     }
 }

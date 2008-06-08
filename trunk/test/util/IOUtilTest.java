@@ -1,5 +1,8 @@
 package util;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
@@ -120,5 +123,36 @@ public class IOUtilTest {
         IOUtil.bitsToBytes(bs, bb);
         bb.rewind();
         assert bb.getShort() == 356;
+    }
+    
+    @Test
+    public void testWriteToFile() throws IOException {
+        File f = File.createTempFile("HPBTC", null);
+        ByteBuffer bb = ByteBuffer.allocate(2);
+        bb.put((byte) 5);bb.put((byte) 8);
+        bb.rewind();
+        IOUtil.writeToFile(f, 1, bb);
+        FileInputStream fis = new FileInputStream(f);
+        fis.read();
+        assert fis.read() == 5;
+        assert fis.read() == 8;
+        fis.close();
+        f.delete();
+    }
+    
+    @Test
+    public void testReadFromFile() throws IOException {
+        File f = File.createTempFile("HPBTC", null);
+        FileOutputStream fos = new FileOutputStream(f);
+        fos.write(7);fos.write(1);
+        fos.write(9);fos.write(3);fos.write(4);
+        fos.close();
+        ByteBuffer bb = ByteBuffer.allocate(2);
+        IOUtil.readFromFile(f, 2, bb);
+        bb.rewind();
+        assert bb.get() == 9;
+        assert bb.get() == 3;
+        assert bb.remaining() == 0;
+        f.delete();
     }
 }

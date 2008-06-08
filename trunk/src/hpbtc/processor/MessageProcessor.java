@@ -10,6 +10,7 @@ import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Random;
 
@@ -66,7 +67,7 @@ public class MessageProcessor {
         peer.setPeerInterested(false);
     }
 
-    public void processPiece(PieceMessage message, Peer peer) {
+    public void processPiece(PieceMessage message, Peer peer) throws NoSuchAlgorithmException {
         Torrent t = torrents.get(peer.getInfoHash());
         t.savePiece(message.getBegin(), message.getIndex(), message.getPiece());
     }
