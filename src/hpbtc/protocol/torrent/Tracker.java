@@ -21,11 +21,11 @@ import java.util.logging.Logger;
 public class Tracker {
 
     private static Logger logger = Logger.getLogger(Tracker.class.getName());
-    private long complete;
-    private long interval;
-    private long incomplete;
+    private int complete;
+    private int interval;
+    private int incomplete;
     private String trackerId;
-    private long minInterval;
+    private int minInterval;
     private byte[] infoHash;
     private byte[] pid;
     private int port;
@@ -99,15 +99,15 @@ public class Tracker {
             if (response.containsKey("warning message")) {
                 logger.warning((String) response.get("warning message"));
             }
-            interval = (Long) response.get("interval");   
+            interval = (Integer) response.get("interval");   
             if (response.containsKey("min interval")) {
-                minInterval = (Long) response.get("min interval");
+                minInterval = (Integer) response.get("min interval");
             }
             if (response.containsKey("complete")) {
-                complete = (Long) response.get("complete");
+                complete = (Integer) response.get("complete");
             }
             if (response.containsKey("incomplete")) {
-                incomplete = (Long) response.get("incomplete");
+                incomplete = (Integer) response.get("incomplete");
             }
             if (response.containsKey("tracker id")) {
                 trackerId = (String) response.get("tracker id");
@@ -115,24 +115,24 @@ public class Tracker {
             List<Map<String, Object>> prs = (List<Map<String, Object>>) response.get("peers");
             for (Map<String, Object> d : prs) {
                 peers.add(new Peer(new InetSocketAddress((String) d.get("ip"),
-                        ((Long) d.get("port")).intValue()), ((String) d.get("peer id")).getBytes(encoding)));
+                        ((Integer) d.get("port")).intValue()), ((String) d.get("peer id")).getBytes(encoding)));
             }
         }
     }
 
-    public long getComplete() {
+    public int getComplete() {
         return complete;
     }
 
-    public long getIncomplete() {
+    public int getIncomplete() {
         return incomplete;
     }
 
-    public long getInterval() {
+    public int getInterval() {
         return interval;
     }
 
-    public long getMinInterval() {
+    public int getMinInterval() {
         return minInterval;
     }
 
