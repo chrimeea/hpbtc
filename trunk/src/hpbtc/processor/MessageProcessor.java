@@ -7,8 +7,10 @@ import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.torrent.Peer;
+import hpbtc.protocol.torrent.Torrent;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -20,14 +22,14 @@ public class MessageProcessor {
     private byte[] protocol;
     private Network network;
     private byte[] peerId;
-    private PieceRepository pieceRep;
+    private Map<byte[], Torrent> torrents;
     
     public MessageProcessor(Network network, byte[] protocol,
-            PieceRepository pieceRep) {
+            Map<byte[], Torrent> torrents) {
         this.protocol = protocol;
         this.network = network;
         this.peerId = generateId();
-        this.pieceRep = pieceRep;
+        this.torrents = torrents;
     }
     
     public void processHandshake(HandshakeMessage message, Peer peer) throws IOException {
@@ -65,13 +67,13 @@ public class MessageProcessor {
     }
 
     public void processPiece(PieceMessage message, Peer peer) {
-        pieceRep.savePiece(peer.getInfoHash(), message.getBegin(),
-                message.getIndex(), message.getPiece());
+        Torrent t = torrents.get(peer.getInfoHash());
+        t.savePiece(message.getBegin(), message.getIndex(), message.getPiece());
     }
 
     public void processRequest(BlockMessage message, Peer peer) throws IOException {
-        ByteBuffer piece = pieceRep.getPiece(peer.getInfoHash(),
-                message.getBegin(), message.getIndex(),
+        Torrent t = torrents.get(peer.getInfoHash());
+        ByteBuffer piece = t.loadPiece(message.getBegin(), message.getIndex(),
                 message.getLength());
         PieceMessage pm = new PieceMessage(message.getBegin(),
                 message.getIndex(), piece, message.getLength());

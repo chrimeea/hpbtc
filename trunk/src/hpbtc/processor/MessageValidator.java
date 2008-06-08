@@ -18,13 +18,11 @@ public class MessageValidator {
 
     private Map<byte[], Torrent> torrents;
     private byte[] protocol;
-    private PieceRepository pieceRep;
     
     public MessageValidator(Map<byte[], Torrent> torrents,
-            byte[] protocol, PieceRepository pieceRep) {
+            byte[] protocol) {
         this.torrents = torrents;
         this.protocol = protocol;
-        this.pieceRep = pieceRep;
     }
     
     public boolean validateHandshakeMessage(HandshakeMessage message, Peer peer) {
@@ -69,6 +67,6 @@ public class MessageValidator {
         return message.getIndex() < t.getNrPieces()
                 && message.getBegin() < pieceLength
                 && message.getBegin() + message.getLength() > pieceLength
-                && pieceRep.isPiece(infoHash, message.getIndex());
+                && t.isPieceComplete(message.getIndex());
     }
 }

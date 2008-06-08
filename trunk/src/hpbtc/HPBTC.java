@@ -5,9 +5,7 @@
 package hpbtc;
 
 import hpbtc.processor.Protocol;
-import hpbtc.protocol.network.Network;
-import hpbtc.protocol.torrent.Torrent;
-import java.io.FileInputStream;
+import java.io.File;
 import java.util.logging.Logger;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -30,7 +28,7 @@ public class HPBTC {
             final Protocol protocol = new Protocol();
             protocol.startProtocol();
             for (String torrent: args) {
-                protocol.download(torrent);
+                protocol.download(new File(torrent), new File("."));
             }
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 

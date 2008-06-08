@@ -8,9 +8,11 @@ import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.RawMessage;
+import hpbtc.protocol.torrent.FileStore;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.EOFException;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -31,19 +33,20 @@ public class Protocol {
     private Network network;
     private MessageValidator validator;
     private MessageProcessor processor;
+    private FileStore fileStore;
 
     public Protocol() throws UnsupportedEncodingException {
         torrents = new HashMap<byte[], Torrent>();
-        network = new Network();
-        PieceRepository pieceRep = new PieceRepository();
         byte[] protocol = getSupportedProtocol();
-        validator = new MessageValidator(torrents, protocol, pieceRep);
-        processor = new MessageProcessor(network, protocol, pieceRep);
+        this.network = new Network();
+        validator = new MessageValidator(torrents, protocol);
+        processor = new MessageProcessor(network, protocol, torrents);
+        this.fileStore = new FileStore();
     }
 
-    public void download(String fileName) throws IOException, NoSuchAlgorithmException {
+    public void download(File fileName, File rootFolder) throws IOException, NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
-        Torrent ti = new Torrent(fis);
+        Torrent ti = new Torrent(fileStore, fis, rootFolder);
         torrents.put(ti.getInfoHash(), ti);
         fis.close();
         torrents.put(ti.getInfoHash(), ti);
