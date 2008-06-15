@@ -28,7 +28,7 @@ public class HPBTC {
             final Protocol protocol = new Protocol();
             protocol.startProtocol();
             for (String torrent: args) {
-                protocol.download(new File(torrent), new File("."));
+                protocol.download(new File(torrent), ".");
             }
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
