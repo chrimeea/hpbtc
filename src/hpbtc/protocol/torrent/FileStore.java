@@ -32,6 +32,10 @@ public class FileStore {
     public int getNrPieces() {
         return nrPieces;
     }
+
+    public int getPieceLength() {
+        return pieceLength;
+    }
     
     private void init(int pieceLength, byte[] pieceHash) {
         this.pieceLength = pieceLength;

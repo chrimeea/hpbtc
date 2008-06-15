@@ -23,8 +23,6 @@ public class Torrent {
 
     private List<LinkedList<String>> trackers;
     private byte[] infoHash;
-    private int pieceLength;
-    private byte[] pieceHash;
     private Date creationDate;
     private String comment;
     private String createdBy;
@@ -58,8 +56,8 @@ public class Torrent {
             encoding = (String) meta.get("encoding");
         }
         boolean multiple = info.containsKey("files");
-        pieceLength = (Integer) info.get("piece length");
-        pieceHash = ((String) info.get("pieces")).getBytes(encoding);
+        int pieceLength = (Integer) info.get("piece length");
+        byte[] pieceHash = ((String) info.get("pieces")).getBytes(encoding);
         if (multiple) {
             List<Map> fls = (List<Map>) info.get("files");
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder, fls);
@@ -111,7 +109,7 @@ public class Torrent {
     }
 
     public int getPieceLength() {
-        return pieceLength;
+        return fileStore.getPieceLength();
     }
 
     public List<LinkedList<String>> getTrackers() {
