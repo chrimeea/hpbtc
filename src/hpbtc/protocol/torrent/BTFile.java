@@ -10,23 +10,17 @@ public class BTFile {
     
     private String path;
     private int length;
-    private File rootFolder;
     private File file;
     
-    public BTFile(File rootFolder, String path, int length) {
+    public BTFile(String path, int length) {
         this.path = path;
         this.length = length;
-        this.rootFolder = rootFolder;
-        file = new File(rootFolder + File.separator + path);
+        file = new File(path);
         file.mkdirs();
     }
 
     public File getFile() {
         return file;
-    }
-    
-    public File getRootFolder() {
-        return rootFolder;
     }
     
     /**

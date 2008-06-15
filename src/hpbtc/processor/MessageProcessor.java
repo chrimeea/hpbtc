@@ -67,7 +67,8 @@ public class MessageProcessor {
         peer.setPeerInterested(false);
     }
 
-    public void processPiece(PieceMessage message, Peer peer) throws NoSuchAlgorithmException {
+    public void processPiece(PieceMessage message, Peer peer)
+            throws NoSuchAlgorithmException, IOException {
         Torrent t = torrents.get(peer.getInfoHash());
         t.savePiece(message.getBegin(), message.getIndex(), message.getPiece());
     }

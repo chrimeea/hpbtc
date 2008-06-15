@@ -33,7 +33,6 @@ public class Protocol {
     private Network network;
     private MessageValidator validator;
     private MessageProcessor processor;
-    private FileStore fileStore;
 
     public Protocol() throws UnsupportedEncodingException {
         torrents = new HashMap<byte[], Torrent>();
@@ -41,12 +40,11 @@ public class Protocol {
         this.network = new Network();
         validator = new MessageValidator(torrents, protocol);
         processor = new MessageProcessor(network, protocol, torrents);
-        this.fileStore = new FileStore();
     }
 
-    public void download(File fileName, File rootFolder) throws IOException, NoSuchAlgorithmException {
+    public void download(File fileName, String rootFolder) throws IOException, NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
-        Torrent ti = new Torrent(fileStore, fis, rootFolder);
+        Torrent ti = new Torrent(fis, rootFolder);
         torrents.put(ti.getInfoHash(), ti);
         fis.close();
         torrents.put(ti.getInfoHash(), ti);

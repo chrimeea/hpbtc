@@ -3,7 +3,6 @@ package hpbtc.protocol.torrent;
 import hpbtc.bencoding.BencodingReader;
 import hpbtc.bencoding.BencodingWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -11,9 +10,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -26,22 +23,15 @@ public class Torrent {
 
     private List<LinkedList<String>> trackers;
     private byte[] infoHash;
-    private boolean multiple;
     private int pieceLength;
-    private List<BTFile> files;
-    private int fileLength;
-    private int nrPieces;
     private byte[] pieceHash;
     private Date creationDate;
     private String comment;
     private String createdBy;
     private String encoding;
-    private int chunkSize = 16384;
-    private BitSet[] pieces;
     private FileStore fileStore;
-    private int offset;
 
-    public Torrent(FileStore fileStore, InputStream is, File rootFolder)
+    public Torrent(InputStream is, String rootFolder)
             throws IOException, NoSuchAlgorithmException {
         BencodingReader parser = new BencodingReader(is);
         Map<String, Object> meta = parser.readNextDictionary();
@@ -67,79 +57,45 @@ public class Torrent {
         if (meta.containsKey("encoding")) {
             encoding = (String) meta.get("encoding");
         }
-        multiple = info.containsKey("files");
-        String fileName = (String) info.get("name");
+        boolean multiple = info.containsKey("files");
         pieceLength = (Integer) info.get("piece length");
+        pieceHash = ((String) info.get("pieces")).getBytes(encoding);
         if (multiple) {
             List<Map> fls = (List<Map>) info.get("files");
-            files = new ArrayList<BTFile>(fls.size());
-            fileLength = 0;
-            for (Map fd : fls) {
-                List<String> dirs = (List<String>) fd.get("path");
-                StringBuilder sb = new StringBuilder(fileName);
-                sb.append(File.separator);
-                for (String dir : dirs) {
-                    sb.append(dir);
-                    sb.append(File.separator);
-                }
-                int fl = (Integer) fd.get("length");
-                fileLength += fl;
-                files.add(new BTFile(rootFolder, sb.substring(0, sb.length() - 1).toString(), fl));
-            }
+            fileStore = new FileStore(pieceLength, pieceHash, rootFolder, fls);
         } else {
-            files = new ArrayList<BTFile>(1);
-            fileLength = (Integer) info.get("length");
-            files.add(new BTFile(rootFolder, fileName, fileLength));
+            String fileName = (String) info.get("name");
+            int fileLength = (Integer) info.get("length");
+            fileStore = new FileStore(pieceLength, pieceHash, rootFolder, fileName, fileLength);
         }
-        nrPieces = (int) (fileLength / pieceLength);
-        if (fileLength % pieceLength > 0) {
-            nrPieces++;
-        }
-        pieceHash = ((String) info.get("pieces")).getBytes(encoding);
-        pieces = new BitSet[nrPieces];
-        for (int i = 0; i < nrPieces; i++) {
-            pieces[i] = new BitSet(chunkSize);
-        }
-        this.fileStore = fileStore;
-    }
-
-    public boolean isPieceComplete(int index) {
-        return pieces[index].cardinality() == chunkSize;
     }
 
     public void savePiece(int begin, int index, ByteBuffer piece)
-            throws NoSuchAlgorithmException {
-        pieces[index].set(begin / chunkSize, 1 + (begin + piece.remaining()) / chunkSize);
-        fileStore.saveFileChunk(getFileList(begin, index, piece.remaining()), offset, piece);
-        if (isPieceComplete(index) && !isHashCorrect(index)) {
-            pieces[index].clear();
-        }
-    }
-
-    private List<BTFile> getFileList(int begin, int index, int length) {
-        int o = index * chunkSize + begin;
-        Iterator<BTFile> i = files.iterator();
-        BTFile f;
-        do {
-            f = i.next();
-            o -= f.getLength();
-        } while (o > 0);
-        offset = o + f.getLength();
-        List<BTFile> fls = new LinkedList<BTFile>();
-        o += length;
-        fls.add(f);
-        while (o >= 0) {
-            f = i.next();
-            fls.add(f);
-            o -= f.getLength();
-        }
-        return fls;
+            throws IOException, NoSuchAlgorithmException {
+        fileStore.savePiece(begin, index, piece);
     }
     
-    public ByteBuffer loadPiece(int begin, int index, int length) {
-        return fileStore.loadFileChunk(getFileList(begin, index, length), offset, length);
+    public ByteBuffer loadPiece(int begin, int index, int length)
+            throws IOException {
+        return fileStore.loadPiece(begin, index, length);
+    }
+    
+    public List<BTFile> getFiles() {
+        return fileStore.getFiles();
+    }
+    
+    public int getFileLength() {
+        return fileStore.getFileLength();
+    }
+    
+    public int getNrPieces() {
+        return fileStore.getNrPieces();
     }
 
+    public boolean isPieceComplete(int index) {
+        return fileStore.isPieceComplete(index);
+    }
+    
     private static byte[] computeInfoHash(Map<String, Object> info)
             throws NoSuchAlgorithmException, IOException {
         MessageDigest md = MessageDigest.getInstance("SHA1");
@@ -150,35 +106,12 @@ public class Torrent {
         return md.digest();
     }
 
-    public int getFileLength() {
-        return fileLength;
-    }
-
-    public List<BTFile> getFiles() {
-        return files;
-    }
-
     public byte[] getInfoHash() {
         return infoHash;
     }
 
-    public int getNrPieces() {
-        return nrPieces;
-    }
-
     public int getPieceLength() {
         return pieceLength;
-    }
-
-    public boolean isMultiple() {
-        return multiple;
-    }
-
-    private boolean isHashCorrect(int index) throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("SHA1");
-        md.update(loadPiece(0, index, pieceLength));
-        int i = index * 20;
-        return Arrays.equals(md.digest(), Arrays.copyOfRange(pieceHash, i, i + 20));
     }
 
     public List<LinkedList<String>> getTrackers() {
