@@ -84,7 +84,7 @@ public class FileStore {
         init(pieceLength, pieceHash);
     }
 
-    public void loadFileChunk(List<File> files, int begin, ByteBuffer dest)
+    private void loadFileChunk(List<File> files, int begin, ByteBuffer dest)
             throws IOException {
         Iterator<File> i = files.iterator();
         IOUtil.readFromFile(i.next(), begin, dest);
@@ -93,7 +93,7 @@ public class FileStore {
         }
     }
 
-    public void saveFileChunk(List<File> files, int begin, ByteBuffer piece)
+    private void saveFileChunk(List<File> files, int begin, ByteBuffer piece)
             throws IOException {
         Iterator<File> i = files.iterator();
         IOUtil.writeToFile(i.next(), begin, piece);
