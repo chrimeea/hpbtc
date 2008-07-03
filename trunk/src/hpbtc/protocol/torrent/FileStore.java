@@ -1,6 +1,7 @@
 package hpbtc.protocol.torrent;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -37,7 +38,8 @@ public class FileStore {
         return pieceLength;
     }
     
-    private void init(int pieceLength, byte[] pieceHash) {
+    private void init(int pieceLength, byte[] pieceHash) throws IOException,
+            NoSuchAlgorithmException {
         this.pieceLength = pieceLength;
         nrPieces = fileLength / pieceLength;
         if (fileLength % pieceLength > 0) {
@@ -48,6 +50,13 @@ public class FileStore {
             pieces[i] = new BitSet(chunkSize);
         }
         this.pieceHash = pieceHash;
+        for (int i = 0; i < nrPieces; i++) {
+            try {
+                if (isHashCorrect(i)) {
+                    pieces[i].set(0, chunkSize);
+                }
+            } catch (IOException e) {}
+        }
     }
 
     public int getFileLength() {
@@ -58,7 +67,8 @@ public class FileStore {
         return files;
     }
     
-    public FileStore(int pieceLength, byte[] pieceHash, String rootFolder, List<Map> fls) {
+    public FileStore(int pieceLength, byte[] pieceHash, String rootFolder, List<Map> fls)
+        throws IOException, NoSuchAlgorithmException {
         files = new ArrayList<BTFile>(fls.size());
         fileLength = 0;
         for (Map fd : fls) {
@@ -77,7 +87,7 @@ public class FileStore {
     }
 
     public FileStore(int pieceLength, byte[] pieceHash, String rootFolder,
-            String fileName, int fileLength) {
+            String fileName, int fileLength) throws IOException, NoSuchAlgorithmException {
         files = new ArrayList<BTFile>(1);
         this.fileLength = fileLength;
         files.add(new BTFile(rootFolder + File.separator + fileName, fileLength));

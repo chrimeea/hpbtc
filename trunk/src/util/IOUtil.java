@@ -5,7 +5,6 @@
 package util;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
@@ -103,7 +102,7 @@ public class IOUtil {
     
     public static void readFromFile(File file, int begin, ByteBuffer dest)
         throws IOException {
-        RandomAccessFile r = new RandomAccessFile(file, "rw");
+        RandomAccessFile r = new RandomAccessFile(file, "r");
         r.seek(begin);
         readFromChannel(r.getChannel(), dest);
         r.close();
