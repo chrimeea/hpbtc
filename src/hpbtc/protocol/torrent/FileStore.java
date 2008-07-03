@@ -1,7 +1,6 @@
 package hpbtc.protocol.torrent;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
