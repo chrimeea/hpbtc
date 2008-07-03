@@ -127,7 +127,7 @@ public class FileStore {
         List<File> fls = new LinkedList<File>();
         o += length;
         fls.add(f.getFile());
-        while (o >= 0) {
+        while (o >= 0 && i.hasNext()) {
             f = i.next();
             fls.add(f.getFile());
             o -= f.getLength();
