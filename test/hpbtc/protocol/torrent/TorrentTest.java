@@ -63,12 +63,35 @@ public class TorrentTest {
         info.savePiece(0, 0, piece);
         ByteBuffer dest = ByteBuffer.allocate(info.getPieceLength());
         IOUtil.readFromFile(f, 0, dest);
+        f.delete();
         dest.rewind();
         piece.rewind();
         assert dest.equals(piece);
     }
     
     @Test
-    public void testLoadPiece() {
+    public void testLoadPiece() throws IOException, NoSuchAlgorithmException {
+        File f = File.createTempFile("hpbtc-load-piece", "test");
+        String t = "d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name";
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        BencodingWriter wr = new BencodingWriter(bos);
+        wr.write(f.getName());
+        String s = new String(bos.toByteArray(), "UTF-8");
+        t += s + "12:piece lengthi65536e6:pieces20:12345678901234567890ee";        
+        bos.close();
+        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("UTF-8"));
+        Torrent info = new Torrent(b, f.getParent());
+        b.close();
+        ByteBuffer piece = ByteBuffer.allocate(info.getPieceLength());
+        for (int i = 0; i < info.getPieceLength(); i++) {
+            piece.put((byte) 5);
+        }
+        piece.rewind();
+        IOUtil.writeToFile(f, 0, piece);
+        piece.rewind();
+        ByteBuffer dest = info.loadPiece(0, 0, info.getPieceLength());
+        f.delete();
+        dest.rewind();
+        assert piece.equals(dest);
     }
 }
