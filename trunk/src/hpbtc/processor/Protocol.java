@@ -8,7 +8,6 @@ import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.RawMessage;
-import hpbtc.protocol.torrent.FileStore;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.EOFException;
@@ -20,6 +19,8 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -33,23 +34,40 @@ public class Protocol {
     private Network network;
     private MessageValidator validator;
     private MessageProcessor processor;
+    private byte[] peerId;
 
     public Protocol() throws UnsupportedEncodingException {
+        this.peerId = generateId();
         torrents = new HashMap<byte[], Torrent>();
         byte[] protocol = getSupportedProtocol();
         this.network = new Network();
         validator = new MessageValidator(torrents, protocol);
-        processor = new MessageProcessor(network, protocol, torrents);
+        processor = new MessageProcessor(network, protocol, torrents, peerId);
     }
 
     public void download(File fileName, String rootFolder) throws IOException, NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
-        Torrent ti = new Torrent(fis, rootFolder);
-        torrents.put(ti.getInfoHash(), ti);
+        Torrent ti = new Torrent(fis, rootFolder, peerId, network.getPort());
+        byte[] infoHash = ti.getInfoHash();
+        torrents.put(infoHash, ti);
         fis.close();
-        torrents.put(ti.getInfoHash(), ti);
+        torrents.put(infoHash, ti);
+        ti.beginTracker();
     }
 
+    private byte[] generateId() {
+        byte[] pid = new byte[20];
+        pid[0] = 'C';
+        pid[1] = 'M';
+        pid[2] = '-';
+        pid[3] = '2';
+        pid[4] = '.';
+        pid[5] = '0';
+        Random r = new Random();
+        r.nextBytes(pid);
+        return pid;
+    }
+    
     public void stopProtocol() {
         network.disconnect();
     }
@@ -148,6 +166,8 @@ public class Protocol {
                             processor.processUnchoke(peer);
                     }
                     peer.setMessagesReceived();
+                } else {
+                    torrents.get(peer.getInfoHash()).removePeer(peer);
                 }
             } else if (current.remaining() >= 47) {
                 HandshakeMessage mHand = new HandshakeMessage(current);

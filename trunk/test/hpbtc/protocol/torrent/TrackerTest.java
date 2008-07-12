@@ -45,13 +45,12 @@ public class TrackerTest {
         t.add(l);
         Tracker ti = new Tracker("INFOHASH".getBytes("US-ASCII"),
                 "PID".getBytes("US-ASCII"), 2000, t);
-        ti.updateTracker("started", 1, 2, 3, 4);
+        Set<Peer> peers = ti.updateTracker(Tracker.Event.started, 1, 2, 3, 4);
         server.stop(0);
         assert ti.getInterval() == 10;
         assert ti.getMinInterval() == 5;
         assert ti.getComplete() == 20;
         assert ti.getIncomplete() == 9;
-        Set<Peer> peers = ti.getPeers();
         assert peers.size() == 2;
         for (Peer p : peers) {
             assert Arrays.equals(p.getId(), "1P".getBytes("US-ASCII")) ||
