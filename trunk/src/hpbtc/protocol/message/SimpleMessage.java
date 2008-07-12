@@ -28,6 +28,10 @@ public class SimpleMessage {
     public SimpleMessage() {
     }
     
+    public SimpleMessage(byte disc) {
+        this(0, disc);
+    }
+    
     public SimpleMessage(int len, byte disc) {
         messageLength = len + 1;
         this.disc = disc;

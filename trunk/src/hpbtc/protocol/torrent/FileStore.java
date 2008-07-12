@@ -28,6 +28,7 @@ public class FileStore {
     private List<BTFile> files;
     private int fileLength;
     private int pieceLength;
+    private BitSet completePieces;
 
     public int getNrPieces() {
         return nrPieces;
@@ -35,6 +36,10 @@ public class FileStore {
 
     public int getPieceLength() {
         return pieceLength;
+    }
+
+    public BitSet getCompletePieces() {
+        return completePieces;
     }
     
     private void init(int pieceLength, byte[] pieceHash) throws IOException,
@@ -112,15 +117,17 @@ public class FileStore {
     }
 
     public boolean isPieceComplete(int index) {
-        return pieces[index].cardinality() == chunkSize;
+        return completePieces.get(index);
     }
 
     public void savePiece(int begin, int index, ByteBuffer piece)
             throws IOException, NoSuchAlgorithmException {
         pieces[index].set(begin / chunkSize, 1 + (begin + piece.remaining()) / chunkSize);
         saveFileChunk(getFileList(begin, index, piece.remaining()), offset, piece);
-        if (isPieceComplete(index) && !isHashCorrect(index)) {
+        if (pieces[index].cardinality() == chunkSize && !isHashCorrect(index)) {
             pieces[index].clear();
+        } else {
+            completePieces.set(index);
         }
     }
 

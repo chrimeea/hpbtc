@@ -10,6 +10,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -74,6 +75,10 @@ public class Torrent {
         peers = new HashSet<Peer>();
     }
 
+    public Iterable<Peer> getPeers() {
+        return peers;
+    }
+
     public void removePeer(Peer peer) {
         peers.remove(peer);
     }
@@ -110,6 +115,10 @@ public class Torrent {
 
     public boolean isPieceComplete(int index) {
         return fileStore.isPieceComplete(index);
+    }
+    
+    public BitSet getCompletePieces() {
+        return fileStore.getCompletePieces();
     }
     
     private static byte[] computeInfoHash(Map<String, Object> info)
@@ -164,9 +173,5 @@ public class Torrent {
     @Override
     public int hashCode() {
         return infoHash.hashCode();
-    }
-
-    public Tracker getTracker() {
-        return tracker;
     }
 }

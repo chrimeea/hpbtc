@@ -49,6 +49,10 @@ public class Peer {
         return address;
     }
     
+    public boolean isConnected() {
+        return channel != null;
+    }
+    
     public SocketChannel getChannel() {
         return channel;
     }
@@ -99,5 +103,11 @@ public class Peer {
 
     public void setMessagesReceived() {
         this.messagesReceived = true;
+    }
+    
+    public boolean hasOtherPieces(BitSet bs) {
+        BitSet c = (BitSet) pieces.clone();
+        c.andNot(bs);
+        return !c.isEmpty();
     }
 }
