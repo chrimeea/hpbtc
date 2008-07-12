@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -33,6 +34,7 @@ public class Torrent {
     private FileStore fileStore;
     private Tracker tracker;
     private Set<Peer> peers;
+    private Random random;
 
     public Torrent(InputStream is, String rootFolder, byte[] peerId, int port)
             throws IOException, NoSuchAlgorithmException {
@@ -73,8 +75,19 @@ public class Torrent {
         }
         tracker = new Tracker(infoHash, peerId, port, trackers);
         peers = new HashSet<Peer>();
+        random = new Random();
     }
 
+    public int decideNextDownloadPiece(Peer peer) {
+        BitSet bs = peer.getPieces();
+        int piece = random.nextInt(bs.cardinality());
+        int j = bs.nextSetBit(0);
+        for (int i = 1; i < piece; i++) {
+            j = bs.nextSetBit(j + 1);
+        }
+        return j;
+    }
+    
     public Iterable<Peer> getPeers() {
         return peers;
     }

@@ -31,7 +31,6 @@ public class Protocol {
     private static Logger logger = Logger.getLogger(Protocol.class.getName());
     private Map<byte[], Torrent> torrents;
     private Network network;
-    private MessageValidator validator;
     private MessageProcessor processor;
     private byte[] peerId;
 
@@ -40,7 +39,6 @@ public class Protocol {
         torrents = new HashMap<byte[], Torrent>();
         byte[] protocol = getSupportedProtocol();
         this.network = new Network();
-        validator = new MessageValidator(torrents, protocol);
         processor = new MessageProcessor(network, protocol, torrents, peerId);
     }
 
@@ -121,11 +119,6 @@ public class Protocol {
         }).start();
     }
 
-    private void disconnectPeer(Peer peer) throws IOException {
-        processor.processDisconnect(peer);
-        network.closeConnection(peer);
-    }
-
     private void process(RawMessage data) throws IOException, NoSuchAlgorithmException {
         Peer peer = data.getPeer();
         if (data.isDisconnect()) {
@@ -143,24 +136,18 @@ public class Protocol {
                     switch (disc) {
                         case SimpleMessage.TYPE_BITFIELD:
                             BitfieldMessage mBit = new BitfieldMessage(current, len);
-                            if (validator.validateBitfieldMessage(mBit, peer)) {
                                 processor.processBitfield(mBit, peer);
-                            }
                             break;
                         case SimpleMessage.TYPE_CANCEL:
                             BlockMessage mCan = new BlockMessage(current, SimpleMessage.TYPE_CANCEL);
-                            if (validator.validateCancelMessage(mCan, peer)) {
                                 processor.processCancel(mCan, peer);
-                            }
                             break;
                         case SimpleMessage.TYPE_CHOKE:
                             processor.processChoke(peer);
                             break;
                         case SimpleMessage.TYPE_HAVE:
                             HaveMessage mHave = new HaveMessage(current);
-                            if (validator.validateHaveMessage(mHave, peer)) {
                                 processor.processHave(mHave, peer);
-                            }
                             break;
                         case SimpleMessage.TYPE_INTERESTED:
                             processor.processInterested(peer);
@@ -170,15 +157,11 @@ public class Protocol {
                             break;
                         case SimpleMessage.TYPE_PIECE:
                             PieceMessage mPiece = new PieceMessage(current, len);
-                            if (validator.validatePieceMessage(mPiece, peer)) {
                                 processor.processPiece(mPiece, peer);
-                            }
                             break;
                         case SimpleMessage.TYPE_REQUEST:
                             BlockMessage mReq = new BlockMessage(current, SimpleMessage.TYPE_REQUEST);
-                            if (validator.validateRequestMessage(mReq, peer)) {
                                 processor.processRequest(mReq, peer);
-                            }
                             break;
                         case SimpleMessage.TYPE_UNCHOKE:
                             processor.processUnchoke(peer);
@@ -187,11 +170,7 @@ public class Protocol {
                 }
             } else if (current.remaining() >= 47) {
                 HandshakeMessage mHand = new HandshakeMessage(current);
-                if (validator.validateHandshakeMessage(mHand, peer)) {
                     processor.processHandshake(mHand, peer);
-                } else {
-                    disconnectPeer(peer);
-                }
             }
         } while (current.remaining() > 0);
     }
