@@ -17,6 +17,8 @@ public class Peer {
     private BitSet pieces;
     private boolean peerChoking;
     private boolean peerInterested;
+    private boolean clientInterested;
+    private boolean clientChoking;
     private byte[] infoHash;
     private InetSocketAddress address;
     private boolean handshakeReceived;
@@ -33,6 +35,22 @@ public class Peer {
         peerChoking = true;
     }
 
+    public boolean isClientChoking() {
+        return clientChoking;
+    }
+
+    public void setClientChoking(boolean clientChoking) {
+        this.clientChoking = clientChoking;
+    }
+
+    public void setClientInterested(boolean clientInterested) {
+        this.clientInterested = clientInterested;
+    }
+
+    public boolean isClientInterested() {
+        return clientInterested;
+    }
+    
     public boolean isHandshakeReceived() {
         return handshakeReceived;
     }

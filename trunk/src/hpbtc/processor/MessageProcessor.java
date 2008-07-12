@@ -82,14 +82,18 @@ public class MessageProcessor {
 
     public void processPiece(PieceMessage message, Peer peer)
             throws NoSuchAlgorithmException, IOException {
+        Torrent t = torrents.get(peer.getInfoHash());
+        int index = message.getIndex();
+        int begin = message.getBegin();
         if (validator.validatePieceMessage(message, peer)) {
-            Torrent t = torrents.get(peer.getInfoHash());
-            t.savePiece(message.getBegin(), message.getIndex(), message.getPiece());
+            t.savePiece(begin, index, message.getPiece());
         }
+        t.setOutstandingRequest(begin, index, message.getLength(), false);
     }
 
     public void processRequest(BlockMessage message, Peer peer) throws IOException {
-        if (validator.validateRequestMessage(message, peer)) {
+        if (validator.validateRequestMessage(message, peer) &&
+                !peer.isClientChoking()) {
             Torrent t = torrents.get(peer.getInfoHash());
             ByteBuffer piece = t.loadPiece(message.getBegin(), message.getIndex(),
                     message.getLength());

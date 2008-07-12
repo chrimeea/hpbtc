@@ -16,8 +16,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
+import util.TorrentUtil;
 
 /**
  *
@@ -34,7 +34,7 @@ public class Torrent {
     private FileStore fileStore;
     private Tracker tracker;
     private Set<Peer> peers;
-    private Random random;
+    private BitSet[] outstandingRequests;
 
     public Torrent(InputStream is, String rootFolder, byte[] peerId, int port)
             throws IOException, NoSuchAlgorithmException {
@@ -75,19 +75,15 @@ public class Torrent {
         }
         tracker = new Tracker(infoHash, peerId, port, trackers);
         peers = new HashSet<Peer>();
-        random = new Random();
+        outstandingRequests = new BitSet[getNrPieces()];
     }
 
-    public int decideNextDownloadPiece(Peer peer) {
-        BitSet bs = peer.getPieces();
-        int piece = random.nextInt(bs.cardinality());
-        int j = bs.nextSetBit(0);
-        for (int i = 1; i < piece; i++) {
-            j = bs.nextSetBit(j + 1);
-        }
-        return j;
+    public void setOutstandingRequest(int begin, int index, int length, boolean open) {
+        int chunkSize = fileStore.getChunkSize();
+        outstandingRequests[index].set(TorrentUtil.computeBeginPosition(begin, chunkSize),
+                TorrentUtil.computeEndPosition(begin, length, chunkSize), open);
     }
-    
+
     public Iterable<Peer> getPeers() {
         return peers;
     }
@@ -95,11 +91,11 @@ public class Torrent {
     public void removePeer(Peer peer) {
         peers.remove(peer);
     }
-    
+
     public void addPeer(Peer peer) {
         peers.add(peer);
     }
-    
+
     public void beginTracker() {
         peers.addAll(tracker.beginTracker(getFileLength()));
     }
@@ -108,20 +104,20 @@ public class Torrent {
             throws IOException, NoSuchAlgorithmException {
         fileStore.savePiece(begin, index, piece);
     }
-    
+
     public ByteBuffer loadPiece(int begin, int index, int length)
             throws IOException {
         return fileStore.loadPiece(begin, index, length);
     }
-    
+
     public List<BTFile> getFiles() {
         return fileStore.getFiles();
     }
-    
+
     public int getFileLength() {
         return fileStore.getFileLength();
     }
-    
+
     public int getNrPieces() {
         return fileStore.getNrPieces();
     }
@@ -129,11 +125,11 @@ public class Torrent {
     public boolean isPieceComplete(int index) {
         return fileStore.isPieceComplete(index);
     }
-    
+
     public BitSet getCompletePieces() {
         return fileStore.getCompletePieces();
     }
-    
+
     private static byte[] computeInfoHash(Map<String, Object> info)
             throws NoSuchAlgorithmException, IOException {
         MessageDigest md = MessageDigest.getInstance("SHA1");
