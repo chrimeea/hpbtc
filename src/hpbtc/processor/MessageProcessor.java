@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
-import java.util.Random;
 
 /**
  *
@@ -26,20 +25,21 @@ public class MessageProcessor {
     private Map<byte[], Torrent> torrents;
     
     public MessageProcessor(Network network, byte[] protocol,
-            Map<byte[], Torrent> torrents) {
+            Map<byte[], Torrent> torrents, byte[] peerId) {
         this.protocol = protocol;
         this.network = network;
-        this.peerId = generateId();
+        this.peerId = peerId;
         this.torrents = torrents;
     }
     
     public void processHandshake(HandshakeMessage message, Peer peer) throws IOException {
         peer.setId(message.getPeerId());
-        peer.setInfoHash(message.getInfoHash());
+        byte[] infoHash = message.getInfoHash();
+        peer.setInfoHash(infoHash);
         peer.setHandshakeReceived();
-        HandshakeMessage reply = new HandshakeMessage(message.getInfoHash(),
-                peerId, protocol);
+        HandshakeMessage reply = new HandshakeMessage(infoHash, peerId, protocol);
         network.postMessage(peer, reply);
+        torrents.get(infoHash).addPeer(peer);
     }
 
     public void processBitfield(BitfieldMessage message, Peer peer) {
@@ -84,18 +84,5 @@ public class MessageProcessor {
 
     public void processUnchoke(Peer peer) {
         peer.setPeerChoking(false);
-    }
-    
-    private byte[] generateId() {
-        byte[] pid = new byte[20];
-        pid[0] = 'C';
-        pid[1] = 'M';
-        pid[2] = '-';
-        pid[3] = '2';
-        pid[4] = '.';
-        pid[5] = '0';
-        Random r = new Random();
-        r.nextBytes(pid);
-        return pid;
     }
 }

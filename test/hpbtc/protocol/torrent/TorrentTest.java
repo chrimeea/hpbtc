@@ -21,7 +21,7 @@ public class TorrentTest {
     @Test
     public void testTorrentInfo() throws IOException, NoSuchAlgorithmException {
         ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("UTF-8"));
-        Torrent info = new Torrent(b, ".");
+        Torrent info = new Torrent(b, ".", null, 1000);
         b.close();
         assert info.getFileLength() == 85;
         assert info.getComment().equals("test comment");
@@ -53,7 +53,7 @@ public class TorrentTest {
         t += s + "12:piece lengthi65536e6:pieces20:12345678901234567890ee";        
         bos.close();
         ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("UTF-8"));
-        Torrent info = new Torrent(b, f.getParent());
+        Torrent info = new Torrent(b, f.getParent(), null, 1000);
         b.close();
         ByteBuffer piece = ByteBuffer.allocate(info.getPieceLength());
         for (int i = 0; i < info.getPieceLength(); i++) {
@@ -80,7 +80,7 @@ public class TorrentTest {
         t += s + "12:piece lengthi65536e6:pieces20:12345678901234567890ee";        
         bos.close();
         ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("UTF-8"));
-        Torrent info = new Torrent(b, f.getParent());
+        Torrent info = new Torrent(b, f.getParent(), null, 1000);
         b.close();
         ByteBuffer piece = ByteBuffer.allocate(info.getPieceLength());
         for (int i = 0; i < info.getPieceLength(); i++) {

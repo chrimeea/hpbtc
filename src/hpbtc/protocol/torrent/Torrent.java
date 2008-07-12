@@ -11,9 +11,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -28,8 +30,10 @@ public class Torrent {
     private String createdBy;
     private String encoding;
     private FileStore fileStore;
+    private Tracker tracker;
+    private Set<Peer> peers;
 
-    public Torrent(InputStream is, String rootFolder)
+    public Torrent(InputStream is, String rootFolder, byte[] peerId, int port)
             throws IOException, NoSuchAlgorithmException {
         BencodingReader parser = new BencodingReader(is);
         Map<String, Object> meta = parser.readNextDictionary();
@@ -66,6 +70,20 @@ public class Torrent {
             int fileLength = (Integer) info.get("length");
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder, fileName, fileLength);
         }
+        tracker = new Tracker(infoHash, peerId, port, trackers);
+        peers = new HashSet<Peer>();
+    }
+
+    public void removePeer(Peer peer) {
+        peers.remove(peer);
+    }
+    
+    public void addPeer(Peer peer) {
+        peers.add(peer);
+    }
+    
+    public void beginTracker() {
+        peers.addAll(tracker.beginTracker(getFileLength()));
     }
 
     public void savePiece(int begin, int index, ByteBuffer piece)
@@ -146,5 +164,9 @@ public class Torrent {
     @Override
     public int hashCode() {
         return infoHash.hashCode();
+    }
+
+    public Tracker getTracker() {
+        return tracker;
     }
 }
