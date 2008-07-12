@@ -53,9 +53,19 @@ public class Protocol {
         torrents.put(infoHash, ti);
         beginPeers(ti);
     }
-    
-    private void beginPeers(Torrent ti) {
+
+    private void beginPeers(Torrent ti) throws UnsupportedEncodingException, IOException {
         ti.beginTracker();
+        for (Peer peer : ti.getPeers()) {
+            if (!peer.isConnected()) {
+                SimpleMessage m = new HandshakeMessage(peer.getInfoHash(), peerId, getSupportedProtocol());
+                network.postMessage(peer, m);
+                if (peer.hasOtherPieces(ti.getCompletePieces())) {
+                    m = new SimpleMessage(SimpleMessage.TYPE_INTERESTED);
+                    network.postMessage(peer, m);
+                }
+            }
+        }
     }
 
     private byte[] generateId() {
@@ -70,7 +80,7 @@ public class Protocol {
         r.nextBytes(pid);
         return pid;
     }
-    
+
     public void stopProtocol() {
         network.disconnect();
     }
@@ -115,7 +125,7 @@ public class Protocol {
         processor.processDisconnect(peer);
         network.closeConnection(peer);
     }
-    
+
     private void process(RawMessage data) throws IOException, NoSuchAlgorithmException {
         Peer peer = data.getPeer();
         if (data.isDisconnect()) {
