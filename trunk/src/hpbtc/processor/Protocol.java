@@ -20,7 +20,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -52,6 +51,10 @@ public class Protocol {
         torrents.put(infoHash, ti);
         fis.close();
         torrents.put(infoHash, ti);
+        beginPeers(ti);
+    }
+    
+    private void beginPeers(Torrent ti) {
         ti.beginTracker();
     }
 
@@ -108,12 +111,17 @@ public class Protocol {
         }).start();
     }
 
+    private void disconnectPeer(Peer peer) throws IOException {
+        processor.processDisconnect(peer);
+        network.closeConnection(peer);
+    }
+    
     private void process(RawMessage data) throws IOException, NoSuchAlgorithmException {
+        Peer peer = data.getPeer();
         if (data.isDisconnect()) {
-            return;
+            processor.processDisconnect(peer);
         }
         ByteBuffer current = ByteBuffer.wrap(data.getMessage());
-        Peer peer = data.getPeer();
         do {
             if (peer.isHandshakeReceived()) {
                 int len = current.getInt();
@@ -166,13 +174,13 @@ public class Protocol {
                             processor.processUnchoke(peer);
                     }
                     peer.setMessagesReceived();
-                } else {
-                    torrents.get(peer.getInfoHash()).removePeer(peer);
                 }
             } else if (current.remaining() >= 47) {
                 HandshakeMessage mHand = new HandshakeMessage(current);
                 if (validator.validateHandshakeMessage(mHand, peer)) {
                     processor.processHandshake(mHand, peer);
+                } else {
+                    disconnectPeer(peer);
                 }
             }
         } while (current.remaining() > 0);

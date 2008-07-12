@@ -85,4 +85,8 @@ public class MessageProcessor {
     public void processUnchoke(Peer peer) {
         peer.setPeerChoking(false);
     }
+    
+    public void processDisconnect(Peer peer) {
+        torrents.get(peer.getInfoHash()).removePeer(peer);
+    }
 }
