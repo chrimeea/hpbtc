@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import util.IOUtil;
+import util.TorrentUtil;
 
 /**
  *
@@ -40,6 +41,10 @@ public class FileStore {
 
     public BitSet getCompletePieces() {
         return completePieces;
+    }
+
+    int getChunkSize() {
+        return chunkSize;
     }
     
     private void init(int pieceLength, byte[] pieceHash) throws IOException,
@@ -122,7 +127,8 @@ public class FileStore {
 
     public void savePiece(int begin, int index, ByteBuffer piece)
             throws IOException, NoSuchAlgorithmException {
-        pieces[index].set(begin / chunkSize, 1 + (begin + piece.remaining()) / chunkSize);
+        pieces[index].set(TorrentUtil.computeBeginPosition(begin, chunkSize),
+                TorrentUtil.computeEndPosition(begin, piece.remaining(), chunkSize));
         saveFileChunk(getFileList(begin, index, piece.remaining()), offset, piece);
         if (pieces[index].cardinality() == chunkSize && !isHashCorrect(index)) {
             pieces[index].clear();
