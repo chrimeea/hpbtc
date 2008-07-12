@@ -105,6 +105,10 @@ public class Peer {
         this.messagesReceived = true;
     }
     
+    public BitSet getPieces() {
+        return pieces;
+    }
+    
     public boolean hasOtherPieces(BitSet bs) {
         BitSet c = (BitSet) pieces.clone();
         c.andNot(bs);
