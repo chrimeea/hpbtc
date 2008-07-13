@@ -37,10 +37,12 @@ public class Torrent {
     private BitSet[] requests;
     private Random random;
     private Network network;
+    private int uploaded;
+    private int downloaded;
 
     public Torrent(InputStream is, String rootFolder, byte[] peerId, Network network)
             throws IOException, NoSuchAlgorithmException {
-        random =  new Random();
+        random = new Random();
         this.network = network;
         BencodingReader parser = new BencodingReader(is);
         Map<String, Object> meta = parser.readNextDictionary();
@@ -87,25 +89,31 @@ public class Torrent {
         int l = getPieceLength();
         return index == n - 1 ? (n - 1) * l + getFileLength() : l;
     }
-    
+
     @SuppressWarnings("empty-statement")
-    public void decideNextPiece(Peer peer) throws IOException {
+    public boolean decideNextPiece(Peer peer) throws IOException {
         BitSet bs = peer.getOtherPieces(getCompletePieces());
         int chunkSize = fileStore.getChunkSize();
-        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i+1)) {
+        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
             if (requests[i].cardinality() == chunkSize) {
                 bs.clear(i);
             }
         }
-        int r = random.nextInt(bs.cardinality());
-        int index = bs.nextSetBit(0);
-        for (;index < r; index = bs.nextSetBit(index + 1));
-        int begin = TorrentUtil.computeBeginPosition(requests[index].nextSetBit(0), chunkSize);
-        int length = getActualPieceSize(index);
-        SimpleMessage message = new BlockMessage(begin, index, length, SimpleMessage.TYPE_REQUEST);
-        network.postMessage(peer, message);
-        requests[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
-                TorrentUtil.computeEndIndex(begin, length, chunkSize));
+        int c = bs.cardinality();
+        if (c > 0) {
+            int r = random.nextInt(c);
+            int index = bs.nextSetBit(0);
+            for (; index < r; index = bs.nextSetBit(index + 1));
+            int begin = TorrentUtil.computeBeginPosition(requests[index].nextSetBit(0), chunkSize);
+            int length = getActualPieceSize(index);
+            SimpleMessage message = new BlockMessage(begin, index, length, SimpleMessage.TYPE_REQUEST);
+            network.postMessage(peer, message);
+            requests[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
+                    TorrentUtil.computeEndIndex(begin, length, chunkSize));
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public Iterable<Peer> getPeers() {
@@ -126,11 +134,13 @@ public class Torrent {
 
     public void savePiece(int begin, int index, ByteBuffer piece)
             throws IOException, NoSuchAlgorithmException {
+        downloaded += piece.remaining();
         fileStore.savePiece(begin, index, piece);
     }
 
     public ByteBuffer loadPiece(int begin, int index, int length)
             throws IOException {
+        uploaded += length;
         return fileStore.loadPiece(begin, index, length);
     }
 
