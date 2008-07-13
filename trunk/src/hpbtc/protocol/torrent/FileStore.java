@@ -127,8 +127,8 @@ public class FileStore {
 
     public void savePiece(int begin, int index, ByteBuffer piece)
             throws IOException, NoSuchAlgorithmException {
-        pieces[index].set(TorrentUtil.computeBeginPosition(begin, chunkSize),
-                TorrentUtil.computeEndPosition(begin, piece.remaining(), chunkSize));
+        pieces[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
+                TorrentUtil.computeEndIndex(begin, piece.remaining(), chunkSize));
         saveFileChunk(getFileList(begin, index, piece.remaining()), offset, piece);
         if (pieces[index].cardinality() == chunkSize && !isHashCorrect(index)) {
             pieces[index].clear();

@@ -88,7 +88,6 @@ public class MessageProcessor {
         if (validator.validatePieceMessage(message, peer)) {
             t.savePiece(begin, index, message.getPiece());
         }
-        t.setOutstandingRequest(begin, index, message.getLength(), false);
     }
 
     public void processRequest(BlockMessage message, Peer peer) throws IOException {
@@ -103,8 +102,12 @@ public class MessageProcessor {
         }
     }
 
-    public void processUnchoke(Peer peer) {
+    public void processUnchoke(Peer peer) throws IOException {
         peer.setPeerChoking(false);
+        if (peer.isClientInterested()) {
+            Torrent t = torrents.get(peer.getInfoHash());
+            t.decideNextPiece(peer);
+        }
     }
 
     public void processDisconnect(Peer peer) {

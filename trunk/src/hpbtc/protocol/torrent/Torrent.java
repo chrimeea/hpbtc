@@ -2,6 +2,9 @@ package hpbtc.protocol.torrent;
 
 import hpbtc.bencoding.BencodingReader;
 import hpbtc.bencoding.BencodingWriter;
+import hpbtc.protocol.message.BlockMessage;
+import hpbtc.protocol.message.SimpleMessage;
+import hpbtc.protocol.network.Network;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,13 +12,13 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import util.TorrentUtil;
 
@@ -34,10 +37,14 @@ public class Torrent {
     private FileStore fileStore;
     private Tracker tracker;
     private Set<Peer> peers;
-    private BitSet[] outstandingRequests;
+    private BitSet[] requests;
+    private Random random;
+    private Network network;
 
-    public Torrent(InputStream is, String rootFolder, byte[] peerId, int port)
+    public Torrent(InputStream is, String rootFolder, byte[] peerId, Network network)
             throws IOException, NoSuchAlgorithmException {
+        random =  new Random();
+        this.network = network;
         BencodingReader parser = new BencodingReader(is);
         Map<String, Object> meta = parser.readNextDictionary();
         Map<String, Object> info = (Map) meta.get("info");
@@ -73,15 +80,35 @@ public class Torrent {
             int fileLength = (Integer) info.get("length");
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder, fileName, fileLength);
         }
-        tracker = new Tracker(infoHash, peerId, port, trackers);
+        tracker = new Tracker(infoHash, peerId, network.getPort(), trackers);
         peers = new HashSet<Peer>();
-        outstandingRequests = new BitSet[getNrPieces()];
+        requests = new BitSet[getNrPieces()];
     }
 
-    public void setOutstandingRequest(int begin, int index, int length, boolean open) {
+    private int getActualPieceSize(int index) {
+        int n = getNrPieces();
+        int l = getPieceLength();
+        return index == n - 1 ? (n - 1) * l + getFileLength() : l;
+    }
+    
+    @SuppressWarnings("empty-statement")
+    public void decideNextPiece(Peer peer) throws IOException {
+        BitSet bs = peer.getOtherPieces(getCompletePieces());
         int chunkSize = fileStore.getChunkSize();
-        outstandingRequests[index].set(TorrentUtil.computeBeginPosition(begin, chunkSize),
-                TorrentUtil.computeEndPosition(begin, length, chunkSize), open);
+        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i+1)) {
+            if (requests[i].cardinality() == chunkSize) {
+                bs.clear(i);
+            }
+        }
+        int r = random.nextInt(bs.cardinality());
+        int index = bs.nextSetBit(0);
+        for (;index < r; index = bs.nextSetBit(index + 1));
+        int begin = TorrentUtil.computeBeginPosition(requests[index].nextSetBit(0), chunkSize);
+        int length = getActualPieceSize(index);
+        SimpleMessage message = new BlockMessage(begin, index, length, SimpleMessage.TYPE_REQUEST);
+        network.postMessage(peer, message);
+        requests[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
+                TorrentUtil.computeEndIndex(begin, length, chunkSize));
     }
 
     public Iterable<Peer> getPeers() {
@@ -166,21 +193,5 @@ public class Torrent {
 
     public String getEncoding() {
         return encoding;
-    }
-
-    @Override
-    public boolean equals(Object arg0) {
-        if (arg0 instanceof Torrent) {
-            Torrent t = (Torrent) arg0;
-            return Arrays.equals(infoHash, t.infoHash);
-        } else {
-            return false;
-        }
-
-    }
-
-    @Override
-    public int hashCode() {
-        return infoHash.hashCode();
     }
 }
