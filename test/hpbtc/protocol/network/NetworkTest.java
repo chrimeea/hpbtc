@@ -21,7 +21,7 @@ public class NetworkTest {
 
     @Test
     public void testNetworkIncomingConnection() throws IOException, UnsupportedEncodingException {
-        Network c = new Network();
+        PeerNetwork c = new PeerNetwork();
         c.connect();
         SocketChannel ch;
         synchronized (c) {
@@ -62,7 +62,7 @@ public class NetworkTest {
     @Test
     public void testNetworkConnect() throws IOException {
         ServerSocket ch = new ServerSocket(0);
-        Network c = new Network();
+        PeerNetwork c = new PeerNetwork();
         c.connect();
         InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(), ch.getLocalPort());
         c.postMessage(new Peer(a, "X".getBytes("US-ASCII")), new SimpleMessage() {

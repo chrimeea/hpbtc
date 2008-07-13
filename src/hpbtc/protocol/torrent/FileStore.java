@@ -49,6 +49,7 @@ public class FileStore {
     
     private void init(int pieceLength, byte[] pieceHash) throws IOException,
             NoSuchAlgorithmException {
+        completePieces = new BitSet(nrPieces);
         this.pieceLength = pieceLength;
         nrPieces = fileLength / pieceLength;
         if (fileLength % pieceLength > 0) {
