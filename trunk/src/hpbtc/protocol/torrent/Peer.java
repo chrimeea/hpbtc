@@ -1,6 +1,8 @@
 package hpbtc.protocol.torrent;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
 import util.IOUtil;
@@ -22,6 +24,8 @@ public class Peer {
     private byte[] infoHash;
     private InetSocketAddress address;
     private boolean handshakeReceived;
+    private int uploaded;
+    private int downloaded;
     
     public Peer(InetSocketAddress address, byte[] id) {
         this.address = address;
@@ -35,6 +39,18 @@ public class Peer {
         peerChoking = true;
     }
 
+    public int upload(ByteBuffer bb) throws IOException {
+        int i = IOUtil.writeToChannel(channel, bb);
+        uploaded += i;
+        return i;
+    }
+    
+    public int download(ByteBuffer bb) throws IOException {
+        int i = IOUtil.readFromChannel(channel, bb);
+        downloaded += i;
+        return i;
+    }
+    
     public boolean isClientChoking() {
         return clientChoking;
     }

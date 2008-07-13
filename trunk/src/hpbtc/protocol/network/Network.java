@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package hpbtc.protocol.network;
 
 import hpbtc.protocol.message.SimpleMessage;
@@ -11,7 +6,7 @@ import java.io.IOException;
 
 /**
  *
- * @author Administrator
+ * @author chris
  */
 public interface Network {
 

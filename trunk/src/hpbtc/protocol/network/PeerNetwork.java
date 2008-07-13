@@ -22,7 +22,6 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
-import util.IOUtil;
 
 /**
  * @author chris
@@ -155,7 +154,7 @@ public class PeerNetwork implements Network {
     private void readMessage(Peer peer, PeerNetwork net) throws IOException {
         int i;
         try {
-            i = IOUtil.readFromChannel(peer.getChannel(), currentRead);
+            i = peer.download(currentRead);
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
             i = currentRead.position();
@@ -195,7 +194,7 @@ public class PeerNetwork implements Network {
             currentWrite = q.poll().send();
         }
         try {
-            IOUtil.writeToChannel(peer.getChannel(), currentWrite);
+            peer.upload(currentWrite);
         } catch (IOException e) {
             logger.warning(e.getLocalizedMessage());
             disconnectedByPeer(peer, net);
