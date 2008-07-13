@@ -58,10 +58,6 @@ public class Protocol {
             if (!peer.isConnected()) {
                 SimpleMessage m = new HandshakeMessage(peer.getInfoHash(), peerId, getSupportedProtocol());
                 network.postMessage(peer, m);
-                if (!peer.getOtherPieces(ti.getCompletePieces()).isEmpty()) {
-                    m = new SimpleMessage(SimpleMessage.TYPE_INTERESTED);
-                    network.postMessage(peer, m);
-                }
             }
         }
     }

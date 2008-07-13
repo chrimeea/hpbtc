@@ -5,12 +5,14 @@ import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.PieceMessage;
+import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
+import java.util.BitSet;
 import java.util.Map;
 
 /**
@@ -42,16 +44,27 @@ public class MessageProcessor {
             peer.setHandshakeReceived();
             HandshakeMessage reply = new HandshakeMessage(infoHash, peerId, protocol);
             network.postMessage(peer, reply);
-            torrents.get(infoHash).addPeer(peer);
+            Torrent t = torrents.get(peer.getInfoHash());
+            BitSet bs = t.getCompletePieces();
+            if (bs.cardinality() > 0) {
+                BitfieldMessage bmessage = new BitfieldMessage(bs, t.getNrPieces());
+                network.postMessage(peer, bmessage);
+            }
+            t.addPeer(peer);
         } else {
             processDisconnect(peer);
             network.closeConnection(peer);
         }
     }
 
-    public void processBitfield(BitfieldMessage message, Peer peer) {
+    public void processBitfield(BitfieldMessage message, Peer peer) throws IOException {
         if (validator.validateBitfieldMessage(message, peer)) {
             peer.setPieces(message.getBitfield());
+            Torrent t = torrents.get(peer.getInfoHash());
+            if (!peer.getOtherPieces(t.getCompletePieces()).isEmpty()) {
+                SimpleMessage m = new SimpleMessage(SimpleMessage.TYPE_INTERESTED);
+                network.postMessage(peer, m);
+            }
         }
     }
 
@@ -66,9 +79,15 @@ public class MessageProcessor {
         peer.setPeerChoking(true);
     }
 
-    public void processHave(HaveMessage message, Peer peer) {
+    public void processHave(HaveMessage message, Peer peer) throws IOException {
         if (validator.validateHaveMessage(message, peer)) {
-            peer.setPiece(message.getIndex());
+            int index = message.getIndex();
+            peer.setPiece(index);
+            Torrent t = torrents.get(peer.getInfoHash());
+            if (!peer.isClientInterested() && !t.isPieceComplete(index)) {
+                SimpleMessage m = new SimpleMessage(SimpleMessage.TYPE_INTERESTED);
+                network.postMessage(peer, m);
+            }
         }
     }
 
