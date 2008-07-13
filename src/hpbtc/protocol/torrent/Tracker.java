@@ -20,9 +20,10 @@ import java.util.logging.Logger;
  */
 public class Tracker {
 
-    public enum Event {started, stopped, completed};
+    private enum Event {started, stopped, completed};
     
     private static Logger logger = Logger.getLogger(Tracker.class.getName());
+    private static final int TOTAL_PEERS = 50;
     private int complete;
     private int interval;
     private int incomplete;
@@ -43,7 +44,11 @@ public class Tracker {
     }
 
     public Set<Peer> beginTracker(int bytesLeft) {
-        return updateTracker(Event.started, 0, 0, bytesLeft, 0);
+        return updateTracker(Event.started, 0, 0, bytesLeft, TOTAL_PEERS);
+    }
+    
+    public void endTracker(int uploaded, int downloaded) {
+        updateTracker(Event.completed, uploaded, downloaded, 0, 0);
     }
     
     public Set<Peer> updateTracker(Event event, int uploaded, int downloaded, int bytesLeft, int totalPeers) {

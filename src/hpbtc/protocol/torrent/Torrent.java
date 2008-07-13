@@ -113,6 +113,7 @@ public class Torrent {
                     TorrentUtil.computeEndIndex(begin, length, chunkSize));
             return true;
         } else {
+            tracker.endTracker(uploaded, downloaded);
             return false;
         }
     }
@@ -139,7 +140,9 @@ public class Torrent {
         if (fileStore.savePiece(begin, index, piece)) {
             SimpleMessage message = new HaveMessage(index);
             for (Peer p: peers) {
-                network.postMessage(p, message);
+                if (p.isConnected()) {
+                    network.postMessage(p, message);
+                }
             }
         }
     }
