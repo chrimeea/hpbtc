@@ -148,6 +148,10 @@ public class Torrent {
             for (Peer p : peers) {
                 if (p.isConnected()) {
                     network.postMessage(p, message);
+                    if (p.getOtherPieces(getCompletePieces()).isEmpty()) {
+                        SimpleMessage smessage = new SimpleMessage(SimpleMessage.TYPE_NOT_INTERESTED);
+                        network.postMessage(p, smessage);
+                    }
                 }
             }
         }

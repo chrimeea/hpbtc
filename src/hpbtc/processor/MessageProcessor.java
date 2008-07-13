@@ -62,8 +62,8 @@ public class MessageProcessor {
             peer.setPieces(message.getBitfield());
             Torrent t = torrents.get(peer.getInfoHash());
             if (!peer.getOtherPieces(t.getCompletePieces()).isEmpty()) {
-                SimpleMessage m = new SimpleMessage(SimpleMessage.TYPE_INTERESTED);
-                network.postMessage(peer, m);
+                SimpleMessage smessage = new SimpleMessage(SimpleMessage.TYPE_INTERESTED);
+                network.postMessage(peer, smessage);
             }
         }
     }
