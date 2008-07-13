@@ -1,15 +1,12 @@
 package hpbtc.protocol.torrent;
 
 import hpbtc.bencoding.BencodingReader;
-import hpbtc.bencoding.BencodingWriter;
 import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -48,7 +45,7 @@ public class Torrent {
         BencodingReader parser = new BencodingReader(is);
         Map<String, Object> meta = parser.readNextDictionary();
         Map<String, Object> info = (Map) meta.get("info");
-        infoHash = computeInfoHash(info);
+        infoHash = TorrentUtil.computeInfoHash(info);
         if (meta.containsKey("announce-list")) {
             trackers = (List<LinkedList<String>>) meta.get("announce-list");
         } else {
@@ -155,16 +152,6 @@ public class Torrent {
 
     public BitSet getCompletePieces() {
         return fileStore.getCompletePieces();
-    }
-
-    private static byte[] computeInfoHash(Map<String, Object> info)
-            throws NoSuchAlgorithmException, IOException {
-        MessageDigest md = MessageDigest.getInstance("SHA1");
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        BencodingWriter w = new BencodingWriter(os);
-        w.write(info);
-        md.update(os.toByteArray());
-        return md.digest();
     }
 
     public byte[] getInfoHash() {
