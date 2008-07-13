@@ -152,7 +152,7 @@ public class PeerNetwork implements Network {
         return !messagesReceived.isEmpty();
     }
 
-    private void readMessage(Peer peer, PeerNetwork net) {
+    private void readMessage(Peer peer, PeerNetwork net) throws IOException {
         int i;
         try {
             i = IOUtil.readFromChannel(peer.getChannel(), currentRead);
@@ -173,13 +173,8 @@ public class PeerNetwork implements Network {
         }
     }
 
-    private void disconnectedByPeer(Peer peer, PeerNetwork net) {
-        try {
-            closeConnection(peer);
-        } catch (IOException e) {
-            logger.warning(e.getLocalizedMessage());
-        }
-        messagesToSend.remove(peer);
+    private void disconnectedByPeer(Peer peer, PeerNetwork net) throws IOException {
+        closeConnection(peer);
         messagesReceived.add(new RawMessage(peer));
         synchronized (net) {
             net.notify();
@@ -187,13 +182,14 @@ public class PeerNetwork implements Network {
     }
 
     public void closeConnection(Peer peer) throws IOException {
+        messagesToSend.remove(peer);
         SocketChannel ch = peer.getChannel();
         if (ch != null) {
             ch.close();
         }
     }
 
-    private void writeNext(Peer peer, PeerNetwork net) {
+    private void writeNext(Peer peer, PeerNetwork net) throws IOException {
         if (currentWrite == null || currentWrite.remaining() == 0) {
             Queue<SimpleMessage> q = messagesToSend.get(peer);
             currentWrite = q.poll().send();
