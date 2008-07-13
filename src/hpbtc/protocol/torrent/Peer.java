@@ -127,9 +127,9 @@ public class Peer {
         return pieces;
     }
     
-    public boolean hasOtherPieces(BitSet bs) {
+    public BitSet getOtherPieces(BitSet bs) {
         BitSet c = (BitSet) pieces.clone();
         c.andNot(bs);
-        return !c.isEmpty();
+        return c;
     }
 }

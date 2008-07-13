@@ -44,7 +44,7 @@ public class Protocol {
 
     public void download(File fileName, String rootFolder) throws IOException, NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
-        Torrent ti = new Torrent(fis, rootFolder, peerId, network.getPort());
+        Torrent ti = new Torrent(fis, rootFolder, peerId, network);
         byte[] infoHash = ti.getInfoHash();
         torrents.put(infoHash, ti);
         fis.close();
@@ -58,7 +58,7 @@ public class Protocol {
             if (!peer.isConnected()) {
                 SimpleMessage m = new HandshakeMessage(peer.getInfoHash(), peerId, getSupportedProtocol());
                 network.postMessage(peer, m);
-                if (peer.hasOtherPieces(ti.getCompletePieces())) {
+                if (!peer.getOtherPieces(ti.getCompletePieces()).isEmpty()) {
                     m = new SimpleMessage(SimpleMessage.TYPE_INTERESTED);
                     network.postMessage(peer, m);
                 }
