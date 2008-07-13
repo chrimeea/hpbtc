@@ -1,10 +1,12 @@
 package hpbtc.protocol.torrent;
 
 import hpbtc.bencoding.BencodingReader;
+import hpbtc.bencoding.BencodingWriter;
 import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -48,7 +50,11 @@ public class Torrent {
         BencodingReader parser = new BencodingReader(is);
         Map<String, Object> meta = parser.readNextDictionary();
         Map<String, Object> info = (Map) meta.get("info");
-        infoHash = TorrentUtil.computeInfoHash(info);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        BencodingWriter w = new BencodingWriter(os);
+        w.write(info);
+        infoHash = TorrentUtil.computeInfoHash(os.toByteArray());
+        os.close();
         if (meta.containsKey("announce-list")) {
             trackers = (List<LinkedList<String>>) meta.get("announce-list");
         } else {
@@ -139,7 +145,7 @@ public class Torrent {
         downloaded += piece.remaining();
         if (fileStore.savePiece(begin, index, piece)) {
             SimpleMessage message = new HaveMessage(index);
-            for (Peer p: peers) {
+            for (Peer p : peers) {
                 if (p.isConnected()) {
                     network.postMessage(p, message);
                 }
