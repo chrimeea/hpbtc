@@ -7,6 +7,7 @@ import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
+import hpbtc.protocol.network.PeerNetwork;
 import hpbtc.protocol.network.RawMessage;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
@@ -38,7 +39,7 @@ public class Protocol {
         this.peerId = generateId();
         torrents = new HashMap<byte[], Torrent>();
         byte[] protocol = getSupportedProtocol();
-        this.network = new Network();
+        this.network = new PeerNetwork();
         processor = new MessageProcessor(network, protocol, torrents, peerId);
     }
 

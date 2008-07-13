@@ -6,7 +6,7 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  *
- * @author Administrator
+ * @author chris
  */
 public class TorrentUtil {
 

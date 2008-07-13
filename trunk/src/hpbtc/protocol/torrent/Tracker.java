@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  */
 public class Tracker {
 
-    private enum Event {started, stopped, completed};
+    public enum Event {started, stopped, completed};
     
     private static Logger logger = Logger.getLogger(Tracker.class.getName());
     private static final int TOTAL_PEERS = 50;
