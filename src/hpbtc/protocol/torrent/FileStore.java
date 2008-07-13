@@ -125,15 +125,17 @@ public class FileStore {
         return completePieces.get(index);
     }
 
-    public void savePiece(int begin, int index, ByteBuffer piece)
+    public boolean savePiece(int begin, int index, ByteBuffer piece)
             throws IOException, NoSuchAlgorithmException {
         pieces[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
                 TorrentUtil.computeEndIndex(begin, piece.remaining(), chunkSize));
         saveFileChunk(getFileList(begin, index, piece.remaining()), offset, piece);
         if (pieces[index].cardinality() == chunkSize && !isHashCorrect(index)) {
             pieces[index].clear();
+            return false;
         } else {
             completePieces.set(index);
+            return true;
         }
     }
 

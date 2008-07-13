@@ -2,6 +2,7 @@ package hpbtc.protocol.torrent;
 
 import hpbtc.bencoding.BencodingReader;
 import hpbtc.protocol.message.BlockMessage;
+import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
 import java.io.IOException;
@@ -135,7 +136,12 @@ public class Torrent {
     public void savePiece(int begin, int index, ByteBuffer piece)
             throws IOException, NoSuchAlgorithmException {
         downloaded += piece.remaining();
-        fileStore.savePiece(begin, index, piece);
+        if (fileStore.savePiece(begin, index, piece)) {
+            SimpleMessage message = new HaveMessage(index);
+            for (Peer p: peers) {
+                network.postMessage(p, message);
+            }
+        }
     }
 
     public ByteBuffer loadPiece(int begin, int index, int length)
