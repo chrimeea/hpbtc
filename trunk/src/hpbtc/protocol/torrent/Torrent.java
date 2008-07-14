@@ -13,6 +13,8 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -20,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.logging.Logger;
 import util.TorrentUtil;
 
 /**
@@ -28,6 +31,7 @@ import util.TorrentUtil;
  */
 public class Torrent {
 
+    private static Logger logger = Logger.getLogger(Torrent.class.getName());
     private List<LinkedList<String>> trackers;
     private byte[] infoHash;
     private Date creationDate;
@@ -42,6 +46,7 @@ public class Torrent {
     private Network network;
     private int uploaded;
     private int downloaded;
+    private int optimisticCounter;
 
     public Torrent(InputStream is, String rootFolder, byte[] peerId, Network network)
             throws IOException, NoSuchAlgorithmException {
@@ -89,6 +94,45 @@ public class Torrent {
         tracker = new Tracker(infoHash, peerId, network.getPort(), trackers);
         peers = new HashSet<Peer>();
         requests = new BitSet[getNrPieces()];
+    }
+
+    public void decideChoking() {
+        List<Peer> prs = new LinkedList<Peer>(peers);
+        Comparator<Peer> comp = new Comparator<Peer>() {
+
+            public int compare(Peer p1, Peer p2) {
+                return p2.countUploaded() - p1.countUploaded();
+            }
+        };
+        if (++optimisticCounter == 3) {
+            Peer optimisticPeer = prs.remove(random.nextInt(prs.size()));
+            Collections.sort(prs, Collections.reverseOrder(comp));
+            prs.add(optimisticPeer);
+            Collections.reverse(prs);
+            optimisticCounter = 0;
+        } else {
+            Collections.sort(prs, comp);
+        }
+        SimpleMessage mUnchoke = new SimpleMessage(SimpleMessage.TYPE_UNCHOKE);
+        SimpleMessage mChoke = new SimpleMessage(SimpleMessage.TYPE_CHOKE);
+        int k = 0;
+        for (Peer p : prs) {
+            if (p.isClientChoking() && k < 3) {
+                try {
+                    network.postMessage(p, mUnchoke);
+                } catch (IOException e) {
+                    logger.warning(e.getLocalizedMessage());
+                }
+                k++;
+            } else if (!p.isClientChoking()) {
+                try {
+                    network.postMessage(p, mChoke);
+                } catch (IOException e) {
+                    logger.warning(e.getLocalizedMessage());
+                }                
+            }
+            p.resetCounters();
+        }
     }
 
     private int getActualPieceSize(int index) {

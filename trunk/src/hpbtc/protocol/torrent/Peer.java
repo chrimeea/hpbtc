@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
+import java.util.concurrent.atomic.AtomicInteger;
 import util.IOUtil;
 
 /**
@@ -24,13 +25,14 @@ public class Peer {
     private byte[] infoHash;
     private InetSocketAddress address;
     private boolean handshakeReceived;
-    private int uploaded;
-    private int downloaded;
+    private AtomicInteger uploaded;
+    private AtomicInteger downloaded;
     
     public Peer(InetSocketAddress address, byte[] id) {
         this.address = address;
         this.id = id;
         peerChoking = true;
+        clientChoking = true;
     }
     
     public Peer(SocketChannel channel) {
@@ -39,15 +41,23 @@ public class Peer {
         peerChoking = true;
     }
 
+    public int countUploaded() {
+        return uploaded.get();
+    }
+    
+    public int countDownloaded() {
+        return downloaded.get();
+    }
+    
     public int upload(ByteBuffer bb) throws IOException {
         int i = IOUtil.writeToChannel(channel, bb);
-        uploaded += i;
+        uploaded.addAndGet(i);
         return i;
     }
     
     public int download(ByteBuffer bb) throws IOException {
         int i = IOUtil.readFromChannel(channel, bb);
-        downloaded += i;
+        downloaded.addAndGet(i);
         return i;
     }
     
@@ -147,5 +157,10 @@ public class Peer {
         BitSet c = (BitSet) pieces.clone();
         c.andNot(bs);
         return c;
+    }
+
+    void resetCounters() {
+        uploaded.set(0);
+        downloaded.set(0);
     }
 }
