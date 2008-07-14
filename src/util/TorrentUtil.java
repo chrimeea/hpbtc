@@ -1,8 +1,8 @@
 package util;
 
-import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Random;
 
 /**
  *
@@ -27,5 +27,18 @@ public class TorrentUtil {
         MessageDigest md = MessageDigest.getInstance("SHA1");
         md.update(info);
         return md.digest();
+    }
+    
+    public static byte[] generateId() {
+        byte[] pid = new byte[20];
+        pid[0] = 'C';
+        pid[1] = 'M';
+        pid[2] = '-';
+        pid[3] = '2';
+        pid[4] = '.';
+        pid[5] = '0';
+        Random r = new Random();
+        r.nextBytes(pid);
+        return pid;
     }
 }

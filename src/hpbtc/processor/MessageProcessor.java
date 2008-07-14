@@ -111,7 +111,7 @@ public class MessageProcessor {
 
     public void processRequest(BlockMessage message, Peer peer) throws IOException {
         if (validator.validateRequestMessage(message, peer) &&
-                !peer.isClientChoking()) {
+                !peer.isClientChoking() && peer.isPeerInterested()) {
             Torrent t = torrents.get(peer.getInfoHash());
             ByteBuffer piece = t.loadPiece(message.getBegin(), message.getIndex(),
                     message.getLength());

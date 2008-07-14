@@ -20,8 +20,10 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Logger;
+import util.TorrentUtil;
 
 /**
  *
@@ -34,23 +36,32 @@ public class Protocol {
     private Network network;
     private MessageProcessor processor;
     private byte[] peerId;
+    private Timer timer;
 
     public Protocol() throws UnsupportedEncodingException {
-        this.peerId = generateId();
+        this.peerId = TorrentUtil.generateId();
         torrents = new HashMap<byte[], Torrent>();
         byte[] protocol = getSupportedProtocol();
+        timer = new Timer(true);
         this.network = new PeerNetwork();
         processor = new MessageProcessor(network, protocol, torrents, peerId);
     }
 
     public void download(File fileName, String rootFolder) throws IOException, NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
-        Torrent ti = new Torrent(fis, rootFolder, peerId, network);
+        final Torrent ti = new Torrent(fis, rootFolder, peerId, network);
         byte[] infoHash = ti.getInfoHash();
         torrents.put(infoHash, ti);
         fis.close();
         torrents.put(infoHash, ti);
         beginPeers(ti);
+        timer.schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+                ti.decideChoking();
+            }
+        }, 10000);
     }
 
     private void beginPeers(Torrent ti) throws UnsupportedEncodingException, IOException {
@@ -63,28 +74,28 @@ public class Protocol {
         }
     }
 
-    private byte[] generateId() {
-        byte[] pid = new byte[20];
-        pid[0] = 'C';
-        pid[1] = 'M';
-        pid[2] = '-';
-        pid[3] = '2';
-        pid[4] = '.';
-        pid[5] = '0';
-        Random r = new Random();
-        r.nextBytes(pid);
-        return pid;
-    }
-
     public void stopProtocol() {
         network.disconnect();
     }
 
     public void startProtocol() throws IOException {
         network.connect();
-        new Thread(new Runnable() {
+        new Thread(new  
 
-            public void run() {
+              Runnable() {
+
+                  
+                     
+                         
+                             
+                                
+                                
+                            
+                             public 
+                                
+                            
+                          void
+                        run   () {
                 synchronized (network) {
                     do {
                         do {
@@ -133,18 +144,18 @@ public class Protocol {
                     switch (disc) {
                         case SimpleMessage.TYPE_BITFIELD:
                             BitfieldMessage mBit = new BitfieldMessage(current, len);
-                                processor.processBitfield(mBit, peer);
+                            processor.processBitfield(mBit, peer);
                             break;
                         case SimpleMessage.TYPE_CANCEL:
                             BlockMessage mCan = new BlockMessage(current, SimpleMessage.TYPE_CANCEL);
-                                processor.processCancel(mCan, peer);
+                            processor.processCancel(mCan, peer);
                             break;
                         case SimpleMessage.TYPE_CHOKE:
                             processor.processChoke(peer);
                             break;
                         case SimpleMessage.TYPE_HAVE:
                             HaveMessage mHave = new HaveMessage(current);
-                                processor.processHave(mHave, peer);
+                            processor.processHave(mHave, peer);
                             break;
                         case SimpleMessage.TYPE_INTERESTED:
                             processor.processInterested(peer);
@@ -154,11 +165,11 @@ public class Protocol {
                             break;
                         case SimpleMessage.TYPE_PIECE:
                             PieceMessage mPiece = new PieceMessage(current, len);
-                                processor.processPiece(mPiece, peer);
+                            processor.processPiece(mPiece, peer);
                             break;
                         case SimpleMessage.TYPE_REQUEST:
                             BlockMessage mReq = new BlockMessage(current, SimpleMessage.TYPE_REQUEST);
-                                processor.processRequest(mReq, peer);
+                            processor.processRequest(mReq, peer);
                             break;
                         case SimpleMessage.TYPE_UNCHOKE:
                             processor.processUnchoke(peer);
@@ -167,7 +178,7 @@ public class Protocol {
                 }
             } else if (current.remaining() >= 47) {
                 HandshakeMessage mHand = new HandshakeMessage(current);
-                    processor.processHandshake(mHand, peer);
+                processor.processHandshake(mHand, peer);
             }
         } while (current.remaining() > 0);
     }
