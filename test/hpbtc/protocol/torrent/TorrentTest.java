@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
@@ -98,5 +99,18 @@ public class TorrentTest {
         f.delete();
         dest.rewind();
         assert piece.equals(dest);
+    }
+    
+    @Test
+    public void testDecideNextPiece() throws IOException, NoSuchAlgorithmException {
+        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("UTF-8"));
+        Torrent info = new Torrent(b, ".", pid, network);
+        b.close();
+        Peer peer = new Peer(null, null);
+        info.decideNextPiece(peer);
+    }
+    
+    @Test
+    public void testDecideChoking() {
     }
 }
