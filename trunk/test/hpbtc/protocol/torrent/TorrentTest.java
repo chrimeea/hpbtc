@@ -108,9 +108,11 @@ public class TorrentTest {
         b.close();
         Peer peer = new Peer(null, null);
         info.decideNextPiece(peer);
+        //TODO
     }
     
     @Test
     public void testDecideChoking() {
+        //TODO
     }
 }
