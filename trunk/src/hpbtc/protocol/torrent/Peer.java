@@ -18,27 +18,24 @@ public class Peer {
     private byte[] id;
     private boolean messagesReceived;
     private BitSet pieces;
-    private boolean peerChoking;
+    private boolean peerChoking = true;
     private boolean peerInterested;
     private boolean clientInterested;
-    private boolean clientChoking;
+    private boolean clientChoking = true;
     private byte[] infoHash;
     private InetSocketAddress address;
     private boolean handshakeReceived;
-    private AtomicInteger uploaded;
-    private AtomicInteger downloaded;
+    private AtomicInteger uploaded = new AtomicInteger();
+    private AtomicInteger downloaded = new AtomicInteger();
     
     public Peer(InetSocketAddress address, byte[] id) {
         this.address = address;
         this.id = id;
-        peerChoking = true;
-        clientChoking = true;
     }
     
     public Peer(SocketChannel channel) {
         this.channel = channel;
         this.address = IOUtil.getAddress(channel);
-        peerChoking = true;
     }
 
     public int countUploaded() {
@@ -154,9 +151,14 @@ public class Peer {
     }
     
     public BitSet getOtherPieces(BitSet bs) {
-        BitSet c = (BitSet) pieces.clone();
-        c.andNot(bs);
-        return c;
+        if (pieces == null) {
+            pieces = new BitSet(bs.size());
+            return pieces;
+        } else {
+            BitSet c = (BitSet) pieces.clone();
+            c.andNot(bs);
+            return c;
+        }
     }
 
     void resetCounters() {

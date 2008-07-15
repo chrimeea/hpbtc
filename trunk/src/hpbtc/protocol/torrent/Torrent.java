@@ -143,8 +143,7 @@ public class Torrent {
         return index == n - 1 ? (n - 1) * l + getFileLength() : l;
     }
 
-    @SuppressWarnings("empty-statement")
-    public boolean decideNextPiece(Peer peer) throws IOException {
+    public void decideNextPiece(Peer peer) throws IOException {
         BitSet bs = peer.getOtherPieces(getCompletePieces());
         int chunkSize = fileStore.getChunkSize();
         for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
@@ -156,17 +155,14 @@ public class Torrent {
         if (c > 0) {
             int r = random.nextInt(c);
             int index = bs.nextSetBit(0);
-            for (; index < r; index = bs.nextSetBit(index + 1));
+            for (; index < r; index = bs.nextSetBit(index + 1)) {
+            }
             int begin = TorrentUtil.computeBeginPosition(requests[index].nextSetBit(0), chunkSize);
             int length = getActualPieceSize(index);
             SimpleMessage message = new BlockMessage(begin, index, length, SimpleMessage.TYPE_REQUEST);
             network.postMessage(peer, message);
             requests[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
                     TorrentUtil.computeEndIndex(begin, length, chunkSize));
-            return true;
-        } else {
-            tracker.endTracker(uploaded, downloaded);
-            return false;
         }
     }
 
