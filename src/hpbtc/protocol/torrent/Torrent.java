@@ -123,7 +123,9 @@ public class Torrent {
                 } catch (IOException e) {
                     logger.warning(e.getLocalizedMessage());
                 }
-                k++;
+                if (p.isPeerInterested()) {
+                    k++;
+                }
             } else if (!p.isClientChoking()) {
                 try {
                     network.postMessage(p, mChoke);

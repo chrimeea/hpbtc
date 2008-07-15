@@ -80,22 +80,9 @@ public class Protocol {
 
     public void startProtocol() throws IOException {
         network.connect();
-        new Thread(new  
+        new Thread(new Runnable() {
 
-              Runnable() {
-
-                  
-                     
-                         
-                             
-                                
-                                
-                            
-                             public 
-                                
-                            
-                          void
-                        run   () {
+            public void run() {
                 synchronized (network) {
                     do {
                         do {
