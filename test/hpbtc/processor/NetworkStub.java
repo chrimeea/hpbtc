@@ -1,9 +1,12 @@
 package hpbtc.processor;
 
+import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.RawMessage;
 import hpbtc.protocol.torrent.Peer;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
@@ -11,6 +14,12 @@ import hpbtc.protocol.torrent.Peer;
  */
 public class NetworkStub implements Network {
 
+    List<RawMessage> posted;
+
+    public NetworkStub() {
+        posted = new LinkedList<RawMessage>();
+    }
+    
     public void cancelPieceMessage(int arg0, int arg1, int arg2, Peer arg3) {
     }
 
@@ -36,10 +45,12 @@ public class NetworkStub implements Network {
     }
 
     public void postMessage(Peer arg0, SimpleMessage arg1) {
+        RawMessage rm = new RawMessage(arg0, arg1.send().array());
+        posted.add(rm);
     }
 
     public RawMessage takeMessage() {
-        return null;
+        return posted.remove(0);
     }
 
 }

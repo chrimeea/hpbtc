@@ -17,7 +17,7 @@ public class Peer {
     private SocketChannel channel;
     private byte[] id;
     private boolean messagesReceived;
-    private BitSet pieces;
+    private BitSet pieces = new BitSet();
     private boolean peerChoking = true;
     private boolean peerInterested;
     private boolean clientInterested;
