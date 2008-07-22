@@ -6,7 +6,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
@@ -14,6 +13,9 @@ import java.util.List;
 import org.junit.Test;
 import util.IOUtil;
 import hpbtc.processor.NetworkStub;
+import hpbtc.protocol.message.BlockMessage;
+import hpbtc.protocol.message.SimpleMessage;
+import hpbtc.protocol.network.RawMessage;
 
 /**
  *
@@ -107,8 +109,14 @@ public class TorrentTest {
         Torrent info = new Torrent(b, ".", pid, network);
         b.close();
         Peer peer = new Peer(null, null);
+        peer.setPiece(0);
         info.decideNextPiece(peer);
-        //TODO
+        RawMessage rm = network.takeMessage();
+        assert rm.getPeer() == peer;
+        BlockMessage bm = new BlockMessage(ByteBuffer.wrap(rm.getMessage(), 5, 12), SimpleMessage.TYPE_REQUEST);
+        assert bm.getBegin() == 0;
+        assert bm.getIndex() == 0;
+        assert bm.getLength() == 85;
     }
     
     @Test

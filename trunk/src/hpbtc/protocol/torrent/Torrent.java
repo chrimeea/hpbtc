@@ -93,7 +93,11 @@ public class Torrent {
         }
         tracker = new Tracker(infoHash, peerId, network.getPort(), trackers);
         peers = new HashSet<Peer>();
-        requests = new BitSet[getNrPieces()];
+        int np = getNrPieces();
+        requests = new BitSet[np];
+        for (int i = 0; i < np; i++) {
+            requests[i] = new BitSet();
+        }
     }
 
     public void decideChoking() {
@@ -157,7 +161,11 @@ public class Torrent {
             int index = bs.nextSetBit(0);
             for (; index < r; index = bs.nextSetBit(index + 1)) {
             }
-            int begin = TorrentUtil.computeBeginPosition(requests[index].nextSetBit(0), chunkSize);
+            int ind = requests[index].nextSetBit(0);
+            if (ind < 0) {
+                ind = 0;
+            }
+            int begin = TorrentUtil.computeBeginPosition(ind, chunkSize);
             int length = getActualPieceSize(index);
             SimpleMessage message = new BlockMessage(begin, index, length, SimpleMessage.TYPE_REQUEST);
             network.postMessage(peer, message);
