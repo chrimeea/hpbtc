@@ -100,8 +100,18 @@ public class Torrent {
         }
     }
 
+    private List<Peer> getConnectedPeers() {
+        List<Peer> prs = new LinkedList<Peer>();
+        for (Peer p: peers) {
+            if (p.isConnected()) {
+                prs.add(p);
+            }
+        }
+        return prs;
+    }
+    
     public void decideChoking() {
-        List<Peer> prs = new LinkedList<Peer>(peers);
+        List<Peer> prs = getConnectedPeers();
         Comparator<Peer> comp = new Comparator<Peer>() {
 
             public int compare(Peer p1, Peer p2) {
