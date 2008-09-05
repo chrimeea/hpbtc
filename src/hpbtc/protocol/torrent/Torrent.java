@@ -48,7 +48,8 @@ public class Torrent {
     private int downloaded;
     private int optimisticCounter;
 
-    public Torrent(InputStream is, String rootFolder, byte[] peerId, Network network)
+    public Torrent(InputStream is, String rootFolder, byte[] peerId,
+            Network network)
             throws IOException, NoSuchAlgorithmException {
         random = new Random();
         this.network = network;
@@ -69,7 +70,8 @@ public class Torrent {
             trackers.add(ul);
         }
         if (meta.containsKey("creation date")) {
-            creationDate = new Date(((Integer) meta.get("creation date")) * 1000L);
+            creationDate = new Date(((Integer) meta.get("creation date")) *
+                    1000L);
         }
         if (meta.containsKey("comment")) {
             comment = (String) meta.get("comment");
@@ -89,7 +91,8 @@ public class Torrent {
         } else {
             String fileName = (String) info.get("name");
             int fileLength = (Integer) info.get("length");
-            fileStore = new FileStore(pieceLength, pieceHash, rootFolder, fileName, fileLength);
+            fileStore = new FileStore(pieceLength, pieceHash, rootFolder,
+                    fileName, fileLength);
         }
         tracker = new Tracker(infoHash, peerId, network.getPort(), trackers);
         peers = new HashSet<Peer>();
@@ -102,14 +105,14 @@ public class Torrent {
 
     private List<Peer> getConnectedPeers() {
         List<Peer> prs = new LinkedList<Peer>();
-        for (Peer p: peers) {
+        for (Peer p : peers) {
             if (p.isConnected()) {
                 prs.add(p);
             }
         }
         return prs;
     }
-    
+
     public void decideChoking() {
         List<Peer> prs = getConnectedPeers();
         Comparator<Peer> comp = new Comparator<Peer>() {
@@ -147,7 +150,7 @@ public class Torrent {
                     p.setClientChoking(true);
                 } catch (IOException e) {
                     logger.warning(e.getLocalizedMessage());
-                }                
+                }
             }
             p.resetCounters();
         }
@@ -174,16 +177,19 @@ public class Torrent {
             for (; index < r; index = bs.nextSetBit(index + 1)) {
             }
             int ind = requests[index].nextSetBit(0);
-            if (ind < 0) {
-                ind = 0;
-            }
-            int begin = TorrentUtil.computeBeginPosition(ind, chunkSize);
+            int begin = TorrentUtil.computeBeginPosition(ind < 0 ? 0 : ind,
+                    chunkSize);
             int length = getActualPieceSize(index);
             SimpleMessage message = new BlockMessage(begin, index, length,
                     SimpleMessage.TYPE_REQUEST);
             network.postMessage(peer, message);
             requests[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
                     TorrentUtil.computeEndIndex(begin, length, chunkSize));
+        } else {
+            SimpleMessage smessage = new SimpleMessage(
+                    SimpleMessage.TYPE_NOT_INTERESTED);
+            network.postMessage(peer, smessage);
+            peer.setClientInterested(false);
         }
     }
 
@@ -212,8 +218,10 @@ public class Torrent {
                 if (p.isConnected()) {
                     network.postMessage(p, message);
                     if (p.getOtherPieces(getCompletePieces()).isEmpty()) {
-                        SimpleMessage smessage = new SimpleMessage(SimpleMessage.TYPE_NOT_INTERESTED);
+                        SimpleMessage smessage = new SimpleMessage(
+                                SimpleMessage.TYPE_NOT_INTERESTED);
                         network.postMessage(p, smessage);
+                        p.setClientInterested(false);
                     }
                 }
             }
