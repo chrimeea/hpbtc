@@ -177,7 +177,8 @@ public class Torrent {
             }
             int begin = TorrentUtil.computeBeginPosition(ind, chunkSize);
             int length = getActualPieceSize(index);
-            SimpleMessage message = new BlockMessage(begin, index, length, SimpleMessage.TYPE_REQUEST);
+            SimpleMessage message = new BlockMessage(begin, index, length,
+                    SimpleMessage.TYPE_REQUEST);
             network.postMessage(peer, message);
             requests[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
                     TorrentUtil.computeEndIndex(begin, length, chunkSize));
