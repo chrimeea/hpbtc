@@ -1,6 +1,5 @@
 package hpbtc.processor;
 
-import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.RawMessage;
@@ -10,7 +9,7 @@ import java.util.List;
 
 /**
  *
- * @author Administrator
+ * @author Chris
  */
 public class NetworkStub implements Network {
 
