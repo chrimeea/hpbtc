@@ -47,7 +47,8 @@ public class Protocol {
         processor = new MessageProcessor(network, protocol, torrents, peerId);
     }
 
-    public void download(File fileName, String rootFolder) throws IOException, NoSuchAlgorithmException {
+    public void download(File fileName, String rootFolder) throws IOException,
+            NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
         final Torrent ti = new Torrent(fis, rootFolder, peerId, network);
         byte[] infoHash = ti.getInfoHash();
@@ -64,11 +65,13 @@ public class Protocol {
         }, 10000);
     }
 
-    private void beginPeers(Torrent ti) throws UnsupportedEncodingException, IOException {
+    private void beginPeers(Torrent ti) throws UnsupportedEncodingException,
+            IOException {
         ti.beginTracker();
         for (Peer peer : ti.getPeers()) {
             if (!peer.isConnected()) {
-                SimpleMessage m = new HandshakeMessage(peer.getInfoHash(), peerId, getSupportedProtocol());
+                SimpleMessage m = new HandshakeMessage(peer.getInfoHash(),
+                        peerId, getSupportedProtocol());
                 network.postMessage(peer, m);
             }
         }
@@ -114,7 +117,8 @@ public class Protocol {
         }).start();
     }
 
-    private void process(RawMessage data) throws IOException, NoSuchAlgorithmException {
+    private void process(RawMessage data) throws IOException,
+            NoSuchAlgorithmException {
         Peer peer = data.getPeer();
         if (data.isDisconnect()) {
             processor.processDisconnect(peer);
@@ -130,11 +134,13 @@ public class Protocol {
                     }
                     switch (disc) {
                         case SimpleMessage.TYPE_BITFIELD:
-                            BitfieldMessage mBit = new BitfieldMessage(current, len);
+                            BitfieldMessage mBit = new BitfieldMessage(current,
+                                    len);
                             processor.processBitfield(mBit, peer);
                             break;
                         case SimpleMessage.TYPE_CANCEL:
-                            BlockMessage mCan = new BlockMessage(current, SimpleMessage.TYPE_CANCEL);
+                            BlockMessage mCan = new BlockMessage(current,
+                                    SimpleMessage.TYPE_CANCEL);
                             processor.processCancel(mCan, peer);
                             break;
                         case SimpleMessage.TYPE_CHOKE:
@@ -155,7 +161,8 @@ public class Protocol {
                             processor.processPiece(mPiece, peer);
                             break;
                         case SimpleMessage.TYPE_REQUEST:
-                            BlockMessage mReq = new BlockMessage(current, SimpleMessage.TYPE_REQUEST);
+                            BlockMessage mReq = new BlockMessage(current,
+                                    SimpleMessage.TYPE_REQUEST);
                             processor.processRequest(mReq, peer);
                             break;
                         case SimpleMessage.TYPE_UNCHOKE:
