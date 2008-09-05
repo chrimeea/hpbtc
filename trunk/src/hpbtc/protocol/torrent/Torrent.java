@@ -226,6 +226,9 @@ public class Torrent {
                 }
             }
         }
+        if (fileStore.isTorrentComplete()) {
+            tracker.endTracker(uploaded, downloaded);
+        }
     }
 
     public ByteBuffer loadPiece(int begin, int index, int length)
