@@ -46,7 +46,7 @@ public class FileStore {
     int getChunkSize() {
         return chunkSize;
     }
-    
+
     private void init(int pieceLength, byte[] pieceHash) throws IOException,
             NoSuchAlgorithmException {
         completePieces = new BitSet(nrPieces);
@@ -65,20 +65,22 @@ public class FileStore {
                 if (isHashCorrect(i)) {
                     pieces[i].set(0, chunkSize);
                 }
-            } catch (IOException e) {}
+            } catch (IOException e) {
+            }
         }
     }
 
     public int getFileLength() {
         return fileLength;
     }
-    
+
     public List<BTFile> getFiles() {
         return files;
     }
-    
-    public FileStore(int pieceLength, byte[] pieceHash, String rootFolder, List<Map> fls)
-        throws IOException, NoSuchAlgorithmException {
+
+    public FileStore(int pieceLength, byte[] pieceHash, String rootFolder,
+            List<Map> fls)
+            throws IOException, NoSuchAlgorithmException {
         files = new ArrayList<BTFile>(fls.size());
         fileLength = 0;
         for (Map fd : fls) {
@@ -91,13 +93,15 @@ public class FileStore {
             }
             int fl = (Integer) fd.get("length");
             fileLength += fl;
-            files.add(new BTFile(sb.substring(0, sb.length() - 1).toString(), fl));
+            files.add(
+                    new BTFile(sb.substring(0, sb.length() - 1).toString(), fl));
         }
         init(pieceLength, pieceHash);
     }
 
     public FileStore(int pieceLength, byte[] pieceHash, String rootFolder,
-            String fileName, int fileLength) throws IOException, NoSuchAlgorithmException {
+            String fileName, int fileLength) throws IOException,
+            NoSuchAlgorithmException {
         files = new ArrayList<BTFile>(1);
         this.fileLength = fileLength;
         files.add(new BTFile(rootFolder + File.separator + fileName, fileLength));
@@ -130,7 +134,8 @@ public class FileStore {
             throws IOException, NoSuchAlgorithmException {
         pieces[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
                 TorrentUtil.computeEndIndex(begin, piece.remaining(), chunkSize));
-        saveFileChunk(getFileList(begin, index, piece.remaining()), offset, piece);
+        saveFileChunk(getFileList(begin, index, piece.remaining()), offset,
+                piece);
         if (pieces[index].cardinality() == chunkSize && !isHashCorrect(index)) {
             pieces[index].clear();
             return false;
@@ -167,10 +172,12 @@ public class FileStore {
         return bb;
     }
 
-    private boolean isHashCorrect(int index) throws NoSuchAlgorithmException, IOException {
+    private boolean isHashCorrect(int index) throws NoSuchAlgorithmException,
+            IOException {
         MessageDigest md = MessageDigest.getInstance("SHA1");
         md.update(loadPiece(0, index, pieceLength));
         int i = index * 20;
-        return Arrays.equals(md.digest(), Arrays.copyOfRange(pieceHash, i, i + 20));
+        return Arrays.equals(md.digest(), Arrays.copyOfRange(pieceHash, i, i +
+                20));
     }
 }
