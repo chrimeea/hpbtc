@@ -2,14 +2,13 @@ package util;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
+import java.nio.channels.ByteChannel;
 
 /**
  *
  * @author Cristian Mocanu
  */
-public class ChannelStub implements ReadableByteChannel, WritableByteChannel {
+public class ChannelStub implements ByteChannel {
 
     private ByteBuffer ch;
     private int chunk;

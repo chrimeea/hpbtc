@@ -3,9 +3,9 @@ package hpbtc.protocol.torrent;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
-import java.util.concurrent.atomic.AtomicInteger;
 import util.IOUtil;
 
 /**
@@ -14,7 +14,7 @@ import util.IOUtil;
  */
 public class Peer {
 
-    private SocketChannel channel;
+    private ByteChannel channel;
     private byte[] id;
     private boolean messagesReceived;
     private BitSet pieces = new BitSet();
@@ -25,36 +25,36 @@ public class Peer {
     private byte[] infoHash;
     private InetSocketAddress address;
     private boolean handshakeReceived;
-    private AtomicInteger uploaded = new AtomicInteger();
-    private AtomicInteger downloaded = new AtomicInteger();
+    private int uploaded;
+    private int downloaded;
     
     public Peer(InetSocketAddress address, byte[] id) {
         this.address = address;
         this.id = id;
     }
     
-    public Peer(SocketChannel channel) {
-        this.channel = channel;
-        this.address = IOUtil.getAddress(channel);
+    public Peer(SocketChannel chn) {
+        this.channel = chn;
+        this.address = IOUtil.getAddress(chn);
     }
 
     public int countUploaded() {
-        return uploaded.get();
+        return uploaded;
     }
     
     public int countDownloaded() {
-        return downloaded.get();
+        return downloaded;
     }
     
     public int upload(ByteBuffer bb) throws IOException {
         int i = IOUtil.writeToChannel(channel, bb);
-        uploaded.addAndGet(i);
+        uploaded += i;
         return i;
     }
     
     public int download(ByteBuffer bb) throws IOException {
         int i = IOUtil.readFromChannel(channel, bb);
-        downloaded.addAndGet(i);
+        downloaded += i;
         return i;
     }
     
@@ -94,11 +94,11 @@ public class Peer {
         return channel != null;
     }
     
-    public SocketChannel getChannel() {
+    public ByteChannel getChannel() {
         return channel;
     }
 
-    public void setChannel(SocketChannel channel) {
+    public void setChannel(ByteChannel channel) {
         this.channel = channel;
     }
     
@@ -162,7 +162,7 @@ public class Peer {
     }
 
     void resetCounters() {
-        uploaded.set(0);
-        downloaded.set(0);
+        uploaded = 0;
+        downloaded = 0;
     }
 }
