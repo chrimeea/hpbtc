@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.ByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -129,7 +130,7 @@ public class PeerNetwork implements Network {
     }
 
     private void registerNow(Peer peer, int op) throws IOException {
-        SocketChannel ch = peer.getChannel();
+        SocketChannel ch = (SocketChannel) peer.getChannel();
         if (ch != null) {
             if ((ch.keyFor(selector).interestOps() & op) == 0) {
                 registered.add(new RegisterOp(op, peer));
@@ -182,7 +183,7 @@ public class PeerNetwork implements Network {
 
     public void closeConnection(Peer peer) throws IOException {
         messagesToSend.remove(peer);
-        SocketChannel ch = peer.getChannel();
+        ByteChannel ch = peer.getChannel();
         if (ch != null) {
             ch.close();
         }
@@ -220,7 +221,7 @@ public class PeerNetwork implements Network {
             int n = selector.select();
             RegisterOp ro = registered.poll();
             while (ro != null) {
-                SelectableChannel q = ro.peer.getChannel();
+                SelectableChannel q = (SelectableChannel) ro.peer.getChannel();
                 SelectionKey w = q.keyFor(selector);
                 if (w != null && w.isValid()) {
                     q.register(selector, w.interestOps() | ro.operation, ro.peer);

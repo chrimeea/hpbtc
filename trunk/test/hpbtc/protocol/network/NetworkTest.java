@@ -36,7 +36,8 @@ public class NetworkTest {
         }
         RawMessage m = c.takeMessage();
         Socket s = ch.socket();
-        InetSocketAddress a = IOUtil.getAddress(m.getPeer().getChannel());
+        InetSocketAddress a = IOUtil.getAddress(
+                (SocketChannel) m.getPeer().getChannel());
         InetAddress remoteAddress = s.getLocalAddress();
         int remotePort = s.getLocalPort();
         assert a.getAddress().equals(remoteAddress);

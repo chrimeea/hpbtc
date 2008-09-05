@@ -134,6 +134,7 @@ public class Torrent {
             if (p.isClientChoking() && k < 3) {
                 try {
                     network.postMessage(p, mUnchoke);
+                    p.setClientChoking(false);
                 } catch (IOException e) {
                     logger.warning(e.getLocalizedMessage());
                 }
@@ -143,6 +144,7 @@ public class Torrent {
             } else if (!p.isClientChoking()) {
                 try {
                     network.postMessage(p, mChoke);
+                    p.setClientChoking(true);
                 } catch (IOException e) {
                     logger.warning(e.getLocalizedMessage());
                 }                
