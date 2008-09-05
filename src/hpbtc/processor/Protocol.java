@@ -52,7 +52,6 @@ public class Protocol {
         FileInputStream fis = new FileInputStream(fileName);
         final Torrent ti = new Torrent(fis, rootFolder, peerId, network);
         byte[] infoHash = ti.getInfoHash();
-        torrents.put(infoHash, ti);
         fis.close();
         torrents.put(infoHash, ti);
         beginPeers(ti);
