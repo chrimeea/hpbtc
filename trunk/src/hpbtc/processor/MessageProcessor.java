@@ -131,7 +131,7 @@ public class MessageProcessor {
             }
         }
         if (!peer.isPeerChoking() && peer.isClientInterested()) {
-            t.decideNextPiece(peer);
+            decideNextPiece(t, peer);
         }
     }
 
@@ -153,12 +153,23 @@ public class MessageProcessor {
     public void processUnchoke(Peer peer) throws IOException {
         peer.setPeerChoking(false);
         if (peer.isClientInterested()) {
-            Torrent t = torrents.get(peer.getInfoHash());
-            t.decideNextPiece(peer);
+            decideNextPiece(torrents.get(peer.getInfoHash()), peer);
         }
 
     }
 
+    private void decideNextPiece(Torrent t, Peer peer) throws IOException {
+        BlockMessage bm = t.decideNextPiece(peer);
+        if (bm == null) {
+            SimpleMessage smessage = new SimpleMessage(
+                    SimpleMessage.TYPE_NOT_INTERESTED);
+            network.postMessage(peer, smessage);
+            peer.setClientInterested(false);
+        } else {
+            network.postMessage(peer, bm);
+        }
+    }
+    
     public void processDisconnect(Peer peer) {
         torrents.get(peer.getInfoHash()).removePeer(peer);
     }
