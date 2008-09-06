@@ -25,7 +25,7 @@ public class TrackerTest {
         server.createContext("/test", new HttpHandler() {
             public void handle(HttpExchange t) throws IOException {
                 try {
-                    assert t.getRequestURI().equals(new URI("/test?info_hash=INFOHASH&peer_id=PID&port=2000&uploaded=1&downloaded=2&left=3&numwant=4&event=started"));
+                    assert t.getRequestURI().equals(new URI("/test?info_hash=INFOHASH&peer_id=PID&port=2000&uploaded=1&downloaded=2&left=3&numwant=4&compact=0&event=started"));
                 } catch (URISyntaxException e) {
                     assert false;
                 }
