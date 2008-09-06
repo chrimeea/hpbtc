@@ -162,7 +162,7 @@ public class Torrent {
         return index == n - 1 ? (n - 1) * l + getFileLength() : l;
     }
 
-    public void decideNextPiece(Peer peer) throws IOException {
+    public BlockMessage decideNextPiece(Peer peer) {
         BitSet bs = peer.getOtherPieces(getCompletePieces());
         int chunkSize = fileStore.getChunkSize();
         for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
@@ -180,17 +180,12 @@ public class Torrent {
             int begin = TorrentUtil.computeBeginPosition(ind < 0 ? 0 : ind,
                     chunkSize);
             int length = getActualPieceSize(index);
-            SimpleMessage message = new BlockMessage(begin, index, length,
-                    SimpleMessage.TYPE_REQUEST);
-            network.postMessage(peer, message);
             requests[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
                     TorrentUtil.computeEndIndex(begin, length, chunkSize));
-        } else {
-            SimpleMessage smessage = new SimpleMessage(
-                    SimpleMessage.TYPE_NOT_INTERESTED);
-            network.postMessage(peer, smessage);
-            peer.setClientInterested(false);
+            return new BlockMessage(begin, index, length,
+                    SimpleMessage.TYPE_REQUEST);
         }
+        return null;
     }
 
     public Iterable<Peer> getPeers() {

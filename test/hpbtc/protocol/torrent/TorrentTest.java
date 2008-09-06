@@ -112,11 +112,7 @@ public class TorrentTest {
         b.close();
         Peer peer = new Peer(null, null);
         peer.setPiece(0);
-        info.decideNextPiece(peer);
-        RawMessage rm = network.takeMessage();
-        assert rm.getPeer() == peer;
-        BlockMessage bm = new BlockMessage(ByteBuffer.wrap(rm.getMessage(), 5,
-                12), SimpleMessage.TYPE_REQUEST);
+        BlockMessage bm = info.decideNextPiece(peer);
         assert bm.getBegin() == 0;
         assert bm.getIndex() == 0;
         assert bm.getLength() == 85;
