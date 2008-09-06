@@ -34,7 +34,7 @@
             </batchtest>
         </junit>
     </target>
-    <target name="run" description="run client">
+    <target name="run" description="run client" depends="compile">
         <java classname="hpbtc.HPBTC" classpathref="cp.classpath">
             <arg value="D:\Documents and Settings\Administrator\Desktop\test"/>
             <arg value="D:\Documents and Settings\Administrator\Desktop\test.torrent"/>
