@@ -25,8 +25,7 @@ public class TorrentUtil {
     public static byte[] computeInfoHash(byte[] info)
             throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA1");
-        md.update(info);
-        return md.digest();
+        return md.digest(info);
     }
     
     public static byte[] generateId() {
