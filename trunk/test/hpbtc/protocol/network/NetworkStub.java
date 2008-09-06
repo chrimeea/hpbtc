@@ -1,4 +1,4 @@
-package hpbtc.processor;
+package hpbtc.protocol.network;
 
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
