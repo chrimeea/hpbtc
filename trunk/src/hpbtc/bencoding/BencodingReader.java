@@ -56,7 +56,8 @@ public class BencodingReader {
         c = is.read();
         while (c != terminator) {
             if (!Character.isDigit(c)) {
-                throw new BencodingException("Found number containing illegal character: '" + (char) c + "'");
+                throw new BencodingException("Found number containing illegal character: '" +
+                        (char) c + "'");
             }
             n *= 10;
             n += c - 48;
@@ -72,7 +73,8 @@ public class BencodingReader {
     public String readNextString() throws IOException {
         int n = readNextNumber(':');
         if (n < 0) {
-            throw new BencodingException("Found string element with negative length");
+            throw new BencodingException(
+                    "Found string element with negative length");
         }
         if (n > 0) {
             byte[] dst = new byte[n];
@@ -88,7 +90,8 @@ public class BencodingReader {
     public Integer readNextInteger() throws IOException {
         int c = is.read();
         if (c != 'i') {
-            throw new BencodingException("Found char: '" + (char) c + "', required: 'i'");
+            throw new BencodingException("Found char: '" + (char) c +
+                    "', required: 'i'");
         }
         return new Integer(readNextNumber('e'));
     }
@@ -97,7 +100,8 @@ public class BencodingReader {
         List<Object> r = new LinkedList<Object>();
         int c = is.read();
         if (c != 'l') {
-            throw new BencodingException("Found char: '" + (char) c + "', required: 'l'");
+            throw new BencodingException("Found char: '" + (char) c +
+                    "', required: 'l'");
         }
         is.mark(1);
         c = is.read();
@@ -114,7 +118,8 @@ public class BencodingReader {
         Map<String, Object> r = new HashMap<String, Object>();
         int c = is.read();
         if (c != 'd') {
-            throw new BencodingException("Found char: '" + (char) c + "', required: 'd'");
+            throw new BencodingException("Found char: '" + (char) c +
+                    "', required: 'd'");
         }
         is.mark(1);
         c = is.read();
@@ -143,11 +148,12 @@ public class BencodingReader {
         } else if (c == 'd') {
             r = readNextDictionary();
         } else {
-            throw new BencodingException("Unrecognized element type: " + (char) c);
+            throw new BencodingException("Unrecognized element type: " +
+                    (char) c);
         }
         return r;
     }
-    
+
     public String getEncoding() {
         return encoding;
     }
