@@ -190,7 +190,10 @@ public class Torrent {
     }
 
     public void beginTracker() {
-        peers.addAll(tracker.beginTracker(getFileLength()));
+        Set<Peer> p = tracker.beginTracker(getFileLength());
+        if (p != null) {
+            peers.addAll(p);
+        }
     }
 
     public void endTracker() {
