@@ -86,6 +86,7 @@ public class Tracker {
         req.append(bytesLeft);
         req.append("&numwant=");
         req.append(totalPeers);
+        req.append("&compact=0");
         if (event != null) {
             req.append("&event=");
             req.append(event.name());
