@@ -16,7 +16,7 @@ public class BTFile {
         this.path = path;
         this.length = length;
         file = new File(path);
-        file.mkdirs();
+        file.getParentFile().mkdirs();
     }
 
     public File getFile() {
