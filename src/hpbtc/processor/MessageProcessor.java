@@ -36,22 +36,23 @@ public class MessageProcessor {
         validator = new MessageValidator(torrents, protocol);
     }
 
-    public void processHandshake(HandshakeMessage message, Peer peer) throws
+    public void processHandshake(HandshakeMessage message) throws
             IOException {
-        if (validator.validateHandshakeMessage(message, peer)) {
+        Peer peer = message.getDestination();
+        if (validator.validateHandshakeMessage(message)) {
             peer.setId(message.getPeerId());
             byte[] infoHash = message.getInfoHash();
             peer.setInfoHash(infoHash);
             peer.setHandshakeReceived();
             HandshakeMessage reply = new HandshakeMessage(infoHash, peerId,
                     protocol);
-            network.postMessage(peer, reply);
+            network.postMessage(reply);
             Torrent t = torrents.get(peer.getInfoHash());
             BitSet bs = t.getCompletePieces();
             if (bs.cardinality() > 0) {
                 BitfieldMessage bmessage = new BitfieldMessage(bs,
-                        t.getNrPieces());
-                network.postMessage(peer, bmessage);
+                        t.getNrPieces(), peer);
+                network.postMessage(bmessage);
             }
             t.addPeer(peer);
         } else {
@@ -60,22 +61,24 @@ public class MessageProcessor {
         }
     }
 
-    public void processBitfield(BitfieldMessage message, Peer peer) throws
+    public void processBitfield(BitfieldMessage message) throws
             IOException {
-        if (validator.validateBitfieldMessage(message, peer)) {
+        if (validator.validateBitfieldMessage(message)) {
+            Peer peer = message.getDestination();
             peer.setPieces(message.getBitfield());
             Torrent t = torrents.get(peer.getInfoHash());
             if (!peer.getOtherPieces(t.getCompletePieces()).isEmpty()) {
                 SimpleMessage smessage = new SimpleMessage(
-                        SimpleMessage.TYPE_INTERESTED);
-                network.postMessage(peer, smessage);
+                        SimpleMessage.TYPE_INTERESTED, peer);
+                network.postMessage(smessage);
                 peer.setClientInterested(true);
             }
         }
     }
 
-    public void processCancel(BlockMessage message, Peer peer) {
-        if (validator.validateCancelMessage(message, peer)) {
+    public void processCancel(BlockMessage message) {
+        if (validator.validateCancelMessage(message)) {
+            Peer peer = message.getDestination();
             network.cancelPieceMessage(message.getBegin(),
                     message.getIndex(), message.getLength(), peer);
         }
@@ -85,15 +88,16 @@ public class MessageProcessor {
         peer.setPeerChoking(true);
     }
 
-    public void processHave(HaveMessage message, Peer peer) throws IOException {
-        if (validator.validateHaveMessage(message, peer)) {
+    public void processHave(HaveMessage message) throws IOException {
+        if (validator.validateHaveMessage(message)) {
+            Peer peer = message.getDestination();
             int index = message.getIndex();
             peer.setPiece(index);
             Torrent t = torrents.get(peer.getInfoHash());
             if (!peer.isClientInterested() && !t.isPieceComplete(index)) {
                 SimpleMessage m = new SimpleMessage(
-                        SimpleMessage.TYPE_INTERESTED);
-                network.postMessage(peer, m);
+                        SimpleMessage.TYPE_INTERESTED, peer);
+                network.postMessage(m);
                 peer.setClientInterested(true);
             }
         }
@@ -107,21 +111,22 @@ public class MessageProcessor {
         peer.setPeerInterested(false);
     }
 
-    public void processPiece(PieceMessage message, Peer peer)
+    public void processPiece(PieceMessage message)
             throws NoSuchAlgorithmException, IOException {
+        Peer peer = message.getDestination();
         Torrent t = torrents.get(peer.getInfoHash());
         int index = message.getIndex();
         int begin = message.getBegin();
-        if (validator.validatePieceMessage(message, peer)) {
+        if (validator.validatePieceMessage(message)) {
             if (t.savePiece(begin, index, message.getPiece())) {
-                SimpleMessage msg = new HaveMessage(index);
                 BitSet n = t.getCompletePieces();
                 for (Peer p : t.getConnectedPeers()) {
-                    network.postMessage(p, msg);
+                    SimpleMessage msg = new HaveMessage(index, p);
+                    network.postMessage(msg);
                     if (p.getOtherPieces(n).isEmpty()) {
                         SimpleMessage smessage = new SimpleMessage(
-                                SimpleMessage.TYPE_NOT_INTERESTED);
-                        network.postMessage(p, smessage);
+                                SimpleMessage.TYPE_NOT_INTERESTED, p);
+                        network.postMessage(smessage);
                         p.setClientInterested(false);
                     }
                 }
@@ -135,19 +140,19 @@ public class MessageProcessor {
         }
     }
 
-    public void processRequest(BlockMessage message, Peer peer) throws
+    public void processRequest(BlockMessage message) throws
             IOException {
-        if (validator.validateRequestMessage(message, peer) &&
+        Peer peer = message.getDestination();
+        if (validator.validateRequestMessage(message) &&
                 !peer.isClientChoking() && peer.isPeerInterested()) {
             Torrent t = torrents.get(peer.getInfoHash());
             ByteBuffer piece = t.loadPiece(message.getBegin(),
                     message.getIndex(),
                     message.getLength());
             PieceMessage pm = new PieceMessage(message.getBegin(),
-                    message.getIndex(), piece, message.getLength());
-            network.postMessage(peer, pm);
+                    message.getIndex(), piece, message.getLength(), peer);
+            network.postMessage(pm);
         }
-
     }
 
     public void processUnchoke(Peer peer) throws IOException {
@@ -162,11 +167,11 @@ public class MessageProcessor {
         BlockMessage bm = t.decideNextPiece(peer);
         if (bm == null) {
             SimpleMessage smessage = new SimpleMessage(
-                    SimpleMessage.TYPE_NOT_INTERESTED);
-            network.postMessage(peer, smessage);
+                    SimpleMessage.TYPE_NOT_INTERESTED, peer);
+            network.postMessage(smessage);
             peer.setClientInterested(false);
         } else {
-            network.postMessage(peer, bm);
+            network.postMessage(bm);
         }
     }
     

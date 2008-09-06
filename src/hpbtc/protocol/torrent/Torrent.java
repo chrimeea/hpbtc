@@ -14,7 +14,6 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -107,7 +106,7 @@ public class Torrent {
         return prs;
     }
 
-    public Map<Peer, SimpleMessage> decideChoking() {
+    public List<SimpleMessage> decideChoking() {
         List<Peer> prs = getConnectedPeers();
         Comparator<Peer> comp = new Comparator<Peer>() {
 
@@ -124,18 +123,20 @@ public class Torrent {
         } else {
             Collections.sort(prs, comp);
         }
-        SimpleMessage mUnchoke = new SimpleMessage(SimpleMessage.TYPE_UNCHOKE);
-        SimpleMessage mChoke = new SimpleMessage(SimpleMessage.TYPE_CHOKE);
         int k = 0;
-        Map<Peer, SimpleMessage> result = new HashMap<Peer, SimpleMessage>();
+        List<SimpleMessage> result = new LinkedList<SimpleMessage>();
         for (Peer p : prs) {
             if (p.isClientChoking() && k < 3) {
-                result.put(p, mUnchoke);
+                SimpleMessage mUnchoke = new SimpleMessage(
+                        SimpleMessage.TYPE_UNCHOKE, p);
+                result.add(mUnchoke);
                 if (p.isPeerInterested()) {
                     k++;
                 }
             } else if (!p.isClientChoking()) {
-                result.put(p, mChoke);
+                SimpleMessage mChoke = new SimpleMessage(
+                        SimpleMessage.TYPE_CHOKE, p);
+                result.add(mChoke);
             }
             p.resetCounters();
         }
@@ -169,7 +170,7 @@ public class Torrent {
             requests[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
                     TorrentUtil.computeEndIndex(begin, length, chunkSize));
             return new BlockMessage(begin, index, length,
-                    SimpleMessage.TYPE_REQUEST);
+                    SimpleMessage.TYPE_REQUEST, peer);
         }
         return null;
     }

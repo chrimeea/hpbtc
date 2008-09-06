@@ -20,12 +20,14 @@ import util.IOUtil;
 public class NetworkTest {
 
     @Test
-    public void testNetworkIncomingConnection() throws IOException, UnsupportedEncodingException {
+    public void testNetworkIncomingConnection() throws IOException,
+            UnsupportedEncodingException {
         PeerNetwork c = new PeerNetwork();
         c.connect();
         SocketChannel ch;
         synchronized (c) {
-            ch = SocketChannel.open(new InetSocketAddress(InetAddress.getLocalHost(), c.getPort()));
+            ch = SocketChannel.open(new InetSocketAddress(InetAddress.
+                    getLocalHost(), c.getPort()));
             ch.write(ByteBuffer.wrap("test client".getBytes("US-ASCII")));
             do {
                 try {
@@ -65,9 +67,19 @@ public class NetworkTest {
         ServerSocket ch = new ServerSocket(0);
         PeerNetwork c = new PeerNetwork();
         c.connect();
-        InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(), ch.getLocalPort());
-        c.postMessage(new Peer(a, "X".getBytes("US-ASCII")), new SimpleMessage() {
+        final InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(),
+                ch.getLocalPort());
+        c.postMessage(new SimpleMessage() {
 
+            @Override
+            public Peer getDestination() {
+                try {
+                    return new Peer(a, "X".getBytes("US-ASCII"));
+                } catch (UnsupportedEncodingException e) {
+                    return null;
+                }
+            }
+            
             @Override
             public ByteBuffer send() {
                 try {

@@ -27,7 +27,7 @@ public interface Network {
 
     boolean isRunning();
 
-    void postMessage(Peer peer, SimpleMessage message) throws IOException;
+    void postMessage(SimpleMessage message) throws IOException;
 
     RawMessage takeMessage();
 
