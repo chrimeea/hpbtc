@@ -35,7 +35,9 @@
         </junit>
     </target>
     <target name="run" description="run client">
-        <java classname="hpbtc.HPBTC" classpathref="cp.classpath"/>
+        <java classname="hpbtc.HPBTC" classpathref="cp.classpath">
+            <arg value="D:\Documents and Settings\Administrator\Desktop\test.torrent"/>
+        </java>
     </target>
     
 </project>
