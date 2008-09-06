@@ -16,6 +16,7 @@ import hpbtc.processor.NetworkStub;
 import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.RawMessage;
+import java.util.Map;
 import util.ChannelStub;
 
 /**
@@ -135,13 +136,10 @@ public class TorrentTest {
         peer.setChannel(cs);info.addPeer(peer);
         peer = new Peer(null, null);
         peer.setChannel(cs);info.addPeer(peer);
-        info.decideChoking();
-        RawMessage rm = network.takeMessage();
-        assert rm.getMessage()[4] == SimpleMessage.TYPE_UNCHOKE;
-        rm = network.takeMessage();
-        assert rm.getMessage()[4] == SimpleMessage.TYPE_UNCHOKE;
-        rm = network.takeMessage();
-        assert rm.getMessage()[4] == SimpleMessage.TYPE_UNCHOKE;
-        assert !network.hasUnreadMessages();
+        Map<Peer, SimpleMessage> m = info.decideChoking();
+        assert m.values().size() == 5;
+        for (SimpleMessage sm: m.values()) {
+            assert sm.getMessageType() == SimpleMessage.TYPE_UNCHOKE;
+        }
     }
 }

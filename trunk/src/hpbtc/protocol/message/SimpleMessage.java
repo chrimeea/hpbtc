@@ -37,6 +37,10 @@ public class SimpleMessage {
         this.disc = disc;
     }
     
+    public byte getMessageType() {
+        return disc;
+    }
+    
     public int getMessageLength() {
         return messageLength;
     }
