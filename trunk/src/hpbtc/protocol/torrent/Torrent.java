@@ -103,7 +103,7 @@ public class Torrent {
         }
     }
 
-    private List<Peer> getConnectedPeers() {
+    public List<Peer> getConnectedPeers() {
         List<Peer> prs = new LinkedList<Peer>();
         for (Peer p : peers) {
             if (p.isConnected()) {
@@ -209,28 +209,20 @@ public class Torrent {
         peers.addAll(tracker.beginTracker(getFileLength()));
     }
 
-    public void savePiece(int begin, int index, ByteBuffer piece)
+    public void endTracker() {
+        tracker.endTracker(uploaded, downloaded);
+    }
+    
+    public boolean savePiece(int begin, int index, ByteBuffer piece)
             throws IOException, NoSuchAlgorithmException {
         downloaded += piece.remaining();
-        if (fileStore.savePiece(begin, index, piece)) {
-            SimpleMessage message = new HaveMessage(index);
-            for (Peer p : peers) {
-                if (p.isConnected()) {
-                    network.postMessage(p, message);
-                    if (p.getOtherPieces(getCompletePieces()).isEmpty()) {
-                        SimpleMessage smessage = new SimpleMessage(
-                                SimpleMessage.TYPE_NOT_INTERESTED);
-                        network.postMessage(p, smessage);
-                        p.setClientInterested(false);
-                    }
-                }
-            }
-        }
-        if (fileStore.isTorrentComplete()) {
-            tracker.endTracker(uploaded, downloaded);
-        }
+        return fileStore.savePiece(begin, index, piece);
     }
 
+    public boolean isTorrentComplete() {
+        return fileStore.isTorrentComplete();
+    }
+    
     public ByteBuffer loadPiece(int begin, int index, int length)
             throws IOException {
         uploaded += length;

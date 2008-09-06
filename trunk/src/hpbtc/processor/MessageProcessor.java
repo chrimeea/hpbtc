@@ -36,7 +36,7 @@ public class MessageProcessor {
         validator = new MessageValidator(torrents, protocol);
     }
 
-    public void processHandshake(HandshakeMessage message, Peer peer) throws 
+    public void processHandshake(HandshakeMessage message, Peer peer) throws
             IOException {
         if (validator.validateHandshakeMessage(message, peer)) {
             peer.setId(message.getPeerId());
@@ -60,7 +60,7 @@ public class MessageProcessor {
         }
     }
 
-    public void processBitfield(BitfieldMessage message, Peer peer) throws 
+    public void processBitfield(BitfieldMessage message, Peer peer) throws
             IOException {
         if (validator.validateBitfieldMessage(message, peer)) {
             peer.setPieces(message.getBitfield());
@@ -113,14 +113,29 @@ public class MessageProcessor {
         int index = message.getIndex();
         int begin = message.getBegin();
         if (validator.validatePieceMessage(message, peer)) {
-            t.savePiece(begin, index, message.getPiece());
-            if (!peer.isPeerChoking() && peer.isClientInterested()) {
-                t.decideNextPiece(peer);
+            if (t.savePiece(begin, index, message.getPiece())) {
+                SimpleMessage msg = new HaveMessage(index);
+                BitSet n = t.getCompletePieces();
+                for (Peer p : t.getConnectedPeers()) {
+                    network.postMessage(p, msg);
+                    if (p.getOtherPieces(n).isEmpty()) {
+                        SimpleMessage smessage = new SimpleMessage(
+                                SimpleMessage.TYPE_NOT_INTERESTED);
+                        network.postMessage(p, smessage);
+                        p.setClientInterested(false);
+                    }
+                }
             }
+            if (t.isTorrentComplete()) {
+                t.endTracker();
+            }
+        }
+        if (!peer.isPeerChoking() && peer.isClientInterested()) {
+            t.decideNextPiece(peer);
         }
     }
 
-    public void processRequest(BlockMessage message, Peer peer) throws 
+    public void processRequest(BlockMessage message, Peer peer) throws
             IOException {
         if (validator.validateRequestMessage(message, peer) &&
                 !peer.isClientChoking() && peer.isPeerInterested()) {
@@ -132,6 +147,7 @@ public class MessageProcessor {
                     message.getIndex(), piece, message.getLength());
             network.postMessage(peer, pm);
         }
+
     }
 
     public void processUnchoke(Peer peer) throws IOException {
@@ -140,6 +156,7 @@ public class MessageProcessor {
             Torrent t = torrents.get(peer.getInfoHash());
             t.decideNextPiece(peer);
         }
+
     }
 
     public void processDisconnect(Peer peer) {
