@@ -3,7 +3,6 @@ package hpbtc.protocol.torrent;
 import hpbtc.bencoding.BencodingReader;
 import hpbtc.bencoding.BencodingWriter;
 import hpbtc.protocol.message.BlockMessage;
-import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Network;
 import java.io.ByteArrayOutputStream;
@@ -16,6 +15,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +31,6 @@ import util.TorrentUtil;
  */
 public class Torrent {
 
-    private static Logger logger = Logger.getLogger(Torrent.class.getName());
     private List<LinkedList<String>> trackers;
     private byte[] infoHash;
     private Date creationDate;
@@ -113,7 +112,7 @@ public class Torrent {
         return prs;
     }
 
-    public void decideChoking() {
+    public Map<Peer, SimpleMessage> decideChoking() {
         List<Peer> prs = getConnectedPeers();
         Comparator<Peer> comp = new Comparator<Peer>() {
 
@@ -133,27 +132,19 @@ public class Torrent {
         SimpleMessage mUnchoke = new SimpleMessage(SimpleMessage.TYPE_UNCHOKE);
         SimpleMessage mChoke = new SimpleMessage(SimpleMessage.TYPE_CHOKE);
         int k = 0;
+        Map<Peer, SimpleMessage> result = new HashMap<Peer, SimpleMessage>();
         for (Peer p : prs) {
             if (p.isClientChoking() && k < 3) {
-                try {
-                    network.postMessage(p, mUnchoke);
-                    p.setClientChoking(false);
-                } catch (IOException e) {
-                    logger.warning(e.getLocalizedMessage());
-                }
+                result.put(p, mUnchoke);
                 if (p.isPeerInterested()) {
                     k++;
                 }
             } else if (!p.isClientChoking()) {
-                try {
-                    network.postMessage(p, mChoke);
-                    p.setClientChoking(true);
-                } catch (IOException e) {
-                    logger.warning(e.getLocalizedMessage());
-                }
+                result.put(p, mChoke);
             }
             p.resetCounters();
         }
+        return result;
     }
 
     private int getActualPieceSize(int index) {
@@ -207,7 +198,7 @@ public class Torrent {
     public void endTracker() {
         tracker.endTracker(uploaded, downloaded);
     }
-    
+
     public boolean savePiece(int begin, int index, ByteBuffer piece)
             throws IOException, NoSuchAlgorithmException {
         downloaded += piece.remaining();
@@ -217,7 +208,7 @@ public class Torrent {
     public boolean isTorrentComplete() {
         return fileStore.isTorrentComplete();
     }
-    
+
     public ByteBuffer loadPiece(int begin, int index, int length)
             throws IOException {
         uploaded += length;

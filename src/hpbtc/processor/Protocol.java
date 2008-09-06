@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
@@ -59,7 +60,22 @@ public class Protocol {
 
             @Override
             public void run() {
-                ti.decideChoking();
+                Map<Peer, SimpleMessage> result = ti.decideChoking();
+                for (Entry<Peer, SimpleMessage> e : result.entrySet()) {
+                    Peer p = e.getKey();
+                    SimpleMessage sm = e.getValue();
+                    try {
+                        network.postMessage(p, sm);
+                        if (sm.getMessageType() == SimpleMessage.TYPE_UNCHOKE) {
+                            p.setClientChoking(false);
+                        } else if (sm.getMessageType() ==
+                                SimpleMessage.TYPE_CHOKE) {
+                            p.setClientChoking(true);
+                        }
+                    } catch (IOException ex) {
+                        logger.warning(ex.getLocalizedMessage());
+                    }
+                }
             }
         }, 10000);
     }
