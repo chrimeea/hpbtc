@@ -21,21 +21,23 @@ public class HPBTC {
     /**
      * @param args
      */
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-        if (args.length == 0) {
+    public static void main(String[] args) throws IOException,
+            NoSuchAlgorithmException {
+        if (args.length < 2) {
             logger.severe("Mandatory parameter missing");
         } else {
             final Protocol protocol = new Protocol();
             protocol.startProtocol();
-            for (String torrent: args) {
-                protocol.download(new File(torrent), ".");
+            String d = args[0];
+            for (int i = 1; i < args.length; i++) {
+                protocol.download(new File(args[i]), d);
             }
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
                 public void run() {
                     protocol.stopProtocol();
                 }
-                }, "Shutdown"));
+            }, "Shutdown"));
         }
     }
 }
