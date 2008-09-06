@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.BitSet;
 import java.util.Map;
+import util.TorrentUtil;
 
 /**
  *
@@ -26,13 +27,16 @@ public class MessageProcessor {
     private byte[] peerId;
     private Map<byte[], Torrent> torrents;
     private MessageValidator validator;
+    private Map<byte[], BitSet[]> requests;
 
     public MessageProcessor(Network network, byte[] protocol,
-            Map<byte[], Torrent> torrents, byte[] peerId) {
+            Map<byte[], Torrent> torrents, byte[] peerId,
+            Map<byte[], BitSet[]> requests) {
         this.protocol = protocol;
         this.network = network;
         this.peerId = peerId;
         this.torrents = torrents;
+        this.requests = requests;
         validator = new MessageValidator(torrents, protocol);
     }
 
@@ -164,11 +168,17 @@ public class MessageProcessor {
     }
 
     private void decideNextPiece(Torrent t, Peer peer) throws IOException {
-        BlockMessage bm = t.decideNextPiece(peer);
+        BitSet[] req = requests.get(t.getInfoHash());
+        BlockMessage bm = t.decideNextPiece(peer, req);
         if (bm == null) {
             SimpleMessage smessage = new SimpleMessage(
                     SimpleMessage.TYPE_NOT_INTERESTED, peer);
             network.postMessage(smessage);
+            int cs = t.getChunkSize();
+            req[bm.getIndex()].set(TorrentUtil.computeBeginIndex(bm.getBegin(),
+                    cs),
+                    TorrentUtil.computeEndIndex(bm.getBegin(), bm.getLength(),
+                    cs));
             peer.setClientInterested(false);
         } else {
             network.postMessage(bm);

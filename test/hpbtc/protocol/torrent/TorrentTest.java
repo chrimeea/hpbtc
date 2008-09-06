@@ -1,7 +1,6 @@
 package hpbtc.protocol.torrent;
 
 import hpbtc.bencoding.BencodingWriter;
-import hpbtc.protocol.network.Network;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -12,10 +11,9 @@ import java.util.LinkedList;
 import java.util.List;
 import org.junit.Test;
 import util.IOUtil;
-import hpbtc.processor.NetworkStub;
 import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.SimpleMessage;
-import java.util.Map;
+import java.util.BitSet;
 import util.ChannelStub;
 
 /**
@@ -111,7 +109,12 @@ public class TorrentTest {
         b.close();
         Peer peer = new Peer(null, null);
         peer.setPiece(0);
-        BlockMessage bm = info.decideNextPiece(peer);
+        int np = info.getNrPieces();
+        BitSet[] req = new BitSet[np];
+        for (int i = 0; i < np; i++) {
+            req[i] = new BitSet();
+        }
+        BlockMessage bm = info.decideNextPiece(peer, req);
         assert bm.getBegin() == 0;
         assert bm.getIndex() == 0;
         assert bm.getLength() == 85;

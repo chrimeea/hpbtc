@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ public class Protocol {
 
     private static Logger logger = Logger.getLogger(Protocol.class.getName());
     private Map<byte[], Torrent> torrents;
+    private Map<byte[], BitSet[]> requests;
     private Network network;
     private MessageProcessor processor;
     private byte[] peerId;
@@ -45,7 +47,9 @@ public class Protocol {
         byte[] protocol = getSupportedProtocol();
         timer = new Timer(true);
         this.network = new PeerNetwork();
-        processor = new MessageProcessor(network, protocol, torrents, peerId);
+        requests = new HashMap<byte[], BitSet[]>();
+        processor = new MessageProcessor(network, protocol, torrents, peerId,
+                requests);
     }
 
     public void download(File fileName, String rootFolder) throws IOException,
@@ -55,6 +59,12 @@ public class Protocol {
         byte[] infoHash = ti.getInfoHash();
         fis.close();
         torrents.put(infoHash, ti);
+        int np = ti.getNrPieces();
+        BitSet[] req = new BitSet[np];
+        for (int i = 0; i < np; i++) {
+            req[i] = new BitSet();
+        }
+        requests.put(infoHash, req);
         beginPeers(ti);
         timer.schedule(new TimerTask() {
 

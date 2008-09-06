@@ -37,7 +37,6 @@ public class Torrent {
     private FileStore fileStore;
     private Tracker tracker;
     private Set<Peer> peers;
-    private BitSet[] requests;
     private Random random;
     private int uploaded;
     private int downloaded;
@@ -89,11 +88,6 @@ public class Torrent {
         }
         tracker = new Tracker(infoHash, peerId, port, trackers);
         peers = new HashSet<Peer>();
-        int np = getNrPieces();
-        requests = new BitSet[np];
-        for (int i = 0; i < np; i++) {
-            requests[i] = new BitSet();
-        }
     }
 
     public List<Peer> getConnectedPeers() {
@@ -149,9 +143,13 @@ public class Torrent {
         return index == n - 1 ? (n - 1) * l + getFileLength() : l;
     }
 
-    public BlockMessage decideNextPiece(Peer peer) {
+    public int getChunkSize() {
+        return fileStore.getChunkSize();
+    }
+    
+    public BlockMessage decideNextPiece(Peer peer, BitSet[] requests) {
         BitSet bs = peer.getOtherPieces(getCompletePieces());
-        int chunkSize = fileStore.getChunkSize();
+        int chunkSize = getChunkSize();
         for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
             if (requests[i].cardinality() == chunkSize) {
                 bs.clear(i);
@@ -167,8 +165,6 @@ public class Torrent {
             int begin = TorrentUtil.computeBeginPosition(ind < 0 ? 0 : ind,
                     chunkSize);
             int length = getActualPieceSize(index);
-            requests[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
-                    TorrentUtil.computeEndIndex(begin, length, chunkSize));
             return new BlockMessage(begin, index, length,
                     SimpleMessage.TYPE_REQUEST, peer);
         }
