@@ -206,7 +206,8 @@ public class PeerNetwork implements Network {
         return messagesReceived.poll();
     }
 
-    public void postMessage(Peer peer, SimpleMessage message) throws IOException {
+    public void postMessage(SimpleMessage message) throws IOException {
+        Peer peer = message.getDestination();
         Queue<SimpleMessage> q = messagesToSend.get(peer);
         if (q == null) {
             q = new ConcurrentLinkedQueue<SimpleMessage>();

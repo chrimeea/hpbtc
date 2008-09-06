@@ -4,6 +4,7 @@
  */
 package hpbtc.protocol.message;
 
+import hpbtc.protocol.torrent.Peer;
 import java.nio.ByteBuffer;
 
 /**
@@ -16,15 +17,16 @@ public class PieceMessage extends SimpleMessage {
     private int index;
     private ByteBuffer piece;
     
-    public PieceMessage(ByteBuffer message, int len) {
-        super(len, TYPE_PIECE);
+    public PieceMessage(ByteBuffer message, int len, Peer destination) {
+        super(len, TYPE_PIECE, destination);
         index = message.getInt();
         begin = message.getInt();
         piece = message;
     }
 
-    public PieceMessage(int begin, int index, ByteBuffer piece, int len) {
-        super(8 + len, TYPE_PIECE);
+    public PieceMessage(int begin, int index, ByteBuffer piece, int len,
+            Peer destination) {
+        super(8 + len, TYPE_PIECE, destination);
         this.begin = begin;
         this.index = index;
         this.piece = piece;

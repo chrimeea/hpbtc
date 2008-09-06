@@ -19,8 +19,8 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
@@ -60,12 +60,11 @@ public class Protocol {
 
             @Override
             public void run() {
-                Map<Peer, SimpleMessage> result = ti.decideChoking();
-                for (Entry<Peer, SimpleMessage> e : result.entrySet()) {
-                    Peer p = e.getKey();
-                    SimpleMessage sm = e.getValue();
+                List<SimpleMessage> result = ti.decideChoking();
+                for (SimpleMessage sm : result) {
+                    Peer p = sm.getDestination();
                     try {
-                        network.postMessage(p, sm);
+                        network.postMessage(sm);
                         if (sm.getMessageType() == SimpleMessage.TYPE_UNCHOKE) {
                             p.setClientChoking(false);
                         } else if (sm.getMessageType() ==
@@ -87,7 +86,7 @@ public class Protocol {
             if (!peer.isConnected()) {
                 SimpleMessage m = new HandshakeMessage(peer.getInfoHash(),
                         peerId, getSupportedProtocol());
-                network.postMessage(peer, m);
+                network.postMessage(m);
             }
         }
     }
@@ -150,20 +149,20 @@ public class Protocol {
                     switch (disc) {
                         case SimpleMessage.TYPE_BITFIELD:
                             BitfieldMessage mBit = new BitfieldMessage(current,
-                                    len);
-                            processor.processBitfield(mBit, peer);
+                                    len, peer);
+                            processor.processBitfield(mBit);
                             break;
                         case SimpleMessage.TYPE_CANCEL:
                             BlockMessage mCan = new BlockMessage(current,
-                                    SimpleMessage.TYPE_CANCEL);
-                            processor.processCancel(mCan, peer);
+                                    SimpleMessage.TYPE_CANCEL, peer);
+                            processor.processCancel(mCan);
                             break;
                         case SimpleMessage.TYPE_CHOKE:
                             processor.processChoke(peer);
                             break;
                         case SimpleMessage.TYPE_HAVE:
-                            HaveMessage mHave = new HaveMessage(current);
-                            processor.processHave(mHave, peer);
+                            HaveMessage mHave = new HaveMessage(current, peer);
+                            processor.processHave(mHave);
                             break;
                         case SimpleMessage.TYPE_INTERESTED:
                             processor.processInterested(peer);
@@ -172,13 +171,14 @@ public class Protocol {
                             processor.processNotInterested(peer);
                             break;
                         case SimpleMessage.TYPE_PIECE:
-                            PieceMessage mPiece = new PieceMessage(current, len);
-                            processor.processPiece(mPiece, peer);
+                            PieceMessage mPiece = new PieceMessage(current, len,
+                                    peer);
+                            processor.processPiece(mPiece);
                             break;
                         case SimpleMessage.TYPE_REQUEST:
                             BlockMessage mReq = new BlockMessage(current,
-                                    SimpleMessage.TYPE_REQUEST);
-                            processor.processRequest(mReq, peer);
+                                    SimpleMessage.TYPE_REQUEST, peer);
+                            processor.processRequest(mReq);
                             break;
                         case SimpleMessage.TYPE_UNCHOKE:
                             processor.processUnchoke(peer);
@@ -186,8 +186,8 @@ public class Protocol {
                     peer.setMessagesReceived();
                 }
             } else if (current.remaining() >= 47) {
-                HandshakeMessage mHand = new HandshakeMessage(current);
-                processor.processHandshake(mHand, peer);
+                HandshakeMessage mHand = new HandshakeMessage(current, peer);
+                processor.processHandshake(mHand);
             }
         } while (current.remaining() > 0);
     }

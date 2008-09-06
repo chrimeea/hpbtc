@@ -4,6 +4,7 @@
  */
 package hpbtc.protocol.message;
 
+import hpbtc.protocol.torrent.Peer;
 import java.nio.ByteBuffer;
 
 /**
@@ -24,21 +25,31 @@ public class SimpleMessage {
     
     protected int messageLength;
     protected byte disc;
+    protected Peer destination;
     
     public SimpleMessage() {
     }
     
-    public SimpleMessage(byte disc) {
-        this(0, disc);
+    public void setDestination(Peer destination) {
+        this.destination = destination;
     }
     
-    public SimpleMessage(int len, byte disc) {
+    public SimpleMessage(byte disc, Peer destination) {
+        this(0, disc, destination);
+    }
+    
+    public SimpleMessage(int len, byte disc, Peer destination) {
         messageLength = len + 1;
         this.disc = disc;
+        this.destination = destination;
     }
     
     public byte getMessageType() {
         return disc;
+    }
+    
+    public Peer getDestination() {
+        return destination;
     }
     
     public int getMessageLength() {

@@ -25,12 +25,13 @@ public class MessageValidator {
         this.protocol = protocol;
     }
     
-    public boolean validateHandshakeMessage(HandshakeMessage message, Peer peer) {
+    public boolean validateHandshakeMessage(HandshakeMessage message) {
         return Arrays.equals(message.getProtocol(), protocol)
                 && torrents.containsKey(message.getInfoHash());
     }
     
-    public boolean validateBitfieldMessage(BitfieldMessage message, Peer peer) {
+    public boolean validateBitfieldMessage(BitfieldMessage message) {
+        Peer peer = message.getDestination();
         if (peer.isMessagesReceived()) {
             return false;
         } else {
@@ -43,24 +44,28 @@ public class MessageValidator {
         return true;
     }
     
-    public boolean validateCancelMessage(BlockMessage message, Peer peer) {
+    public boolean validateCancelMessage(BlockMessage message) {
+        Peer peer = message.getDestination();
         Torrent t = torrents.get(peer.getInfoHash());
         return message.getIndex() < t.getNrPieces()
                 && message.getBegin() < t.getPieceLength();
     }
     
-    public boolean validateHaveMessage(HaveMessage message, Peer peer) {
+    public boolean validateHaveMessage(HaveMessage message) {
+        Peer peer = message.getDestination();
         Torrent t = torrents.get(peer.getInfoHash());
         return message.getIndex() < t.getNrPieces();
     }
     
-    public boolean validatePieceMessage(PieceMessage message, Peer peer) {
+    public boolean validatePieceMessage(PieceMessage message) {
+        Peer peer = message.getDestination();
         Torrent t = torrents.get(peer.getInfoHash());
         return message.getIndex() < t.getNrPieces()
                 && message.getBegin() < t.getPieceLength();
     }
     
-    public boolean validateRequestMessage(BlockMessage message, Peer peer) {
+    public boolean validateRequestMessage(BlockMessage message) {
+        Peer peer = message.getDestination();
         byte[] infoHash = peer.getInfoHash();
         Torrent t = torrents.get(infoHash); 
         long pieceLength = t.getPieceLength();

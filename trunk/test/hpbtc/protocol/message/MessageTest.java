@@ -17,7 +17,7 @@ public class MessageTest {
         bb.putShort((short) 63472);
         bb.put((byte) 0);
         bb.rewind();
-        BitfieldMessage m = new BitfieldMessage(bb, 3);
+        BitfieldMessage m = new BitfieldMessage(bb, 3, null);
         BitSet bs = m.getBitfield();
         assert bs.nextSetBit(0) == 0;
         assert bs.nextSetBit(1) == 1;
@@ -39,7 +39,7 @@ public class MessageTest {
         BitSet bs = new BitSet(20);
         bs.set(1); bs.set(2); bs.set(3); bs.set(7);
         bs.set(8); bs.set(9); bs.set(13); bs.set(14);
-        BitfieldMessage m = new BitfieldMessage(bs, 20);
+        BitfieldMessage m = new BitfieldMessage(bs, 20, null);
         ByteBuffer bb = m.send();
         bb.rewind();
         assert bb.getInt() == 4;
@@ -57,7 +57,7 @@ public class MessageTest {
         bb.put("01234567890123456789".getBytes("US-ASCII"));
         bb.put("ABCDEFGHIJKLMNOPQRST".getBytes("US-ASCII"));
         bb.rewind();
-        HandshakeMessage m = new HandshakeMessage(bb);
+        HandshakeMessage m = new HandshakeMessage(bb, null);
         assert "BitTorrent protocol".equals(new String(m.getProtocol(), "US-ASCII"));
         assert "01234567890123456789".equals(new String(m.getInfoHash(), "US-ASCII"));
         assert "ABCDEFGHIJKLMNOPQRST".equals(new String(m.getPeerId(), "US-ASCII"));
@@ -87,14 +87,14 @@ public class MessageTest {
         ByteBuffer bb = ByteBuffer.allocate(9);
         bb.putInt(1234);
         bb.rewind();
-        HaveMessage m = new HaveMessage(bb);
+        HaveMessage m = new HaveMessage(bb, null);
         assert m.getIndex() == 1234;
         assert m.getMessageLength() == 5;
     }
     
     @Test
     public void testWriteHave() {
-        HaveMessage m = new HaveMessage(548677);
+        HaveMessage m = new HaveMessage(548677, null);
         ByteBuffer bb = m.send();
         bb.rewind();
         assert bb.getInt() == 5;
@@ -110,7 +110,7 @@ public class MessageTest {
         bb.putInt(123);
         bb.putInt(46734);
         bb.rewind();
-        PieceMessage m = new PieceMessage(bb, 12);
+        PieceMessage m = new PieceMessage(bb, 12, null);
         ByteBuffer b = m.getPiece();
         assert m.getBegin() == 123;
         assert m.getIndex() == 456;
@@ -125,7 +125,7 @@ public class MessageTest {
         ByteBuffer bb = ByteBuffer.allocate(4);
         bb.putInt(99);
         bb.rewind();
-        PieceMessage m = new PieceMessage(11, 70, bb, 4);
+        PieceMessage m = new PieceMessage(11, 70, bb, 4, null);
         ByteBuffer s = m.send();
         s.rewind();
         assert s.getInt() == 13;
@@ -143,7 +143,7 @@ public class MessageTest {
         bb.putInt(2);
         bb.putInt(3);
         bb.rewind();
-        BlockMessage m = new BlockMessage(bb, SimpleMessage.TYPE_REQUEST);
+        BlockMessage m = new BlockMessage(bb, SimpleMessage.TYPE_REQUEST, null);
         assert m.getBegin() == 2;
         assert m.getIndex() == 1;
         assert m.getLength() == 3;
@@ -152,7 +152,7 @@ public class MessageTest {
     
     @Test
     public void testWriteBlock() {
-        BlockMessage m = new BlockMessage(1, 2, 3, SimpleMessage.TYPE_CANCEL);
+        BlockMessage m = new BlockMessage(1, 2, 3, SimpleMessage.TYPE_CANCEL, null);
         ByteBuffer bb = m.send();
         bb.rewind();
         assert bb.getInt() == 13;
@@ -165,7 +165,7 @@ public class MessageTest {
     
     @Test
     public void testWriteSimple() {
-        SimpleMessage m = new SimpleMessage(0, SimpleMessage.TYPE_INTERESTED);
+        SimpleMessage m = new SimpleMessage(0, SimpleMessage.TYPE_INTERESTED, null);
         ByteBuffer bb = m.send();
         bb.rewind();
         assert bb.getInt() == 1;

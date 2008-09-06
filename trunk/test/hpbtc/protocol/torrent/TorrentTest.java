@@ -134,9 +134,9 @@ public class TorrentTest {
         peer.setChannel(cs);info.addPeer(peer);
         peer = new Peer(null, null);
         peer.setChannel(cs);info.addPeer(peer);
-        Map<Peer, SimpleMessage> m = info.decideChoking();
-        assert m.values().size() == 5;
-        for (SimpleMessage sm: m.values()) {
+        List<SimpleMessage> m = info.decideChoking();
+        assert m.size() == 5;
+        for (SimpleMessage sm: m) {
             assert sm.getMessageType() == SimpleMessage.TYPE_UNCHOKE;
         }
     }

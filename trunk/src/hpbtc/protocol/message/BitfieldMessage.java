@@ -4,7 +4,7 @@
  */
 package hpbtc.protocol.message;
 
-import java.io.IOException;
+import hpbtc.protocol.torrent.Peer;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import util.IOUtil;
@@ -17,13 +17,13 @@ public class BitfieldMessage extends SimpleMessage {
     
     private BitSet pieces;
     
-    public BitfieldMessage(ByteBuffer message, int len) {
-        super(len, TYPE_BITFIELD);
+    public BitfieldMessage(ByteBuffer message, int len, Peer destination) {
+        super(len, TYPE_BITFIELD, destination);
         pieces = IOUtil.bytesToBits(message);
     }
     
-    public BitfieldMessage(BitSet pieces, int nPieces) {
-        super((int) Math.ceil(nPieces / 8.0), TYPE_BITFIELD);
+    public BitfieldMessage(BitSet pieces, int nPieces, Peer destination) {
+        super((int) Math.ceil(nPieces / 8.0), TYPE_BITFIELD, destination);
         this.pieces = pieces;
     }
 

@@ -43,8 +43,9 @@ public class NetworkStub implements Network {
         return false;
     }
 
-    public void postMessage(Peer arg0, SimpleMessage arg1) {
-        RawMessage rm = new RawMessage(arg0, arg1.send().array());
+    public void postMessage(SimpleMessage arg1) {
+        RawMessage rm = new RawMessage(arg1.getDestination(),
+                arg1.send().array());
         posted.add(rm);
     }
 

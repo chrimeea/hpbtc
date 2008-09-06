@@ -4,6 +4,7 @@
  */
 package hpbtc.protocol.message;
 
+import hpbtc.protocol.torrent.Peer;
 import java.nio.ByteBuffer;
 
 /**
@@ -14,13 +15,13 @@ public class HaveMessage extends SimpleMessage {
 
     private int index;
     
-    public HaveMessage(ByteBuffer message) {
-        super(4, TYPE_HAVE);
+    public HaveMessage(ByteBuffer message, Peer destination) {
+        super(4, TYPE_HAVE, destination);
         index = message.getInt();
     }
     
-    public HaveMessage(int index) {
-        super(4, TYPE_HAVE);
+    public HaveMessage(int index, Peer destination) {
+        super(4, TYPE_HAVE, destination);
         this.index = index;
     }
 

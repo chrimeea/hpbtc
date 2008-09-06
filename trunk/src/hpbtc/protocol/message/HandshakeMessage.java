@@ -1,5 +1,6 @@
 package hpbtc.protocol.message;
 
+import hpbtc.protocol.torrent.Peer;
 import java.nio.ByteBuffer;
 
 public class HandshakeMessage extends SimpleMessage {
@@ -8,7 +9,8 @@ public class HandshakeMessage extends SimpleMessage {
     private byte[] peerId;
     private byte[] protocol;
 
-    public HandshakeMessage(ByteBuffer message) {
+    public HandshakeMessage(ByteBuffer message, Peer destination) {
+        this.destination = destination;
         message.limit(19);
         protocol = new byte[19];
         message.get(protocol);

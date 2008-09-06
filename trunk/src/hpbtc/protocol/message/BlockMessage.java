@@ -1,5 +1,6 @@
 package hpbtc.protocol.message;
 
+import hpbtc.protocol.torrent.Peer;
 import java.nio.ByteBuffer;
 
 public class BlockMessage extends SimpleMessage {
@@ -8,15 +9,16 @@ public class BlockMessage extends SimpleMessage {
     private int begin;
     private int length;
     
-    public BlockMessage(ByteBuffer message, byte disc) {
-        super(12, disc);
+    public BlockMessage(ByteBuffer message, byte disc, Peer destination) {
+        super(12, disc, destination);
         index = message.getInt();
         begin = message.getInt();
         length = message.getInt();
     }
     
-    public BlockMessage(int begin, int index, int length, byte disc) {
-        super(12, disc);
+    public BlockMessage(int begin, int index, int length, byte disc,
+            Peer destination) {
+        super(12, disc, destination);
         this.index = index;
         this.begin = begin;
         this.length = length;
