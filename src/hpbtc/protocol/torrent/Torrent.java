@@ -4,7 +4,6 @@ import hpbtc.bencoding.BencodingReader;
 import hpbtc.bencoding.BencodingWriter;
 import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.SimpleMessage;
-import hpbtc.protocol.network.Network;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.logging.Logger;
 import util.TorrentUtil;
 
 /**
@@ -42,16 +40,13 @@ public class Torrent {
     private Set<Peer> peers;
     private BitSet[] requests;
     private Random random;
-    private Network network;
     private int uploaded;
     private int downloaded;
     private int optimisticCounter;
 
-    public Torrent(InputStream is, String rootFolder, byte[] peerId,
-            Network network)
+    public Torrent(InputStream is, String rootFolder, byte[] peerId, int port)
             throws IOException, NoSuchAlgorithmException {
         random = new Random();
-        this.network = network;
         BencodingReader parser = new BencodingReader(is);
         Map<String, Object> meta = parser.readNextDictionary();
         Map<String, Object> info = (Map) meta.get("info");
@@ -93,7 +88,7 @@ public class Torrent {
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder,
                     fileName, fileLength);
         }
-        tracker = new Tracker(infoHash, peerId, network.getPort(), trackers);
+        tracker = new Tracker(infoHash, peerId, port, trackers);
         peers = new HashSet<Peer>();
         int np = getNrPieces();
         requests = new BitSet[np];
