@@ -102,10 +102,16 @@ public class Torrent {
 
     public List<SimpleMessage> decideChoking() {
         List<Peer> prs = getConnectedPeers();
-        Comparator<Peer> comp = new Comparator<Peer>() {
+        Comparator<Peer> comp = isTorrentComplete() ? new Comparator<Peer>() {
 
             public int compare(Peer p1, Peer p2) {
                 return p2.countUploaded() - p1.countUploaded();
+            }
+        }
+                : new Comparator<Peer>() {
+
+            public int compare(Peer p1, Peer p2) {
+                return p2.countDownloaded() - p1.countDownloaded();
             }
         };
         if (++optimisticCounter == 3) {
@@ -146,7 +152,7 @@ public class Torrent {
     public int getChunkSize() {
         return fileStore.getChunkSize();
     }
-    
+
     public BlockMessage decideNextPiece(Peer peer, BitSet[] requests) {
         BitSet bs = peer.getOtherPieces(getCompletePieces());
         int chunkSize = getChunkSize();
