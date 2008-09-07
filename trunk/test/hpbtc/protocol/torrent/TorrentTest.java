@@ -55,10 +55,10 @@ public class TorrentTest {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         BencodingWriter wr = new BencodingWriter(bos);
         wr.write(f.getName());
-        String s = new String(bos.toByteArray(), "UTF-8");
+        String s = new String(bos.toByteArray(), "US-ASCII");
         t += s + "12:piece lengthi65536e6:pieces20:12345678901234567890ee";        
         bos.close();
-        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("UTF-8"));
+        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("US-ASCII"));
         Torrent info = new Torrent(b, f.getParent(), pid, 123);
         b.close();
         ByteBuffer piece = ByteBuffer.allocate(info.getPieceLength());
@@ -82,10 +82,10 @@ public class TorrentTest {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         BencodingWriter wr = new BencodingWriter(bos);
         wr.write(f.getName());
-        String s = new String(bos.toByteArray(), "UTF-8");
+        String s = new String(bos.toByteArray(), "US-ASCII");
         t += s + "12:piece lengthi65536e6:pieces20:12345678901234567890ee";        
         bos.close();
-        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("UTF-8"));
+        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("US-ASCII"));
         Torrent info = new Torrent(b, f.getParent(), pid, 123);
         b.close();
         ByteBuffer piece = ByteBuffer.allocate(info.getPieceLength());

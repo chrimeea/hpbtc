@@ -45,7 +45,7 @@ public class TrackerTest {
         t.add(l);
         Tracker ti = new Tracker("INFOHASH".getBytes("US-ASCII"),
                 "PID".getBytes("US-ASCII"), 2000, t);
-        Set<Peer> peers = ti.updateTracker(Tracker.Event.started, 1, 2, 3, 4);
+        Set<Peer> peers = ti.updateTracker(Tracker.Event.started, 1, 2, 3, 4, false);
         server.stop(0);
         assert ti.getInterval() == 10;
         assert ti.getMinInterval() == 5;

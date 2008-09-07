@@ -18,20 +18,14 @@ import java.util.Map;
  */
 public class BencodingReader {
 
-    private String encoding;
     private InputStream is;
 
-    public BencodingReader(InputStream is, String encoding) {
+    public BencodingReader(InputStream is) {
         if (is.markSupported()) {
             this.is = is;
         } else {
             this.is = new BufferedInputStream(is);
         }
-        this.encoding = encoding;
-    }
-
-    public BencodingReader(InputStream is) {
-        this(is, "UTF-8");
     }
 
     private int readNextNumber(char terminator) throws IOException {
@@ -82,7 +76,7 @@ public class BencodingReader {
             while (s < n) {
                 s += is.read(dst, s, n - s);
             }
-            return new String(dst, encoding);
+            return new String(dst, "US-ASCII");
         }
         return null;
     }
@@ -152,9 +146,5 @@ public class BencodingReader {
                     (char) c);
         }
         return r;
-    }
-
-    public String getEncoding() {
-        return encoding;
     }
 }
