@@ -49,7 +49,7 @@ public class MessageProcessor {
             peer.setInfoHash(infoHash);
             peer.setHandshakeReceived();
             HandshakeMessage reply = new HandshakeMessage(infoHash, peerId,
-                    protocol);
+                    protocol, peer);
             network.postMessage(reply);
             Torrent t = torrents.get(peer.getInfoHash());
             BitSet bs = t.getCompletePieces();

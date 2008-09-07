@@ -68,7 +68,7 @@ public class MessageTest {
         HandshakeMessage m = new HandshakeMessage(
                 "01234567890123456789".getBytes("US-ASCII"),
                 "ABCDEFGHIJKLMNOPQRST".getBytes("US-ASCII"),
-                "BitTorrent protocol".getBytes("US-ASCII"));
+                "BitTorrent protocol".getBytes("US-ASCII"), null);
         ByteBuffer bb = m.send();
         bb.rewind();
         byte[] p = new byte[19];

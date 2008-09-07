@@ -26,12 +26,14 @@ public class HandshakeMessage extends SimpleMessage {
         }
     }
 
-    public HandshakeMessage(byte[] infoHash, byte[] peerId, byte[] protocol) {
+    public HandshakeMessage(byte[] infoHash, byte[] peerId, byte[] protocol,
+            Peer destination) {
         this.protocol = protocol;
         this.infoHash = infoHash;
         this.peerId = peerId;
+        this.destination = destination;
     }
-    
+
     public byte[] getPeerId() {
         return peerId;
     }
@@ -49,7 +51,7 @@ public class HandshakeMessage extends SimpleMessage {
     public byte[] getProtocol() {
         return protocol;
     }
-    
+
     public byte[] getInfoHash() {
         return infoHash;
     }

@@ -95,7 +95,7 @@ public class Protocol {
         for (Peer peer : ti.getPeers()) {
             if (!peer.isConnected()) {
                 SimpleMessage m = new HandshakeMessage(peer.getInfoHash(),
-                        peerId, getSupportedProtocol());
+                        peerId, getSupportedProtocol(), peer);
                 network.postMessage(m);
             }
         }
