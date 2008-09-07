@@ -57,7 +57,8 @@ public class PeerNetwork implements Network {
                 SimpleMessage m = i.next();
                 if (m instanceof PieceMessage) {
                     PieceMessage pm = (PieceMessage) m;
-                    if (pm.getIndex() == index && pm.getBegin() == begin && pm.getLength() == length) {
+                    if (pm.getIndex() == index && pm.getBegin() == begin && pm.
+                            getLength() == length) {
                         i.remove();
                     }
                 }
@@ -142,7 +143,8 @@ public class PeerNetwork implements Network {
             if (ch.connect(peer.getAddress())) {
                 registered.add(new RegisterOp(op, peer));
             } else {
-                registered.add(new RegisterOp(SelectionKey.OP_CONNECT | op, peer));
+                registered.add(
+                        new RegisterOp(SelectionKey.OP_CONNECT | op, peer));
             }
         }
         selector.wakeup();
@@ -173,7 +175,8 @@ public class PeerNetwork implements Network {
         }
     }
 
-    private void disconnectedByPeer(Peer peer, PeerNetwork net) throws IOException {
+    private void disconnectedByPeer(Peer peer, PeerNetwork net) throws 
+            IOException {
         closeConnection(peer);
         messagesReceived.add(new RawMessage(peer));
         synchronized (net) {
@@ -242,30 +245,44 @@ public class PeerNetwork implements Network {
                     if (key.isAcceptable()) {
                         SocketChannel chan = serverCh.accept();
                         chan.configureBlocking(false);
-                        chan.register(selector, SelectionKey.OP_READ, new Peer(chan));
+                        chan.register(selector, SelectionKey.OP_READ, new Peer(
+                                chan));
                     } else {
                         Peer peer = (Peer) key.attachment();
                         SocketChannel ch = (SocketChannel) key.channel();
-                        if (key.isConnectable() && ch.finishConnect()) {
-                            ch.register(selector, (key.interestOps() | SelectionKey.OP_READ) & ~SelectionKey.OP_CONNECT, peer);
-                        } else {
-                            if (key.isReadable()) {
-                                ch.register(selector, key.interestOps() & ~SelectionKey.OP_READ, peer);
-                                readMessage(peer, net);
-                                if (ch.isOpen()) {
-                                    ch.register(selector, key.interestOps() | SelectionKey.OP_READ, peer);
+                        try {
+                            if (key.isConnectable() && ch.finishConnect()) {
+                                ch.register(selector, (key.interestOps() |
+                                        SelectionKey.OP_READ) &
+                                        ~SelectionKey.OP_CONNECT, peer);
+                            } else {
+                                if (key.isReadable()) {
+                                    ch.register(selector, key.interestOps() &
+                                            ~SelectionKey.OP_READ, peer);
+                                    readMessage(peer, net);
+                                    if (ch.isOpen()) {
+                                        ch.register(selector,
+                                                key.interestOps() |
+                                                SelectionKey.OP_READ, peer);
+                                    }
                                 }
-                            }
-                            if (key.isValid() && key.isWritable()) {
-                                ch.register(selector, key.interestOps() & ~SelectionKey.OP_WRITE, peer);
-                                writeNext(peer, net);
-                                if (ch.isOpen()) {
-                                    Queue<SimpleMessage> q = messagesToSend.get(peer);
-                                    if (!q.isEmpty()) {
-                                        ch.register(selector, key.interestOps() | SelectionKey.OP_WRITE, peer);
+                                if (key.isValid() && key.isWritable()) {
+                                    ch.register(selector, key.interestOps() &
+                                            ~SelectionKey.OP_WRITE, peer);
+                                    writeNext(peer, net);
+                                    if (ch.isOpen()) {
+                                        Queue<SimpleMessage> q = messagesToSend.
+                                                get(peer);
+                                        if (!q.isEmpty()) {
+                                            ch.register(selector, key.
+                                                    interestOps() |
+                                                    SelectionKey.OP_WRITE, peer);
+                                        }
                                     }
                                 }
                             }
+                        } catch (IOException ioe) {
+                            logger.warning(ioe.getLocalizedMessage());
                         }
                     }
                 }
