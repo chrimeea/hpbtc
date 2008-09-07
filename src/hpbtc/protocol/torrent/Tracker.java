@@ -3,7 +3,6 @@ package hpbtc.protocol.torrent;
 import hpbtc.bencoding.BencodingReader;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashSet;
@@ -13,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import util.TrackerUtil;
 
 /**
  *
@@ -20,8 +20,10 @@ import java.util.logging.Logger;
  */
 public class Tracker {
 
-    public enum Event {started, stopped, completed};
-    
+    public enum Event {
+
+        started, stopped, completed
+    };
     private static Logger logger = Logger.getLogger(Tracker.class.getName());
     private static final int TOTAL_PEERS = 50;
     private int complete;
@@ -33,31 +35,32 @@ public class Tracker {
     private byte[] pid;
     private int port;
     private List<LinkedList<String>> trackers;
-    private String encoding;
 
-    public Tracker(byte[] infoHash, byte[] pid, int port, List<LinkedList<String>> trackers) {
+    public Tracker(byte[] infoHash, byte[] pid, int port,
+            List<LinkedList<String>> trackers) {
         this.infoHash = infoHash;
         this.pid = pid;
         this.port = port;
         this.trackers = trackers;
-        this.encoding = "UTF-8";
     }
 
     public Set<Peer> beginTracker(int bytesLeft) {
-        return updateTracker(Event.started, 0, 0, bytesLeft, TOTAL_PEERS);
+        return updateTracker(Event.started, 0, 0, bytesLeft, TOTAL_PEERS, true);
     }
-    
+
     public void endTracker(int uploaded, int downloaded) {
-        updateTracker(Event.completed, uploaded, downloaded, 0, 0);
+        updateTracker(Event.completed, uploaded, downloaded, 0, 0, true);
     }
-    
-    public Set<Peer> updateTracker(Event event, int uploaded, int downloaded, int bytesLeft, int totalPeers) {
+
+    public Set<Peer> updateTracker(Event event, int uploaded, int downloaded,
+            int bytesLeft, int totalPeers, boolean compact) {
         for (LinkedList<String> ul : trackers) {
             Iterator<String> i = ul.iterator();
             while (i.hasNext()) {
                 String tracker = i.next();
                 try {
-                    Set<Peer> peers = connectToTracker(event, tracker, uploaded, downloaded, bytesLeft, totalPeers);
+                    Set<Peer> peers = connectToTracker(event, tracker, uploaded,
+                            downloaded, bytesLeft, totalPeers, compact);
                     i.remove();
                     ul.addFirst(tracker);
                     return peers;
@@ -70,12 +73,14 @@ public class Tracker {
     }
 
     private Set<Peer> connectToTracker(Event event, String tracker, int uploaded,
-            int dloaded, int bytesLeft, int totalPeers) throws IOException {
+            int dloaded, int bytesLeft, int totalPeers, boolean compact) throws
+            IOException {
         StringBuilder req = new StringBuilder(tracker);
         req.append("?info_hash=");
-        req.append(URLEncoder.encode(new String(infoHash, encoding), encoding));
+        req.append(URLEncoder.encode(new String(infoHash, "US-ASCII"),
+                "US-ASCII"));
         req.append("&peer_id=");
-        req.append(URLEncoder.encode(new String(pid, encoding), encoding));
+        req.append(URLEncoder.encode(new String(pid, "US-ASCII"), "US-ASCII"));
         req.append("&port=");
         req.append(port);
         req.append("&uploaded=");
@@ -86,14 +91,15 @@ public class Tracker {
         req.append(bytesLeft);
         req.append("&numwant=");
         req.append(totalPeers);
-        req.append("&compact=0");
+        req.append("&compact=");
+        req.append(compact ? "1" : "0");
         if (event != null) {
             req.append("&event=");
             req.append(event.name());
         }
         if (trackerId != null) {
             req.append("trackerid");
-            req.append(URLEncoder.encode(trackerId, encoding));
+            req.append(URLEncoder.encode(trackerId, "US-ASCII"));
         }
         URL track = new URL(req.toString());
         HttpURLConnection con = (HttpURLConnection) track.openConnection();
@@ -104,14 +110,13 @@ public class Tracker {
         BencodingReader parser = new BencodingReader(con.getInputStream());
         Map<String, Object> response = parser.readNextDictionary();
         con.disconnect();
-        Set<Peer> peers = new HashSet<Peer>();
         if (response.containsKey("failure reason")) {
             logger.warning((String) response.get("failure reason"));
         } else {
             if (response.containsKey("warning message")) {
                 logger.warning((String) response.get("warning message"));
             }
-            interval = (Integer) response.get("interval");   
+            interval = (Integer) response.get("interval");
             if (response.containsKey("min interval")) {
                 minInterval = (Integer) response.get("min interval");
             }
@@ -124,13 +129,10 @@ public class Tracker {
             if (response.containsKey("tracker id")) {
                 trackerId = (String) response.get("tracker id");
             }
-            List<Map<String, Object>> prs = (List<Map<String, Object>>) response.get("peers");
-            for (Map<String, Object> d : prs) {
-                peers.add(new Peer(new InetSocketAddress((String) d.get("ip"),
-                        ((Integer) d.get("port")).intValue()), ((String) d.get("peer id")).getBytes(encoding)));
-            }
+            return compact ? TrackerUtil.doCompactPeer(response) : TrackerUtil.
+                    doLoosePeer(response);
         }
-        return peers;
+        return new HashSet<Peer>();
     }
 
     public int getComplete() {

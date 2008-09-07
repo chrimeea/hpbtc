@@ -12,16 +12,10 @@ import java.util.TreeSet;
  */
 public class BencodingWriter {
 
-    private String encoding;
     private OutputStream os;
     
-    public BencodingWriter(OutputStream os, String encoding) {
-        this.os = os;
-        this.encoding = encoding;
-    }
-    
     public BencodingWriter(OutputStream os) {
-        this(os, "UTF-8");
+        this.os = os;
     }
     
     public void write(Number n) throws IOException {
@@ -29,7 +23,7 @@ public class BencodingWriter {
         if (n == null) {
             os.write((int) '0');
         } else {
-            os.write(n.toString().getBytes(encoding));
+            os.write(n.toString().getBytes("US-ASCII"));
         }
         os.write((int) 'e');
     }
@@ -39,7 +33,7 @@ public class BencodingWriter {
             os.write((int) '0');
             os.write((int) ':');
         } else {
-            os.write((s.length() + ":" + s).getBytes(encoding));
+            os.write((s.length() + ":" + s).getBytes("US-ASCII"));
         }
     }
     
@@ -73,9 +67,5 @@ public class BencodingWriter {
         } else {
             throw new BencodingException("Wrong type");
         }
-    }
-    
-    public String getEncoding() {
-        return encoding;
     }
 }
