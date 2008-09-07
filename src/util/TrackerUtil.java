@@ -26,7 +26,7 @@ public class TrackerUtil {
             InetAddress peerIp = InetAddress.getByAddress(
                     Arrays.copyOfRange(prs, k, k + 4));
             k += 6;
-            int peerPort = prs[k - 2] + 256 * prs[k - 1];
+            int peerPort = prs[k - 1] + 256 * prs[k - 2];
             peers.add(new Peer(new InetSocketAddress(peerIp, peerPort), null));
         }
         return peers;
