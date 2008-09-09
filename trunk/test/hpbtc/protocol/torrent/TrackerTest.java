@@ -32,7 +32,7 @@ public class TrackerTest {
                 String response = "d8:intervali10e12:min intervali5e10:tracker id3:foo8:completei20e10:incompletei9e5:peersld7:peer id2:1P2:ip9:localhost4:porti9000eed7:peer id2:2P2:ip9:localhost4:porti3003eeee";
                 t.sendResponseHeaders(200, response.length());
                 OutputStream os = t.getResponseBody();
-                os.write(response.getBytes("US-ASCII"));
+                os.write(response.getBytes("ISO-8859-1"));
                 os.close();
             }            
         });
@@ -43,8 +43,8 @@ public class TrackerTest {
         l.add("http://localhost:8001/test");
         l.add("http://localhost:8000/test");
         t.add(l);
-        Tracker ti = new Tracker("INFOHASH".getBytes("US-ASCII"),
-                "PID".getBytes("US-ASCII"), 2000, t);
+        Tracker ti = new Tracker("INFOHASH".getBytes("ISO-8859-1"),
+                "PID".getBytes("ISO-8859-1"), 2000, t);
         Set<Peer> peers = ti.updateTracker(Tracker.Event.started, 1, 2, 3, 4, false);
         server.stop(0);
         assert ti.getInterval() == 10;
@@ -53,8 +53,8 @@ public class TrackerTest {
         assert ti.getIncomplete() == 9;
         assert peers.size() == 2;
         for (Peer p : peers) {
-            assert Arrays.equals(p.getId(), "1P".getBytes("US-ASCII")) ||
-                    Arrays.equals(p.getId(), "2P".getBytes("US-ASCII"));
+            assert Arrays.equals(p.getId(), "1P".getBytes("ISO-8859-1")) ||
+                    Arrays.equals(p.getId(), "2P".getBytes("ISO-8859-1"));
         }
     }
 }

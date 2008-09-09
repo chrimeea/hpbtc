@@ -76,7 +76,7 @@ public class BencodingReader {
             while (s < n) {
                 s += is.read(dst, s, n - s);
             }
-            return new String(dst, "US-ASCII");
+            return new String(dst, "ISO-8859-1");
         }
         return null;
     }

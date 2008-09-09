@@ -23,17 +23,18 @@ public class BencodingWriter {
         if (n == null) {
             os.write((int) '0');
         } else {
-            os.write(n.toString().getBytes("US-ASCII"));
+            os.write(n.toString().getBytes("ISO-8859-1"));
         }
         os.write((int) 'e');
     }
     
     public void write(String s) throws IOException {
         if (s == null || s.isEmpty()) {
-            os.write((int) '0');
-            os.write((int) ':');
+            os.write("0:".getBytes("ISO-8859-1"));
         } else {
-            os.write((s.length() + ":" + s).getBytes("US-ASCII"));
+            byte[] b = s.getBytes("ISO-8859-1");
+            os.write((b.length + ":").getBytes("ISO-8859-1"));
+            os.write(b);
         }
     }
     

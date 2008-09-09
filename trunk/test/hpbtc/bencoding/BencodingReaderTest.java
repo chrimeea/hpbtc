@@ -17,7 +17,8 @@ public class BencodingReaderTest {
     @Test
     public void testReadNextString() throws IOException {
         try {
-            ByteArrayInputStream is = new ByteArrayInputStream("4:test".getBytes("US-ASCII"));
+            ByteArrayInputStream is = new ByteArrayInputStream(
+                    "4:test".getBytes("ISO-8859-1"));
             BencodingReader parser = new BencodingReader(is);
             String string = parser.readNextString();
             assert string.equals("test") : "String is incorrect";
@@ -29,7 +30,8 @@ public class BencodingReaderTest {
     @Test(expected = BencodingException.class)
     public void testReadNextStringWithWrongLength() throws IOException {
         try {
-            ByteArrayInputStream is = new ByteArrayInputStream("4a:test".getBytes("US-ASCII"));
+            ByteArrayInputStream is = new ByteArrayInputStream("4a:test".
+                    getBytes("ISO-8859-1"));
             BencodingReader parser = new BencodingReader(is);
             parser.readNextString();
             assert false : "String is incorrect";
@@ -41,7 +43,8 @@ public class BencodingReaderTest {
     @Test
     public void testReadNextInteger() throws IOException {
         try {
-            ByteArrayInputStream is = new ByteArrayInputStream("i89e".getBytes("US-ASCII"));
+            ByteArrayInputStream is = new ByteArrayInputStream("i89e".getBytes(
+                    "ISO-8859-1"));
             BencodingReader parser = new BencodingReader(is);
             int i = parser.readNextInteger();
             assert i == 89 : "Integer is incorrect";
@@ -53,7 +56,8 @@ public class BencodingReaderTest {
     @Test(expected = BencodingException.class)
     public void testReadNextIntegerWithoutEnding() throws IOException {
         try {
-            ByteArrayInputStream is = new ByteArrayInputStream("i89".getBytes("US-ASCII"));
+            ByteArrayInputStream is = new ByteArrayInputStream("i89".getBytes(
+                    "ISO-8859-1"));
             BencodingReader parser = new BencodingReader(is);
             parser.readNextInteger();
             assert false : "Integer is incorrect";
@@ -65,7 +69,8 @@ public class BencodingReaderTest {
     @Test(expected = BencodingException.class)
     public void testReadNextIntegerWithZeroPrefix() throws IOException {
         try {
-            ByteArrayInputStream is = new ByteArrayInputStream("i05e".getBytes("US-ASCII"));
+            ByteArrayInputStream is = new ByteArrayInputStream("i05e".getBytes(
+                    "ISO-8859-1"));
             BencodingReader parser = new BencodingReader(is);
             parser.readNextInteger();
             assert false : "Integer is incorrect";
@@ -77,7 +82,8 @@ public class BencodingReaderTest {
     @Test
     public void testReadNextList() throws IOException {
         try {
-            ByteArrayInputStream is = new ByteArrayInputStream("l5:gammai-13ee".getBytes("US-ASCII"));
+            ByteArrayInputStream is = new ByteArrayInputStream("l5:gammai-13ee".
+                    getBytes("ISO-8859-1"));
             BencodingReader parser = new BencodingReader(is);
             List list = parser.readNextList();
             Iterator it = list.iterator();
@@ -91,10 +97,11 @@ public class BencodingReaderTest {
         }
     }
 
-    @Test(expected=BencodingException.class)
+    @Test(expected = BencodingException.class)
     public void testReadNextListWithTwoLists() throws IOException {
         try {
-            ByteArrayInputStream is = new ByteArrayInputStream("lli1eeie".getBytes("US-ASCII"));
+            ByteArrayInputStream is = new ByteArrayInputStream("lli1eeie".
+                    getBytes("ISO-8859-1"));
             BencodingReader parser = new BencodingReader(is);
             parser.readNextList();
             assert false : "Incorrect list";
@@ -102,11 +109,12 @@ public class BencodingReaderTest {
             assert false : e.getLocalizedMessage();
         }
     }
-    
+
     @Test
     public void readNextDictionary() throws IOException {
         try {
-            ByteArrayInputStream is = new ByteArrayInputStream("d3:cow3:moo4:spami60ee".getBytes("US-ASCII"));
+            ByteArrayInputStream is = new ByteArrayInputStream(
+                    "d3:cow3:moo4:spami60ee".getBytes("ISO-8859-1"));
             BencodingReader parser = new BencodingReader(is);
             Map<String, Object> dict = parser.readNextDictionary();
             Iterator<String> keys = dict.keySet().iterator();
@@ -124,10 +132,11 @@ public class BencodingReaderTest {
         }
     }
 
-    @Test(expected=BencodingException.class)
+    @Test(expected = BencodingException.class)
     public void readNextDictionaryWithError() throws IOException {
         try {
-            ByteArrayInputStream is = new ByteArrayInputStream("di8e3:vale".getBytes("US-ASCII"));
+            ByteArrayInputStream is = new ByteArrayInputStream("di8e3:vale".
+                    getBytes("ISO-8859-1"));
             BencodingReader parser = new BencodingReader(is);
             parser.readNextDictionary();
             assert false : "Incorrect dictionary";

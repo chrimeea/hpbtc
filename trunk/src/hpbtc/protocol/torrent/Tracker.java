@@ -77,10 +77,10 @@ public class Tracker {
             IOException {
         StringBuilder req = new StringBuilder(tracker);
         req.append("?info_hash=");
-        req.append(URLEncoder.encode(new String(infoHash, "US-ASCII"),
-                "US-ASCII"));
+        req.append(URLEncoder.encode(new String(infoHash, "ISO-8859-1"),
+                "ISO-8859-1"));
         req.append("&peer_id=");
-        req.append(URLEncoder.encode(new String(pid, "US-ASCII"), "US-ASCII"));
+        req.append(URLEncoder.encode(new String(pid, "ISO-8859-1"), "ISO-8859-1"));
         req.append("&port=");
         req.append(port);
         req.append("&uploaded=");
@@ -99,7 +99,7 @@ public class Tracker {
         }
         if (trackerId != null) {
             req.append("trackerid");
-            req.append(URLEncoder.encode(trackerId, "US-ASCII"));
+            req.append(URLEncoder.encode(trackerId, "ISO-8859-1"));
         }
         URL track = new URL(req.toString());
         HttpURLConnection con = (HttpURLConnection) track.openConnection();

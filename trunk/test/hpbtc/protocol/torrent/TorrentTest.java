@@ -26,7 +26,7 @@ public class TorrentTest {
     
     @Test
     public void testTorrentInfo() throws IOException, NoSuchAlgorithmException {
-        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("UTF-8"));
+        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("ISO-8859-1"));
         Torrent info = new Torrent(b, ".", pid, 123);
         b.close();
         assert info.getFileLength() == 85;
@@ -55,10 +55,10 @@ public class TorrentTest {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         BencodingWriter wr = new BencodingWriter(bos);
         wr.write(f.getName());
-        String s = new String(bos.toByteArray(), "US-ASCII");
+        String s = new String(bos.toByteArray(), "ISO-8859-1");
         t += s + "12:piece lengthi65536e6:pieces20:12345678901234567890ee";        
         bos.close();
-        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("US-ASCII"));
+        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("ISO-8859-1"));
         Torrent info = new Torrent(b, f.getParent(), pid, 123);
         b.close();
         ByteBuffer piece = ByteBuffer.allocate(info.getPieceLength());
@@ -82,10 +82,10 @@ public class TorrentTest {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         BencodingWriter wr = new BencodingWriter(bos);
         wr.write(f.getName());
-        String s = new String(bos.toByteArray(), "US-ASCII");
+        String s = new String(bos.toByteArray(), "ISO-8859-1");
         t += s + "12:piece lengthi65536e6:pieces20:12345678901234567890ee";        
         bos.close();
-        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("US-ASCII"));
+        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("ISO-8859-1"));
         Torrent info = new Torrent(b, f.getParent(), pid, 123);
         b.close();
         ByteBuffer piece = ByteBuffer.allocate(info.getPieceLength());
@@ -104,7 +104,7 @@ public class TorrentTest {
     @Test
     public void testDecideNextPiece() throws IOException,
             NoSuchAlgorithmException {
-        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("UTF-8"));
+        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("ISO-8859-1"));
         Torrent info = new Torrent(b, ".", pid, 123);
         b.close();
         Peer peer = new Peer(null, null);
@@ -123,7 +123,7 @@ public class TorrentTest {
     @Test
     public void testDecideChoking() throws IOException,
             NoSuchAlgorithmException {
-        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("UTF-8"));
+        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("ISO-8859-1"));
         Torrent info = new Torrent(b, ".", pid, 123);
         b.close();
         ChannelStub cs = new ChannelStub(0);
