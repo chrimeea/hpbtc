@@ -28,9 +28,10 @@ public class Peer {
     private int uploaded;
     private int downloaded;
     
-    public Peer(InetSocketAddress address, byte[] id) {
+    public Peer(InetSocketAddress address, byte[] infoHash, byte[] id) {
         this.address = address;
         this.id = id;
+        this.infoHash = infoHash;
     }
     
     public Peer(SocketChannel chn) {

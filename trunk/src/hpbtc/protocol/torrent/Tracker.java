@@ -80,7 +80,8 @@ public class Tracker {
         req.append(URLEncoder.encode(new String(infoHash, "ISO-8859-1"),
                 "ISO-8859-1"));
         req.append("&peer_id=");
-        req.append(URLEncoder.encode(new String(pid, "ISO-8859-1"), "ISO-8859-1"));
+        req.append(
+                URLEncoder.encode(new String(pid, "ISO-8859-1"), "ISO-8859-1"));
         req.append("&port=");
         req.append(port);
         req.append("&uploaded=");
@@ -129,8 +130,8 @@ public class Tracker {
             if (response.containsKey("tracker id")) {
                 trackerId = (String) response.get("tracker id");
             }
-            return compact ? TrackerUtil.doCompactPeer(response) : TrackerUtil.
-                    doLoosePeer(response);
+            return compact ? TrackerUtil.doCompactPeer(response, infoHash) :
+                TrackerUtil.doLoosePeer(response, infoHash);
         }
         return new HashSet<Peer>();
     }

@@ -74,7 +74,7 @@ public class NetworkTest {
             @Override
             public Peer getDestination() {
                 try {
-                    return new Peer(a, "X".getBytes("ISO-8859-1"));
+                    return new Peer(a, null, "X".getBytes("ISO-8859-1"));
                 } catch (UnsupportedEncodingException e) {
                     return null;
                 }
