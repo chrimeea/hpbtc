@@ -76,7 +76,7 @@ public class Torrent {
         }
         boolean multiple = info.containsKey("files");
         int pieceLength = (Integer) info.get("piece length");
-        byte[] pieceHash = ((String) info.get("pieces")).getBytes(encoding);
+        byte[] pieceHash = ((String) info.get("pieces")).getBytes("US-ASCII");
         if (multiple) {
             List<Map> fls = (List<Map>) info.get("files");
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder, fls);
