@@ -5,6 +5,8 @@ import hpbtc.bencoding.BencodingWriter;
 import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -76,7 +78,7 @@ public class Torrent {
         }
         boolean multiple = info.containsKey("files");
         int pieceLength = (Integer) info.get("piece length");
-        byte[] pieceHash = ((String) info.get("pieces")).getBytes("US-ASCII");
+        byte[] pieceHash = ((String) info.get("pieces")).getBytes("ISO-8859-1");
         if (multiple) {
             List<Map> fls = (List<Map>) info.get("files");
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder, fls);

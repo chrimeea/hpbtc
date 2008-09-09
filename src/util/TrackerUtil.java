@@ -20,7 +20,7 @@ public class TrackerUtil {
     public static Set<Peer> doCompactPeer(Map<String, Object> response) throws
             UnsupportedEncodingException, UnknownHostException {
         Set<Peer> peers = new HashSet<Peer>();
-        byte[] prs = ((String) response.get("peers")).getBytes("US-ASCII");
+        byte[] prs = ((String) response.get("peers")).getBytes("ISO-8859-1");
         int k = 0;
         while (k < prs.length) {
             InetAddress peerIp = InetAddress.getByAddress(
@@ -40,7 +40,7 @@ public class TrackerUtil {
         for (Map<String, Object> d : prs) {
             peers.add(new Peer(new InetSocketAddress((String) d.get("ip"),
                     ((Integer) d.get("port")).intValue()), ((String) d.get(
-                    "peer id")).getBytes("US-ASCII")));
+                    "peer id")).getBytes("ISO-8859-1")));
         }
         return peers;
     }

@@ -28,7 +28,7 @@ public class NetworkTest {
         synchronized (c) {
             ch = SocketChannel.open(new InetSocketAddress(InetAddress.
                     getLocalHost(), c.getPort()));
-            ch.write(ByteBuffer.wrap("test client".getBytes("US-ASCII")));
+            ch.write(ByteBuffer.wrap("test client".getBytes("ISO-8859-1")));
             do {
                 try {
                     c.wait();
@@ -44,7 +44,7 @@ public class NetworkTest {
         int remotePort = s.getLocalPort();
         assert a.getAddress().equals(remoteAddress);
         assert a.getPort() == remotePort;
-        assert new String(m.getMessage(), "US-ASCII").equals("test client");
+        assert new String(m.getMessage(), "ISO-8859-1").equals("test client");
         synchronized (c) {
             ch.close();
             do {
@@ -74,7 +74,7 @@ public class NetworkTest {
             @Override
             public Peer getDestination() {
                 try {
-                    return new Peer(a, "X".getBytes("US-ASCII"));
+                    return new Peer(a, "X".getBytes("ISO-8859-1"));
                 } catch (UnsupportedEncodingException e) {
                     return null;
                 }
@@ -83,7 +83,7 @@ public class NetworkTest {
             @Override
             public ByteBuffer send() {
                 try {
-                    return ByteBuffer.wrap("bit torrent".getBytes("US-ASCII"));
+                    return ByteBuffer.wrap("bit torrent".getBytes("ISO-8859-1"));
                 } catch (UnsupportedEncodingException e) {
                     assert false;
                 }
@@ -96,6 +96,6 @@ public class NetworkTest {
         c.disconnect();
         ch.close();
         assert i == 11;
-        assert "bit torrent".equals(new String(b, 0, i, "US-ASCII"));
+        assert "bit torrent".equals(new String(b, 0, i, "ISO-8859-1"));
     }
 }

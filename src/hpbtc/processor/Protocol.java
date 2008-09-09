@@ -206,7 +206,7 @@ public class Protocol {
         byte[] protocol = new byte[20];
         ByteBuffer pr = ByteBuffer.wrap(protocol);
         pr.put((byte) 19);
-        pr.put("BitTorrent protocol".getBytes("US-ASCII"));
+        pr.put("BitTorrent protocol".getBytes("ISO-8859-1"));
         return protocol;
     }
 }
