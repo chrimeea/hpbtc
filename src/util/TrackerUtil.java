@@ -26,7 +26,8 @@ public class TrackerUtil {
             InetAddress peerIp = InetAddress.getByAddress(
                     Arrays.copyOfRange(prs, k, k + 4));
             k += 6;
-            int peerPort = prs[k - 1] + 256 * prs[k - 2];
+            int peerPort = getUnsigned(prs[k - 2]) * 256 + getUnsigned(
+                    prs[k - 1]);
             peers.add(new Peer(new InetSocketAddress(peerIp, peerPort), null));
         }
         return peers;
@@ -43,5 +44,9 @@ public class TrackerUtil {
                     "peer id")).getBytes("ISO-8859-1")));
         }
         return peers;
+    }
+
+    private static int getUnsigned(byte b) {
+        return b < 0 ? 127 - b : b;
     }
 }

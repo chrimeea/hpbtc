@@ -175,7 +175,7 @@ public class PeerNetwork implements Network {
         }
     }
 
-    private void disconnectedByPeer(Peer peer, PeerNetwork net) throws 
+    private void disconnectedByPeer(Peer peer, PeerNetwork net) throws
             IOException {
         closeConnection(peer);
         messagesReceived.add(new RawMessage(peer));
@@ -232,6 +232,7 @@ public class PeerNetwork implements Network {
                 } else if (w == null) {
                     q.register(selector, ro.operation, ro.peer);
                 }
+                logger.info("Registered peer " + ro.peer.getAddress());
                 ro = registered.poll();
             }
             if (n == 0) {
@@ -242,19 +243,24 @@ public class PeerNetwork implements Network {
                 SelectionKey key = i.next();
                 i.remove();
                 if (key.isValid()) {
+                    Peer peer;
                     if (key.isAcceptable()) {
                         SocketChannel chan = serverCh.accept();
                         chan.configureBlocking(false);
-                        chan.register(selector, SelectionKey.OP_READ, new Peer(
-                                chan));
+                        peer = new Peer(chan);
+                        chan.register(selector, SelectionKey.OP_READ, peer);
+                        logger.info("Accepted connection from " + peer.
+                                getAddress());
                     } else {
-                        Peer peer = (Peer) key.attachment();
+                        peer = (Peer) key.attachment();
                         SocketChannel ch = (SocketChannel) key.channel();
                         try {
                             if (key.isConnectable() && ch.finishConnect()) {
                                 ch.register(selector, (key.interestOps() |
                                         SelectionKey.OP_READ) &
                                         ~SelectionKey.OP_CONNECT, peer);
+                                logger.info("Connected to peer " + peer.
+                                        getAddress());
                             } else {
                                 if (key.isReadable()) {
                                     ch.register(selector, key.interestOps() &
@@ -265,6 +271,8 @@ public class PeerNetwork implements Network {
                                                 key.interestOps() |
                                                 SelectionKey.OP_READ, peer);
                                     }
+                                    logger.info("Received message from peer " +
+                                            peer.getAddress());
                                 }
                                 if (key.isValid() && key.isWritable()) {
                                     ch.register(selector, key.interestOps() &
@@ -279,6 +287,8 @@ public class PeerNetwork implements Network {
                                                     SelectionKey.OP_WRITE, peer);
                                         }
                                     }
+                                    logger.info("Sent message to peer " + peer.
+                                            getAddress());
                                 }
                             }
                         } catch (IOException ioe) {
