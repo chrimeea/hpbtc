@@ -195,7 +195,7 @@ public class Protocol {
                     }
                     peer.setMessagesReceived();
                 }
-            } else if (current.remaining() >= 47) {
+            } else if (current.remaining() >= 48) {
                 HandshakeMessage mHand = new HandshakeMessage(current, peer);
                 processor.processHandshake(mHand);
             }

@@ -52,6 +52,7 @@ public class MessageTest {
     @Test
     public void testReadHandshake() throws UnsupportedEncodingException {
         ByteBuffer bb = ByteBuffer.allocate(68);
+        bb.put((byte) 19);
         bb.put("BitTorrent protocol".getBytes("ISO-8859-1"));
         bb.putLong(0L);
         bb.put("01234567890123456789".getBytes("ISO-8859-1"));
@@ -71,6 +72,7 @@ public class MessageTest {
                 "BitTorrent protocol".getBytes("ISO-8859-1"), null);
         ByteBuffer bb = m.send();
         bb.rewind();
+        assert bb.get() == 19;
         byte[] p = new byte[19];
         bb.get(p);
         assert "BitTorrent protocol".equals(new String(p, "ISO-8859-1"));
