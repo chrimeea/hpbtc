@@ -134,7 +134,7 @@ public class PeerNetwork implements Network {
         SocketChannel ch = (SocketChannel) peer.getChannel();
         if (ch != null) {
             SelectionKey sk = ch.keyFor(selector);
-            if (sk != null && (sk.interestOps() & op) == 0) {
+            if (sk == null || (sk != null && (sk.interestOps() & op) == 0)) {
                 registered.add(new RegisterOp(op, peer));
             }
         } else {
