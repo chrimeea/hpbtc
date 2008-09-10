@@ -12,6 +12,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -231,13 +232,20 @@ public class PeerNetwork implements Network {
             RegisterOp ro = registered.poll();
             while (ro != null) {
                 SelectableChannel q = (SelectableChannel) ro.peer.getChannel();
-                SelectionKey w = q.keyFor(selector);
-                if (w != null && w.isValid()) {
-                    q.register(selector, w.interestOps() | ro.operation, ro.peer);
-                } else if (w == null) {
-                    q.register(selector, ro.operation, ro.peer);
+                if (q.isOpen()) {
+                    SelectionKey w = q.keyFor(selector);
+                    try {
+                        if (w != null && w.isValid()) {
+                            q.register(selector, w.interestOps() | ro.operation,
+                                    ro.peer);
+                        } else if (w == null) {
+                            q.register(selector, ro.operation, ro.peer);
+                        }
+                        logger.info("Registered " + ro.peer);
+                    } catch (ClosedChannelException e) {
+                        logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                    }
                 }
-                logger.info("Registered " + ro.peer);
                 ro = registered.poll();
             }
             if (n == 0) {
@@ -249,16 +257,16 @@ public class PeerNetwork implements Network {
                 i.remove();
                 if (key.isValid()) {
                     Peer peer;
-                    if (key.isAcceptable()) {
-                        SocketChannel chan = serverCh.accept();
-                        chan.configureBlocking(false);
-                        peer = new Peer(chan);
-                        chan.register(selector, SelectionKey.OP_READ, peer);
-                        logger.info("Accepted connection from " + peer);
-                    } else {
-                        peer = (Peer) key.attachment();
-                        SocketChannel ch = (SocketChannel) key.channel();
-                        try {
+                    try {
+                        if (key.isAcceptable()) {
+                            SocketChannel chan = serverCh.accept();
+                            chan.configureBlocking(false);
+                            peer = new Peer(chan);
+                            chan.register(selector, SelectionKey.OP_READ, peer);
+                            logger.info("Accepted connection from " + peer);
+                        } else {
+                            peer = (Peer) key.attachment();
+                            SocketChannel ch = (SocketChannel) key.channel();
                             if (key.isConnectable() && ch.finishConnect()) {
                                 ch.register(selector, (key.interestOps() |
                                         SelectionKey.OP_READ) &
@@ -290,9 +298,10 @@ public class PeerNetwork implements Network {
                                     }
                                 }
                             }
-                        } catch (IOException ioe) {
-                            logger.log(Level.WARNING, ioe.getLocalizedMessage(), ioe);
                         }
+                    } catch (IOException ioe) {
+                        logger.log(Level.WARNING, ioe.getLocalizedMessage(),
+                                ioe);
                     }
                 }
             }
