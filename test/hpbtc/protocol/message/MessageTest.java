@@ -65,6 +65,30 @@ public class MessageTest {
     }
     
     @Test
+    public void testNullPeerInfoHandshake() throws UnsupportedEncodingException {
+        ByteBuffer bb = ByteBuffer.allocate(48);
+        bb.put((byte) 19);
+        bb.put("BitTorrent protocol".getBytes("ISO-8859-1"));
+        bb.putLong(0L);
+        bb.put("01234567890123456789".getBytes("ISO-8859-1"));
+        bb.rewind();
+        HandshakeMessage m = new HandshakeMessage(bb, null);
+        assert "BitTorrent protocol".equals(new String(m.getProtocol(), "ISO-8859-1"));
+        assert "01234567890123456789".equals(new String(m.getInfoHash(), "ISO-8859-1"));
+        assert m.getPeerId() == null;
+        bb = m.send();
+        bb.rewind();
+        assert bb.get() == 19;
+        byte[] p = new byte[19];
+        bb.get(p);
+        assert "BitTorrent protocol".equals(new String(p, "ISO-8859-1"));
+        assert bb.getLong() == 0L;
+        byte[] i = new byte[20];
+        bb.get(i);
+        assert "01234567890123456789".equals(new String(i, "ISO-8859-1"));
+    }
+    
+    @Test
     public void testWriteHandshake() throws UnsupportedEncodingException {
         HandshakeMessage m = new HandshakeMessage(
                 "01234567890123456789".getBytes("ISO-8859-1"),
@@ -82,6 +106,7 @@ public class MessageTest {
         assert "01234567890123456789".equals(new String(i, "ISO-8859-1"));
         bb.get(i);
         assert "ABCDEFGHIJKLMNOPQRST".equals(new String(i, "ISO-8859-1"));
+        assert !bb.hasRemaining();
     }
     
     @Test
