@@ -22,6 +22,7 @@ public class SimpleMessage {
     public static final byte TYPE_PIECE = 7;
     public static final byte TYPE_REQUEST = 6;
     public static final byte TYPE_UNCHOKE = 1;
+    public static final byte TYPE_HANDSHAKE = -1;
     
     protected int messageLength;
     protected byte disc;

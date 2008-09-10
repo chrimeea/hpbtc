@@ -10,6 +10,7 @@ public class HandshakeMessage extends SimpleMessage {
     private byte[] protocol;
 
     public HandshakeMessage(ByteBuffer message, Peer destination) {
+        this.disc = SimpleMessage.TYPE_HANDSHAKE;
         this.destination = destination;
         message.limit(20);
         protocol = new byte[20];
@@ -28,6 +29,7 @@ public class HandshakeMessage extends SimpleMessage {
 
     public HandshakeMessage(byte[] infoHash, byte[] peerId, byte[] protocol,
             Peer destination) {
+        this.disc = SimpleMessage.TYPE_HANDSHAKE;
         this.protocol = protocol;
         this.infoHash = infoHash;
         this.peerId = peerId;
