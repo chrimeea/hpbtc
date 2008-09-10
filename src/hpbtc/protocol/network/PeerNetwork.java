@@ -135,9 +135,11 @@ public class PeerNetwork implements Network {
     private void registerNow(Peer peer, int op) throws IOException {
         SocketChannel ch = (SocketChannel) peer.getChannel();
         if (ch != null) {
-            SelectionKey sk = ch.keyFor(selector);
-            if (sk == null || (sk != null && (sk.interestOps() & op) == 0)) {
-                registered.add(new RegisterOp(op, peer));
+            if (ch.isOpen()) {
+                SelectionKey sk = ch.keyFor(selector);
+                if (sk == null || (sk != null && (sk.interestOps() & op) == 0)) {
+                    registered.add(new RegisterOp(op, peer));
+                }
             }
         } else {
             ch = SocketChannel.open();
