@@ -22,22 +22,20 @@ import util.TorrentUtil;
  */
 public class MessageProcessor {
 
-    private byte[] protocol;
     private Network network;
     private byte[] peerId;
     private Map<byte[], Torrent> torrents;
     private MessageValidator validator;
     private Map<byte[], BitSet[]> requests;
 
-    public MessageProcessor(Network network, byte[] protocol,
+    public MessageProcessor(Network network,
             Map<byte[], Torrent> torrents, byte[] peerId,
             Map<byte[], BitSet[]> requests) {
-        this.protocol = protocol;
         this.network = network;
         this.peerId = peerId;
         this.torrents = torrents;
         this.requests = requests;
-        validator = new MessageValidator(torrents, protocol);
+        validator = new MessageValidator(torrents);
     }
 
     public void processHandshake(HandshakeMessage message) throws
@@ -49,7 +47,7 @@ public class MessageProcessor {
             peer.setInfoHash(infoHash);
             peer.setHandshakeReceived();
             HandshakeMessage reply = new HandshakeMessage(infoHash, peerId,
-                    protocol, peer);
+                    Protocol.getSupportedProtocol(), peer);
             network.postMessage(reply);
             Torrent t = torrents.get(peer.getInfoHash());
             BitSet bs = t.getCompletePieces();

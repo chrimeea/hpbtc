@@ -44,18 +44,18 @@ public class Protocol {
     public Protocol() throws UnsupportedEncodingException {
         this.peerId = TorrentUtil.generateId();
         torrents = new HashMap<byte[], Torrent>();
-        byte[] protocol = getSupportedProtocol();
         timer = new Timer(true);
         this.network = new PeerNetwork();
         requests = new HashMap<byte[], BitSet[]>();
-        processor = new MessageProcessor(network, protocol, torrents, peerId,
+        processor = new MessageProcessor(network, torrents, peerId,
                 requests);
     }
 
     public void download(File fileName, String rootFolder) throws IOException,
             NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
-        final Torrent ti = new Torrent(fis, rootFolder, peerId, network.getPort());
+        final Torrent ti = new Torrent(fis, rootFolder, peerId,
+                network.getPort());
         byte[] infoHash = ti.getInfoHash();
         fis.close();
         torrents.put(infoHash, ti);
@@ -202,7 +202,8 @@ public class Protocol {
         } while (current.remaining() > 0);
     }
 
-    private byte[] getSupportedProtocol() throws UnsupportedEncodingException {
+    public static byte[] getSupportedProtocol() throws 
+            UnsupportedEncodingException {
         byte[] protocol = new byte[20];
         ByteBuffer pr = ByteBuffer.wrap(protocol);
         pr.put((byte) 19);

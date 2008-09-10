@@ -11,21 +11,18 @@ public class HandshakeMessage extends SimpleMessage {
 
     public HandshakeMessage(ByteBuffer message, Peer destination) {
         this.destination = destination;
-        byte pstrlen = message.get();
-        if (pstrlen == 19) {
-            message.limit(20);
-            protocol = new byte[19];
-            message.get(protocol);
-            message.limit(48);
-            message.position(28);
-            infoHash = new byte[20];
-            message.get(infoHash);
-            if (message.capacity() >= 68) {
-                message.limit(68);
-                message.position(48);
-                peerId = new byte[20];
-                message.get(peerId);
-            }
+        message.limit(20);
+        protocol = new byte[20];
+        message.get(protocol);
+        message.limit(48);
+        message.position(28);
+        infoHash = new byte[20];
+        message.get(infoHash);
+        if (message.capacity() >= 68) {
+            message.limit(68);
+            message.position(48);
+            peerId = new byte[20];
+            message.get(peerId);
         }
     }
 
@@ -44,7 +41,6 @@ public class HandshakeMessage extends SimpleMessage {
     @Override
     public ByteBuffer send() {
         ByteBuffer bb = ByteBuffer.allocate(peerId == null ? 48 : 68);
-        bb.put((byte) 19);
         bb.put(protocol);
         bb.putLong(0L);
         bb.put(infoHash);
