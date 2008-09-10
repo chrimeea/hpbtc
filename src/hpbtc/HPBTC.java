@@ -9,6 +9,9 @@ import java.io.File;
 import java.util.logging.Logger;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.SimpleFormatter;
 
 /**
  * @author chris
@@ -23,6 +26,9 @@ public class HPBTC {
      */
     public static void main(String[] args) throws IOException,
             NoSuchAlgorithmException {
+        Handler fh = new FileHandler("D:\\Documents and Settings\\Administrator\\Desktop\\hpbtc.log");
+        fh.setFormatter(new SimpleFormatter());
+        Logger.getLogger("").addHandler(fh);
         if (args.length < 2) {
             logger.severe("Mandatory parameter missing");
         } else {
