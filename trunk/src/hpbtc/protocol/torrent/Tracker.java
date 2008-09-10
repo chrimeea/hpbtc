@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import util.TrackerUtil;
 
@@ -65,7 +66,7 @@ public class Tracker {
                     ul.addFirst(tracker);
                     return peers;
                 } catch (IOException e) {
-                    logger.warning(e.getLocalizedMessage());
+                    logger.log(Level.WARNING, e.getLocalizedMessage(), e);
                 }
             }
         }

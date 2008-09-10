@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -95,17 +96,17 @@ public class PeerNetwork implements Network {
                     listen(net);
                 } catch (IOException e) {
                     running = false;
-                    logger.warning(e.getLocalizedMessage());
+                    logger.log(Level.WARNING, e.getLocalizedMessage(), e);
                 }
                 try {
                     selector.close();
                 } catch (IOException e) {
-                    logger.warning(e.getLocalizedMessage());
+                    logger.log(Level.WARNING, e.getLocalizedMessage(), e);
                 }
                 try {
                     serverCh.close();
                 } catch (IOException e) {
-                    logger.warning(e.getLocalizedMessage());
+                    logger.log(Level.WARNING, e.getLocalizedMessage(), e);
                 }
                 synchronized (net) {
                     net.notify();
@@ -160,7 +161,7 @@ public class PeerNetwork implements Network {
         try {
             i = peer.download(currentRead);
         } catch (IOException e) {
-            logger.warning(e.getLocalizedMessage());
+            logger.log(Level.WARNING, e.getLocalizedMessage(), e);
             i = currentRead.position();
             disconnectedByPeer(peer, net);
         }
@@ -201,7 +202,7 @@ public class PeerNetwork implements Network {
         try {
             peer.upload(currentWrite);
         } catch (IOException e) {
-            logger.warning(e.getLocalizedMessage());
+            logger.log(Level.WARNING, e.getLocalizedMessage(), e);
             disconnectedByPeer(peer, net);
         }
     }
@@ -293,7 +294,7 @@ public class PeerNetwork implements Network {
                                 }
                             }
                         } catch (IOException ioe) {
-                            logger.warning(ioe.getLocalizedMessage());
+                            logger.log(Level.WARNING, ioe.getLocalizedMessage(), ioe);
                         }
                     }
                 }
