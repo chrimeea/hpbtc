@@ -43,12 +43,14 @@ public class HandshakeMessage extends SimpleMessage {
 
     @Override
     public ByteBuffer send() {
-        ByteBuffer bb = ByteBuffer.allocate(68);
+        ByteBuffer bb = ByteBuffer.allocate(peerId == null ? 48 : 68);
         bb.put((byte) 19);
         bb.put(protocol);
         bb.putLong(0L);
         bb.put(infoHash);
-        bb.put(peerId);
+        if (peerId != null) {
+            bb.put(peerId);
+        }
         return bb;
     }
 
