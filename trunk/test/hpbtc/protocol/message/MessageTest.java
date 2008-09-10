@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import org.junit.Test;
+import hpbtc.processor.Protocol;
+import java.util.Arrays;
 
 /**
  *
@@ -59,7 +61,7 @@ public class MessageTest {
         bb.put("ABCDEFGHIJKLMNOPQRST".getBytes("ISO-8859-1"));
         bb.rewind();
         HandshakeMessage m = new HandshakeMessage(bb, null);
-        assert "BitTorrent protocol".equals(new String(m.getProtocol(), "ISO-8859-1"));
+        assert Arrays.equals(Protocol.getSupportedProtocol(), m.getProtocol());
         assert "01234567890123456789".equals(new String(m.getInfoHash(), "ISO-8859-1"));
         assert "ABCDEFGHIJKLMNOPQRST".equals(new String(m.getPeerId(), "ISO-8859-1"));
     }
@@ -73,7 +75,7 @@ public class MessageTest {
         bb.put("01234567890123456789".getBytes("ISO-8859-1"));
         bb.rewind();
         HandshakeMessage m = new HandshakeMessage(bb, null);
-        assert "BitTorrent protocol".equals(new String(m.getProtocol(), "ISO-8859-1"));
+        assert Arrays.equals(Protocol.getSupportedProtocol(), m.getProtocol());
         assert "01234567890123456789".equals(new String(m.getInfoHash(), "ISO-8859-1"));
         assert m.getPeerId() == null;
         bb = m.send();
@@ -93,7 +95,7 @@ public class MessageTest {
         HandshakeMessage m = new HandshakeMessage(
                 "01234567890123456789".getBytes("ISO-8859-1"),
                 "ABCDEFGHIJKLMNOPQRST".getBytes("ISO-8859-1"),
-                "BitTorrent protocol".getBytes("ISO-8859-1"), null);
+                Protocol.getSupportedProtocol(), null);
         ByteBuffer bb = m.send();
         bb.rewind();
         assert bb.get() == 19;
