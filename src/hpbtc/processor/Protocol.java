@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import util.TorrentUtil;
 
@@ -82,7 +83,7 @@ public class Protocol {
                             p.setClientChoking(true);
                         }
                     } catch (IOException ex) {
-                        logger.warning(ex.getLocalizedMessage());
+                        logger.log(Level.WARNING, ex.getLocalizedMessage(), ex);
                     }
                 }
             }
@@ -126,13 +127,16 @@ public class Protocol {
                             message = network.takeMessage();
                             process(message);
                         } catch (NoSuchAlgorithmException noe) {
-                            logger.severe(noe.getLocalizedMessage());
+                            logger.log(Level.SEVERE, noe.getLocalizedMessage(),
+                                    noe);
                         } catch (IOException ioe) {
-                            logger.warning(ioe.getLocalizedMessage());
+                            logger.log(Level.WARNING, ioe.getLocalizedMessage(),
+                                    ioe);
                             try {
                                 network.closeConnection(message.getPeer());
                             } catch (IOException e) {
-                                logger.warning(e.getLocalizedMessage());
+                                logger.log(Level.WARNING,
+                                        e.getLocalizedMessage(), e);
                             }
                         }
                     } while (network.hasUnreadMessages());
@@ -202,7 +206,7 @@ public class Protocol {
         } while (current.remaining() > 0);
     }
 
-    public static byte[] getSupportedProtocol() throws 
+    public static byte[] getSupportedProtocol() throws
             UnsupportedEncodingException {
         byte[] protocol = new byte[20];
         ByteBuffer pr = ByteBuffer.wrap(protocol);
