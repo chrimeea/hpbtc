@@ -139,6 +139,7 @@ public class PeerNetwork implements Network {
                 SelectionKey sk = ch.keyFor(selector);
                 if (sk == null || (sk != null && (sk.interestOps() & op) == 0)) {
                     registered.add(new RegisterOp(op, peer));
+                    selector.wakeup();
                 }
             }
         } else {
@@ -151,8 +152,9 @@ public class PeerNetwork implements Network {
                 registered.add(
                         new RegisterOp(SelectionKey.OP_CONNECT | op, peer));
             }
+            selector.wakeup();
         }
-        selector.wakeup();
+        
     }
 
     public boolean hasUnreadMessages() {
