@@ -166,4 +166,9 @@ public class Peer {
         uploaded = 0;
         downloaded = 0;
     }
+
+    @Override
+    public String toString() {
+        return address.toString();
+    }
 }
