@@ -62,4 +62,9 @@ public class SimpleMessage {
         bb.put(disc);
         return bb;
     }
+
+    @Override
+    public String toString() {
+        return "type " + disc + ", peer " + destination;
+    }
 }
