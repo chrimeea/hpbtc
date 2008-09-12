@@ -34,17 +34,14 @@ public class Torrent {
     private String createdBy;
     private String encoding;
     private FileStore fileStore;
-    private Tracker tracker;
     private List<Peer> peers;
-    private Iterable<Peer> freshPeers;
     private Random random;
     private int uploaded;
     private int downloaded;
     private int optimisticCounter;
 
-    public Torrent(final InputStream is, final String rootFolder,
-            final byte[] peerId, final int port) throws IOException,
-            NoSuchAlgorithmException {
+    public Torrent(final InputStream is, final String rootFolder)
+            throws IOException, NoSuchAlgorithmException {
         random = new Random();
         BencodingReader parser = new BencodingReader(is);
         Map<String, Object> meta = parser.readNextDictionary();
@@ -87,9 +84,7 @@ public class Torrent {
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder,
                     fileName, fileLength);
         }
-        tracker = new Tracker(infoHash, peerId, port, trackers);
         peers = new LinkedList<Peer>();
-        freshPeers = new LinkedList<Peer>();
     }
 
     public List<Peer> getConnectedPeers() {
@@ -174,20 +169,16 @@ public class Torrent {
         return null;
     }
 
-    public Iterable<Peer> getFreshPeers() {
-        return freshPeers;
-    }
-
     public void addPeer(Peer peer) {
         peers.add(peer);
     }
 
-    public void beginTracker() {
-        freshPeers = tracker.beginTracker(getFileLength());
+    public int getUploaded() {
+        return uploaded;
     }
-
-    public void endTracker() {
-        tracker.endTracker(uploaded, downloaded);
+    
+    public int getDownloaded() {
+        return downloaded;
     }
 
     public boolean savePiece(final int begin, final int index,
