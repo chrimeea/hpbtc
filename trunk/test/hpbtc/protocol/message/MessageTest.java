@@ -19,7 +19,7 @@ public class MessageTest {
         bb.putShort((short) 63472);
         bb.put((byte) 0);
         bb.rewind();
-        BitfieldMessage m = new BitfieldMessage(bb, 3, null);
+        BitfieldMessage m = new BitfieldMessage(bb, null);
         BitSet bs = m.getBitfield();
         assert bs.nextSetBit(0) == 0;
         assert bs.nextSetBit(1) == 1;
@@ -63,7 +63,7 @@ public class MessageTest {
         HandshakeMessage m = new HandshakeMessage(bb, null);
         assert Arrays.equals(Protocol.getSupportedProtocol(), m.getProtocol());
         assert "01234567890123456789".equals(new String(m.getInfoHash(), "ISO-8859-1"));
-        assert "ABCDEFGHIJKLMNOPQRST".equals(new String(m.getPeerId(), "ISO-8859-1"));
+        assert m.getPeerId() == null;
     }
     
     @Test
@@ -139,7 +139,7 @@ public class MessageTest {
         bb.putInt(123);
         bb.putInt(46734);
         bb.rewind();
-        PieceMessage m = new PieceMessage(bb, 12, null);
+        PieceMessage m = new PieceMessage(bb, null);
         ByteBuffer b = m.getPiece();
         assert m.getBegin() == 123;
         assert m.getIndex() == 456;

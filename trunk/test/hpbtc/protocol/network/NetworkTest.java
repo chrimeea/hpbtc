@@ -1,5 +1,7 @@
 package hpbtc.protocol.network;
 
+import hpbtc.processor.MessageReader;
+import hpbtc.processor.MessageWriter;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
@@ -9,7 +11,9 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.security.NoSuchAlgorithmException;
 import org.junit.Test;
 import util.IOUtil;
 
@@ -22,74 +26,78 @@ public class NetworkTest {
     @Test
     public void testNetworkIncomingConnection() throws IOException,
             UnsupportedEncodingException {
-        PeerNetwork c = new PeerNetwork();
-        c.connect();
-        SocketChannel ch;
-        synchronized (c) {
-            ch = SocketChannel.open(new InetSocketAddress(InetAddress.
-                    getLocalHost(), c.getPort()));
-            ch.write(ByteBuffer.wrap("test client".getBytes("ISO-8859-1")));
-            do {
-                try {
-                    c.wait();
-                } catch (InterruptedException e) {
-                }
-            } while (!c.hasUnreadMessages());
-        }
-        RawMessage m = c.takeMessage();
-        Socket s = ch.socket();
-        InetSocketAddress a = IOUtil.getAddress(
-                (SocketChannel) m.getPeer().getChannel());
-        InetAddress remoteAddress = s.getLocalAddress();
-        int remotePort = s.getLocalPort();
-        assert a.getAddress().equals(remoteAddress);
-        assert a.getPort() == remotePort;
-        assert new String(m.getMessage(), "ISO-8859-1").equals("test client");
-        synchronized (c) {
-            ch.close();
-            do {
-                try {
-                    c.wait();
-                } catch (InterruptedException e) {
-                }
-            } while (!c.hasUnreadMessages());
-        }
-        m = c.takeMessage();
-        a = m.getPeer().getAddress();
-        assert m.isDisconnect();
-        assert a.getAddress().equals(remoteAddress);
-        assert a.getPort() == remotePort;
+        final Network c = new NetworkReader(new MessageReader() {
+
+            public void readMessage(Peer peer) throws IOException,
+                    NoSuchAlgorithmException {
+                peer.setNextDataExpectation(11);
+                assert peer.download();
+                ByteBuffer bb = peer.getData();
+                SocketChannel ch = (SocketChannel) peer.getChannel();
+                Socket s = ch.socket();
+                InetSocketAddress a = IOUtil.getAddress(ch);
+                InetAddress remoteAddress = s.getLocalAddress();
+                int remotePort = s.getPort();
+                assert a.getAddress().equals(remoteAddress);
+                assert a.getPort() == remotePort;
+                bb.limit(11);
+                assert bb.equals(ByteBuffer.wrap("test client".getBytes()));
+            }
+
+            public int connect() throws IOException {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            public void disconnect() {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+        });
+        int port = c.connect();
+        SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.
+                getLocalHost(), port));
+        ch.write(ByteBuffer.wrap("test client".getBytes("ISO-8859-1")));
         c.disconnect();
     }
 
     @Test
     public void testNetworkConnect() throws IOException {
         ServerSocket ch = new ServerSocket(0);
-        PeerNetwork c = new PeerNetwork();
-        c.connect();
-        final InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(),
-                ch.getLocalPort());
-        c.postMessage(new SimpleMessage() {
+        NetworkWriter c = new NetworkWriter(new MessageWriter() {
 
-            @Override
-            public Peer getDestination() {
-                try {
-                    return new Peer(a, null, "X".getBytes("ISO-8859-1"));
-                } catch (UnsupportedEncodingException e) {
-                    return null;
-                }
+            public void postMessage(SimpleMessage arg0) throws IOException {
+                throw new UnsupportedOperationException("Not supported yet.");
             }
-            
-            @Override
-            public ByteBuffer send() {
-                try {
-                    return ByteBuffer.wrap("bit torrent".getBytes("ISO-8859-1"));
-                } catch (UnsupportedEncodingException e) {
-                    assert false;
-                }
-                return null;
+
+            public void writeNext(Peer p) throws IOException {
+                p.upload(ByteBuffer.wrap("bit torrent".getBytes("ISO-8859-1")));
+            }
+
+            public void closeConnection(Peer arg0) throws IOException {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            public void cancelPieceMessage(int arg0, int arg1, int arg2,
+                    Peer arg3) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            public boolean isEmpty(Peer arg0) {
+                return true;
+            }
+
+            public int connect() throws IOException {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            public void disconnect() {
+                throw new UnsupportedOperationException("Not supported yet.");
             }
         });
+        c.connect();
+        InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(),
+                ch.getLocalPort());
+        Peer peer = new Peer(a, null, "X".getBytes("ISO-8859-1"));
+        c.registerNow(peer, SelectionKey.OP_WRITE);
         Socket s = ch.accept();
         byte[] b = new byte[15];
         int i = s.getInputStream().read(b);
