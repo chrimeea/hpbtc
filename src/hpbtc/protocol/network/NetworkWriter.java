@@ -42,12 +42,12 @@ public class NetworkWriter implements Network {
                     listen();
                 } catch (Exception e) {
                     running = false;
-                    logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
                 }
                 try {
                     selector.close();
                 } catch (IOException e) {
-                    logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
                 }
             }
         }).start();
