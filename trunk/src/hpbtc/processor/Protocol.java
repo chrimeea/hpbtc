@@ -18,6 +18,7 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -110,9 +111,11 @@ public class Protocol {
 
             @Override
             public void run() {
-                contactFreshPeers(tracker.updateTracker(null, ti.getUploaded(),
+                Set<Peer> p = tracker.updateTracker(null, ti.getUploaded(),
                         ti.getDownloaded(),
-                        ti.getFileLength() - ti.getDownloaded(), true));
+                        ti.getFileLength() - ti.getDownloaded(), true);
+                p.removeAll(ti.getConnectedPeers());
+                contactFreshPeers(p);
             }
         }, tracker.getInterval() * 1000);
     }

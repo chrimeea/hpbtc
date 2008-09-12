@@ -13,6 +13,8 @@ import org.junit.Test;
 import util.IOUtil;
 import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.SimpleMessage;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.BitSet;
 import util.ChannelStub;
 
@@ -21,13 +23,11 @@ import util.ChannelStub;
  * @author Cristian Mocanu
  */
 public class TorrentTest {
-
-    private byte[] pid = new byte[20];
     
     @Test
     public void testTorrentInfo() throws IOException, NoSuchAlgorithmException {
         ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("ISO-8859-1"));
-        Torrent info = new Torrent(b, ".", pid, 123);
+        Torrent info = new Torrent(b, ".");
         b.close();
         assert info.getFileLength() == 85;
         assert info.getComment().equals("test comment");
@@ -59,7 +59,7 @@ public class TorrentTest {
         t += s + "12:piece lengthi65536e6:pieces20:12345678901234567890ee";        
         bos.close();
         ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("ISO-8859-1"));
-        Torrent info = new Torrent(b, f.getParent(), pid, 123);
+        Torrent info = new Torrent(b, f.getParent());
         b.close();
         ByteBuffer piece = ByteBuffer.allocate(info.getPieceLength());
         for (int i = 0; i < info.getPieceLength(); i++) {
@@ -86,7 +86,7 @@ public class TorrentTest {
         t += s + "12:piece lengthi65536e6:pieces20:12345678901234567890ee";        
         bos.close();
         ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("ISO-8859-1"));
-        Torrent info = new Torrent(b, f.getParent(), pid, 123);
+        Torrent info = new Torrent(b, f.getParent());
         b.close();
         ByteBuffer piece = ByteBuffer.allocate(info.getPieceLength());
         for (int i = 0; i < info.getPieceLength(); i++) {
@@ -105,7 +105,7 @@ public class TorrentTest {
     public void testDecideNextPiece() throws IOException,
             NoSuchAlgorithmException {
         ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("ISO-8859-1"));
-        Torrent info = new Torrent(b, ".", pid, 123);
+        Torrent info = new Torrent(b, ".");
         b.close();
         Peer peer = new Peer(null, null, null);
         peer.setPiece(0);
@@ -124,18 +124,19 @@ public class TorrentTest {
     public void testDecideChoking() throws IOException,
             NoSuchAlgorithmException {
         ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("ISO-8859-1"));
-        Torrent info = new Torrent(b, ".", pid, 123);
+        Torrent info = new Torrent(b, ".");
         b.close();
         ChannelStub cs = new ChannelStub(0, false);
-        Peer peer = new Peer(null, null, null);
+        InetAddress ia = InetAddress.getLocalHost();
+        Peer peer = new Peer(new InetSocketAddress(ia, 9001), null, null);
         peer.setChannel(cs);peer.setHandshakeReceived();info.addPeer(peer);
-        peer = new Peer(null, null, null);
+        peer = new Peer(new InetSocketAddress(ia, 9002), null, null);
         peer.setChannel(cs);peer.setHandshakeReceived();info.addPeer(peer);
-        peer = new Peer(null, null, null);
+        peer = new Peer(new InetSocketAddress(ia, 9003), null, null);
         peer.setChannel(cs);peer.setHandshakeReceived();info.addPeer(peer);
-        peer = new Peer(null, null, null);
+        peer = new Peer(new InetSocketAddress(ia, 9004), null, null);
         peer.setChannel(cs);peer.setHandshakeReceived();info.addPeer(peer);
-        peer = new Peer(null, null, null);
+        peer = new Peer(new InetSocketAddress(ia, 9005), null, null);
         peer.setChannel(cs);peer.setHandshakeReceived();info.addPeer(peer);
         List<SimpleMessage> m = info.decideChoking();
         assert m.size() == 5;

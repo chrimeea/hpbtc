@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import util.TrackerUtil;
@@ -42,7 +44,7 @@ public class Tracker {
         this.trackers = trackers;
     }
 
-    public Iterable<Peer> beginTracker(final int bytesLeft) {
+    public Set<Peer> beginTracker(final int bytesLeft) {
         return updateTracker(Event.started, 0, 0, bytesLeft, true);
     }
 
@@ -50,14 +52,14 @@ public class Tracker {
         updateTracker(Event.completed, uploaded, downloaded, 0, true);
     }
 
-    public Iterable<Peer> updateTracker(final Event event, final int uploaded,
+    public Set<Peer> updateTracker(final Event event, final int uploaded,
             final int downloaded, final int bytesLeft, final boolean compact) {
         for (LinkedList<String> ul : trackers) {
             Iterator<String> i = ul.iterator();
             while (i.hasNext()) {
                 String tracker = i.next();
                 try {
-                    Iterable<Peer> peers = connectToTracker(event, tracker, uploaded,
+                    Set<Peer> peers = connectToTracker(event, tracker, uploaded,
                             downloaded, bytesLeft, compact);
                     i.remove();
                     ul.addFirst(tracker);
@@ -70,7 +72,7 @@ public class Tracker {
         return null;
     }
 
-    private Iterable<Peer> connectToTracker(final Event event,
+    private Set<Peer> connectToTracker(final Event event,
             final String tracker, final int uploaded, final int dloaded,
             final int bytesLeft, final boolean compact)
             throws IOException {
@@ -130,7 +132,7 @@ public class Tracker {
             return compact ? TrackerUtil.doCompactPeer(response, infoHash) :
                 TrackerUtil.doLoosePeer(response, infoHash);
         }
-        return new LinkedList<Peer>();
+        return new HashSet<Peer>();
     }
 
     public int getComplete() {
