@@ -12,7 +12,7 @@ public class BTFile {
     private int length;
     private File file;
     
-    public BTFile(String path, int length) {
+    public BTFile(final String path, final int length) {
         this.path = path;
         this.length = length;
         file = new File(path);

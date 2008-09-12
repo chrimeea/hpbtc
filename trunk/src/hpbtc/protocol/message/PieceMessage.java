@@ -17,15 +17,15 @@ public class PieceMessage extends SimpleMessage {
     private int index;
     private ByteBuffer piece;
     
-    public PieceMessage(ByteBuffer message, Peer destination) {
+    public PieceMessage(final ByteBuffer message, final Peer destination) {
         super(message.remaining(), TYPE_PIECE, destination);
         index = message.getInt();
         begin = message.getInt();
         piece = message;
     }
 
-    public PieceMessage(int begin, int index, ByteBuffer piece, int len,
-            Peer destination) {
+    public PieceMessage(final int begin, final int index, final ByteBuffer piece,
+            final int len, final Peer destination) {
         super(8 + len, TYPE_PIECE, destination);
         this.begin = begin;
         this.index = index;

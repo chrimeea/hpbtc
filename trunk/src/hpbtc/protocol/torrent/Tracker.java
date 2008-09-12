@@ -35,24 +35,25 @@ public class Tracker {
     private int port;
     private List<LinkedList<String>> trackers;
 
-    public Tracker(byte[] infoHash, byte[] pid, int port,
-            List<LinkedList<String>> trackers) {
+    public Tracker(final byte[] infoHash, final byte[] pid, final int port,
+            final List<LinkedList<String>> trackers) {
         this.infoHash = infoHash;
         this.pid = pid;
         this.port = port;
         this.trackers = trackers;
     }
 
-    public Iterable<Peer> beginTracker(int bytesLeft) {
+    public Iterable<Peer> beginTracker(final int bytesLeft) {
         return updateTracker(Event.started, 0, 0, bytesLeft, TOTAL_PEERS, true);
     }
 
-    public void endTracker(int uploaded, int downloaded) {
+    public void endTracker(final int uploaded, final int downloaded) {
         updateTracker(Event.completed, uploaded, downloaded, 0, 0, true);
     }
 
-    public Iterable<Peer> updateTracker(Event event, int uploaded, int downloaded,
-            int bytesLeft, int totalPeers, boolean compact) {
+    public Iterable<Peer> updateTracker(final Event event, final int uploaded,
+            final int downloaded, final int bytesLeft, final int totalPeers,
+            final boolean compact) {
         for (LinkedList<String> ul : trackers) {
             Iterator<String> i = ul.iterator();
             while (i.hasNext()) {
@@ -71,9 +72,10 @@ public class Tracker {
         return null;
     }
 
-    private Iterable<Peer> connectToTracker(Event event, String tracker, int uploaded,
-            int dloaded, int bytesLeft, int totalPeers, boolean compact) throws
-            IOException {
+    private Iterable<Peer> connectToTracker(final Event event,
+            final String tracker, final int uploaded, final int dloaded,
+            final int bytesLeft, final int totalPeers, final boolean compact)
+            throws IOException {
         StringBuilder req = new StringBuilder(tracker);
         req.append("?info_hash=");
         req.append(URLEncoder.encode(new String(infoHash, "ISO-8859-1"),

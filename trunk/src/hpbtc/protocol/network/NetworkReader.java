@@ -34,7 +34,8 @@ public class NetworkReader {
     private MessageReader processor;
     private Register register;
 
-    public NetworkReader(MessageReader processor, Register register) {
+    public NetworkReader(final MessageReader processor,
+            final Register register) {
         this.processor = processor;
         this.register = register;
     }

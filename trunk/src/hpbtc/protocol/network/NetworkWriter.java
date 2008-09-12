@@ -24,7 +24,7 @@ public class NetworkWriter {
     private MessageWriter writer;
     private Register register;
 
-    public NetworkWriter(MessageWriter writer, Register register) {
+    public NetworkWriter(final MessageWriter writer, final Register register) {
         this.writer = writer;
         this.register = register;
     }

@@ -19,18 +19,18 @@ public class MessageValidator {
 
     private Map<byte[], Torrent> torrents;
 
-    public MessageValidator(Map<byte[], Torrent> torrents) {
+    public MessageValidator(final Map<byte[], Torrent> torrents) {
         this.torrents = torrents;
     }
 
-    public boolean validateHandshakeMessage(HandshakeMessage message) throws
-            UnsupportedEncodingException {
+    public boolean validateHandshakeMessage(final HandshakeMessage message)
+            throws UnsupportedEncodingException {
         return !message.getDestination().isHandshakeReceived() && Arrays.equals(
                 message.getProtocol(), Protocol.getSupportedProtocol()) &&
                 torrents.containsKey(message.getInfoHash());
     }
 
-    public boolean validateBitfieldMessage(BitfieldMessage message) {
+    public boolean validateBitfieldMessage(final BitfieldMessage message) {
         Peer peer = message.getDestination();
         if (peer.isMessagesReceived()) {
             return false;
@@ -44,27 +44,27 @@ public class MessageValidator {
         return true;
     }
 
-    public boolean validateCancelMessage(BlockMessage message) {
+    public boolean validateCancelMessage(final BlockMessage message) {
         Peer peer = message.getDestination();
         Torrent t = torrents.get(peer.getInfoHash());
         return message.getIndex() < t.getNrPieces() && message.getBegin() < t.
                 getPieceLength();
     }
 
-    public boolean validateHaveMessage(HaveMessage message) {
+    public boolean validateHaveMessage(final HaveMessage message) {
         Peer peer = message.getDestination();
         Torrent t = torrents.get(peer.getInfoHash());
         return message.getIndex() < t.getNrPieces();
     }
 
-    public boolean validatePieceMessage(PieceMessage message) {
+    public boolean validatePieceMessage(final PieceMessage message) {
         Peer peer = message.getDestination();
         Torrent t = torrents.get(peer.getInfoHash());
         return message.getIndex() < t.getNrPieces() && message.getBegin() < t.
                 getPieceLength();
     }
 
-    public boolean validateRequestMessage(BlockMessage message) {
+    public boolean validateRequestMessage(final BlockMessage message) {
         Peer peer = message.getDestination();
         byte[] infoHash = peer.getInfoHash();
         Torrent t = torrents.get(infoHash);

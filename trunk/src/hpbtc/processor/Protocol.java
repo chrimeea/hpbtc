@@ -47,8 +47,8 @@ public class Protocol {
         requests = new HashMap<byte[], BitSet[]>();
     }
 
-    public void download(File fileName, String rootFolder) throws IOException,
-            NoSuchAlgorithmException {
+    public void download(final File fileName, final String rootFolder)
+            throws IOException, NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
         final Torrent ti = new Torrent(fis, rootFolder, peerId, port);
         byte[] infoHash = ti.getInfoHash();
@@ -84,8 +84,8 @@ public class Protocol {
         }, 10000);
     }
 
-    private void beginPeers(Torrent ti) throws UnsupportedEncodingException,
-            IOException {
+    private void beginPeers(final Torrent ti)
+            throws UnsupportedEncodingException, IOException {
         ti.beginTracker();
         for (Peer peer : ti.getFreshPeers()) {
             SimpleMessage m = new HandshakeMessage(peer.getInfoHash(),

@@ -30,13 +30,14 @@ public class Peer {
     private int downloaded;
     private ByteBuffer data;
 
-    public Peer(InetSocketAddress address, byte[] infoHash, byte[] id) {
+    public Peer(final InetSocketAddress address, final byte[] infoHash,
+            final byte[] id) {
         this.address = address;
         this.id = id;
         this.infoHash = infoHash;
     }
 
-    public Peer(SocketChannel chn) {
+    public Peer(final SocketChannel chn) {
         this.channel = chn;
         this.address = IOUtil.getAddress(chn);
     }
@@ -57,13 +58,13 @@ public class Peer {
         return downloaded;
     }
 
-    public int upload(ByteBuffer bb) throws IOException {
+    public int upload(final ByteBuffer bb) throws IOException {
         int i = IOUtil.writeToChannel(channel, bb);
         uploaded += i;
         return i;
     }
     
-    public void setNextDataExpectation(int i) {
+    public void setNextDataExpectation(final int i) {
         if (data == null || data.capacity() < i) {
             data = ByteBuffer.allocate(i);
         }
@@ -90,11 +91,11 @@ public class Peer {
         return clientChoking;
     }
 
-    public void setClientChoking(boolean clientChoking) {
+    public void setClientChoking(final boolean clientChoking) {
         this.clientChoking = clientChoking;
     }
 
-    public void setClientInterested(boolean clientInterested) {
+    public void setClientInterested(final boolean clientInterested) {
         this.clientInterested = clientInterested;
     }
 
@@ -126,15 +127,15 @@ public class Peer {
         return channel;
     }
 
-    public void setChannel(ByteChannel channel) {
+    public void setChannel(final ByteChannel channel) {
         this.channel = channel;
     }
 
-    public void setId(byte[] id) {
+    public void setId(final byte[] id) {
         this.id = id;
     }
 
-    public void setInfoHash(byte[] infoHash) {
+    public void setInfoHash(final byte[] infoHash) {
         this.infoHash = infoHash;
     }
 
@@ -142,7 +143,7 @@ public class Peer {
         return infoHash;
     }
 
-    public void setPeerInterested(boolean interested) {
+    public void setPeerInterested(final boolean interested) {
         peerInterested = interested;
     }
 
@@ -150,7 +151,7 @@ public class Peer {
         return peerInterested;
     }
 
-    public void setPeerChoking(boolean choking) {
+    public void setPeerChoking(final boolean choking) {
         peerChoking = choking;
     }
 
@@ -158,11 +159,11 @@ public class Peer {
         return peerChoking;
     }
 
-    public void setPieces(BitSet bs) {
+    public void setPieces(final BitSet bs) {
         pieces = bs;
     }
 
-    public void setPiece(int index) {
+    public void setPiece(final int index) {
         pieces.set(index);
     }
 
@@ -178,7 +179,7 @@ public class Peer {
         return pieces;
     }
 
-    public BitSet getOtherPieces(BitSet bs) {
+    public BitSet getOtherPieces(final BitSet bs) {
         if (pieces == null) {
             pieces = new BitSet(bs.size());
             return pieces;

@@ -17,12 +17,13 @@ public class BitfieldMessage extends SimpleMessage {
     
     private BitSet pieces;
     
-    public BitfieldMessage(ByteBuffer message, Peer destination) {
+    public BitfieldMessage(final ByteBuffer message, final Peer destination) {
         super(message.remaining(), TYPE_BITFIELD, destination);
         pieces = IOUtil.bytesToBits(message);
     }
     
-    public BitfieldMessage(BitSet pieces, int nPieces, Peer destination) {
+    public BitfieldMessage(final BitSet pieces, final int nPieces,
+            final Peer destination) {
         super((int) Math.ceil(nPieces / 8.0), TYPE_BITFIELD, destination);
         this.pieces = pieces;
     }

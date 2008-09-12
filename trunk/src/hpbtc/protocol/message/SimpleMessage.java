@@ -31,15 +31,16 @@ public class SimpleMessage {
     public SimpleMessage() {
     }
     
-    public void setDestination(Peer destination) {
+    public void setDestination(final Peer destination) {
         this.destination = destination;
     }
     
-    public SimpleMessage(byte disc, Peer destination) {
+    public SimpleMessage(final byte disc, final Peer destination) {
         this(0, disc, destination);
     }
     
-    public SimpleMessage(int len, byte disc, Peer destination) {
+    public SimpleMessage(final int len, final byte disc,
+            final Peer destination) {
         messageLength = len + 1;
         this.disc = disc;
         this.destination = destination;

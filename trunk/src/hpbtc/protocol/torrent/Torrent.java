@@ -42,8 +42,9 @@ public class Torrent {
     private int downloaded;
     private int optimisticCounter;
 
-    public Torrent(InputStream is, String rootFolder, byte[] peerId, int port)
-            throws IOException, NoSuchAlgorithmException {
+    public Torrent(final InputStream is, final String rootFolder,
+            final byte[] peerId, final int port) throws IOException,
+            NoSuchAlgorithmException {
         random = new Random();
         BencodingReader parser = new BencodingReader(is);
         Map<String, Object> meta = parser.readNextDictionary();
@@ -138,7 +139,7 @@ public class Torrent {
         return result;
     }
 
-    private int getActualPieceSize(int index) {
+    private int getActualPieceSize(final int index) {
         int n = getNrPieces();
         int l = getPieceLength();
         return index == n - 1 ? (n - 1) * l + getFileLength() : l;
@@ -148,7 +149,8 @@ public class Torrent {
         return fileStore.getChunkSize();
     }
 
-    public BlockMessage decideNextPiece(Peer peer, BitSet[] requests) {
+    public BlockMessage decideNextPiece(final Peer peer,
+            final BitSet[] requests) {
         BitSet bs = peer.getOtherPieces(getCompletePieces());
         int chunkSize = getChunkSize();
         for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
@@ -188,8 +190,9 @@ public class Torrent {
         tracker.endTracker(uploaded, downloaded);
     }
 
-    public boolean savePiece(int begin, int index, ByteBuffer piece)
-            throws IOException, NoSuchAlgorithmException {
+    public boolean savePiece(final int begin, final int index,
+            final ByteBuffer piece) throws IOException,
+            NoSuchAlgorithmException {
         downloaded += piece.remaining();
         return fileStore.savePiece(begin, index, piece);
     }
@@ -198,8 +201,8 @@ public class Torrent {
         return fileStore.isTorrentComplete();
     }
 
-    public ByteBuffer loadPiece(int begin, int index, int length)
-            throws IOException {
+    public ByteBuffer loadPiece(final int begin, final int index,
+            final int length) throws IOException {
         uploaded += length;
         return fileStore.loadPiece(begin, index, length);
     }
@@ -216,7 +219,7 @@ public class Torrent {
         return fileStore.getNrPieces();
     }
 
-    public boolean isPieceComplete(int index) {
+    public boolean isPieceComplete(final int index) {
         return fileStore.isPieceComplete(index);
     }
 

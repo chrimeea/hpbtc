@@ -34,8 +34,9 @@ public class MessageReaderImpl implements MessageReader {
     private Map<byte[], BitSet[]> requests;
     private List<byte[]> expectBody;
 
-    public MessageReaderImpl(Map<byte[], Torrent> torrents, byte[] peerId,
-            Map<byte[], BitSet[]> requests, MessageWriter writer) {
+    public MessageReaderImpl(final Map<byte[], Torrent> torrents,
+            final byte[] peerId, final Map<byte[], BitSet[]> requests,
+            final MessageWriter writer) {
         this.writer = writer;
         this.peerId = peerId;
         this.torrents = torrents;
@@ -44,7 +45,7 @@ public class MessageReaderImpl implements MessageReader {
         this.expectBody = new LinkedList<byte[]>();
     }
     
-    public void readMessage(Peer peer) throws IOException,
+    public void readMessage(final Peer peer) throws IOException,
             NoSuchAlgorithmException {
         if (peer.isHandshakeReceived()) {
             if (peer.getId() == null) {
@@ -124,7 +125,7 @@ public class MessageReaderImpl implements MessageReader {
         }
     }
 
-    private void processHandshake(HandshakeMessage message) throws
+    private void processHandshake(final HandshakeMessage message) throws
             IOException {
         Peer peer = message.getDestination();
         if (validator.validateHandshakeMessage(message)) {
@@ -150,7 +151,7 @@ public class MessageReaderImpl implements MessageReader {
         }
     }
 
-    private void processBitfield(BitfieldMessage message) throws
+    private void processBitfield(final BitfieldMessage message) throws
             IOException {
         if (validator.validateBitfieldMessage(message)) {
             Peer peer = message.getDestination();
@@ -165,7 +166,7 @@ public class MessageReaderImpl implements MessageReader {
         }
     }
 
-    private void processCancel(BlockMessage message) {
+    private void processCancel(final BlockMessage message) {
         if (validator.validateCancelMessage(message)) {
             Peer peer = message.getDestination();
             writer.cancelPieceMessage(message.getBegin(),
@@ -173,11 +174,11 @@ public class MessageReaderImpl implements MessageReader {
         }
     }
 
-    private void processChoke(Peer peer) {
+    private void processChoke(final Peer peer) {
         peer.setPeerChoking(true);
     }
 
-    private void processHave(HaveMessage message) throws IOException {
+    private void processHave(final HaveMessage message) throws IOException {
         if (validator.validateHaveMessage(message)) {
             Peer peer = message.getDestination();
             int index = message.getIndex();
@@ -192,15 +193,15 @@ public class MessageReaderImpl implements MessageReader {
         }
     }
 
-    private void processInterested(Peer peer) {
+    private void processInterested(final Peer peer) {
         peer.setPeerInterested(true);
     }
 
-    private void processNotInterested(Peer peer) {
+    private void processNotInterested(final Peer peer) {
         peer.setPeerInterested(false);
     }
 
-    private void processPiece(PieceMessage message)
+    private void processPiece(final PieceMessage message)
             throws NoSuchAlgorithmException, IOException {
         Peer peer = message.getDestination();
         Torrent t = torrents.get(peer.getInfoHash());
@@ -229,7 +230,7 @@ public class MessageReaderImpl implements MessageReader {
         }
     }
 
-    private void processRequest(BlockMessage message) throws
+    private void processRequest(final BlockMessage message) throws
             IOException {
         Peer peer = message.getDestination();
         if (validator.validateRequestMessage(message) &&
@@ -244,7 +245,7 @@ public class MessageReaderImpl implements MessageReader {
         }
     }
 
-    private void processUnchoke(Peer peer) throws IOException {
+    private void processUnchoke(final Peer peer) throws IOException {
         peer.setPeerChoking(false);
         if (peer.isClientInterested()) {
             decideNextPiece(torrents.get(peer.getInfoHash()), peer);
@@ -252,7 +253,8 @@ public class MessageReaderImpl implements MessageReader {
 
     }
 
-    private void decideNextPiece(Torrent t, Peer peer) throws IOException {
+    private void decideNextPiece(final Torrent t, final Peer peer)
+            throws IOException {
         BitSet[] req = requests.get(t.getInfoHash());
         BlockMessage bm = t.decideNextPiece(peer, req);
         if (bm == null) {

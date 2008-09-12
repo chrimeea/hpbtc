@@ -9,7 +9,7 @@ public class HandshakeMessage extends SimpleMessage {
     private byte[] protocol;
     private byte[] peerId;
 
-    public HandshakeMessage(ByteBuffer message, Peer destination) {
+    public HandshakeMessage(final ByteBuffer message, final Peer destination) {
         this.disc = SimpleMessage.TYPE_HANDSHAKE;
         this.destination = destination;
         message.limit(20);
@@ -21,8 +21,8 @@ public class HandshakeMessage extends SimpleMessage {
         message.get(infoHash);
     }
 
-    public HandshakeMessage(byte[] infoHash, byte[] peerId, byte[] protocol,
-            Peer destination) {
+    public HandshakeMessage(final byte[] infoHash, final byte[] peerId,
+            final byte[] protocol, final Peer destination) {
         this.disc = SimpleMessage.TYPE_HANDSHAKE;
         this.protocol = protocol;
         this.infoHash = infoHash;
@@ -54,11 +54,11 @@ public class HandshakeMessage extends SimpleMessage {
         return infoHash;
     }
 
-    public void setInfoHash(byte[] infoHash) {
+    public void setInfoHash(final byte[] infoHash) {
         this.infoHash = infoHash;
     }
 
-    public void setPeerId(byte[] peerId) {
+    public void setPeerId(final byte[] peerId) {
         this.peerId = peerId;
     }
 }

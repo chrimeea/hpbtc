@@ -39,16 +39,17 @@ public class Register {
         return writer;
     }
     
-    public void registerRead(Peer peer) throws IOException {
+    public void registerRead(final Peer peer) throws IOException {
         registerNow(peer, SelectionKey.OP_READ, reader, registeredRead);
     }
 
-    public void registerWrite(Peer peer) throws IOException {
+    public void registerWrite(final Peer peer) throws IOException {
         registerNow(peer, SelectionKey.OP_WRITE, writer, registeredWrite);
     }
 
-    private void registerNow(Peer peer, int op, Selector selector,
-            Queue<RegisterOp> registered) throws IOException {
+    private void registerNow(final Peer peer, final int op,
+            final Selector selector, final Queue<RegisterOp> registered)
+            throws IOException {
         SocketChannel ch = (SocketChannel) peer.getChannel();
         if (ch != null) {
             if (ch.isOpen()) {
@@ -80,8 +81,8 @@ public class Register {
         performRegistration(writer, registeredWrite);
     }
 
-    private void performRegistration(Selector selector,
-            Queue<RegisterOp> registered) {
+    private void performRegistration(final Selector selector,
+            final Queue<RegisterOp> registered) {
         RegisterOp ro = registered.poll();
         while (ro != null) {
             SelectableChannel q = (SelectableChannel) ro.getPeer().getChannel();
@@ -101,7 +102,7 @@ public class Register {
         private Peer peer;
         private int operation;
 
-        private RegisterOp(int op, Peer peer) {
+        private RegisterOp(final int op, final Peer peer) {
             this.operation = op;
             this.peer = peer;
         }
