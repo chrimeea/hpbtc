@@ -13,8 +13,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.BitSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import util.TorrentUtil;
@@ -32,7 +30,6 @@ public class MessageReaderImpl implements MessageReader {
     private Map<byte[], Torrent> torrents;
     private MessageValidator validator;
     private Map<byte[], BitSet[]> requests;
-    private List<byte[]> expectBody;
     private Map<byte[], Tracker> trackers;
 
     public MessageReaderImpl(final Map<byte[], Torrent> torrents,
@@ -44,7 +41,6 @@ public class MessageReaderImpl implements MessageReader {
         this.torrents = torrents;
         this.requests = requests;
         validator = new MessageValidator(torrents);
-        this.expectBody = new LinkedList<byte[]>();
     }
     
     public void readMessage(final Peer peer) throws IOException,
@@ -57,14 +53,14 @@ public class MessageReaderImpl implements MessageReader {
                     logger.info("Received id for " + peer);
                 }
             } else {
-                if (!expectBody.contains(peer.getInfoHash())) {
+                if (!peer.isExpectBody()) {
                     peer.setNextDataExpectation(4);
                     if (peer.download()) {
                         int len = peer.getData().getInt();
                         if (len < 0) {
                             throw new IOException();
                         } else {
-                            expectBody.add(peer.getInfoHash());
+                            peer.setExpectBody(true);
                             peer.setNextDataExpectation(len);
                         }
                     } else {
@@ -72,6 +68,7 @@ public class MessageReaderImpl implements MessageReader {
                     }
                 }
                 if (peer.download()) {
+                    peer.setExpectBody(false);
                     ByteBuffer data = peer.getData();
                     byte disc = data.get();
                     logger.info("Received message type " + disc + " from " +
