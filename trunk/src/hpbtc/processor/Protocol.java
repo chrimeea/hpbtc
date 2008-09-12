@@ -40,8 +40,8 @@ public class Protocol {
         torrents = new HashMap<byte[], Torrent>();
         timer = new Timer(true);
         requests = new HashMap<byte[], BitSet[]>();
-        writer = new PeerWriter();
-        processor = new MessageProcessor(writer, torrents, peerId,
+        writer = new MessageWriterImpl();
+        processor = new MessageReaderImpl(writer, torrents, peerId,
                 requests);
     }
 

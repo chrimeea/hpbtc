@@ -22,7 +22,7 @@ import util.TorrentUtil;
  *
  * @author Chris
  */
-public class MessageProcessor implements MessageReader {
+public class MessageReaderImpl implements MessageReader {
 
     private MessageWriter writer;
     private byte[] peerId;
@@ -32,7 +32,7 @@ public class MessageProcessor implements MessageReader {
     private Network network;
     private Map<byte[], Boolean> expectBody;
 
-    public MessageProcessor(MessageWriter writer,
+    public MessageReaderImpl(MessageWriter writer,
             Map<byte[], Torrent> torrents, byte[] peerId,
             Map<byte[], BitSet[]> requests) {
         this.writer = writer;
