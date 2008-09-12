@@ -25,6 +25,7 @@ public class Peer {
     private byte[] infoHash;
     private InetSocketAddress address;
     private boolean handshakeReceived;
+    private boolean handshakeSent;
     private int uploaded;
     private int downloaded;
     private ByteBuffer data;
@@ -40,6 +41,14 @@ public class Peer {
         this.address = IOUtil.getAddress(chn);
     }
 
+    public boolean isHandshakeSent() {
+        return handshakeSent;
+    }
+    
+    public void setHandshakeSent() {
+        handshakeSent = true;
+    }
+    
     public int countUploaded() {
         return uploaded;
     }

@@ -11,7 +11,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
 import org.junit.Test;
@@ -26,7 +25,8 @@ public class NetworkTest {
     @Test
     public void testNetworkIncomingConnection() throws IOException,
             UnsupportedEncodingException {
-        final Network c = new NetworkReader(new MessageReader() {
+        Register r = new Register();
+        final NetworkReader c = new NetworkReader(new MessageReader() {
 
             public void readMessage(Peer peer) throws IOException,
                     NoSuchAlgorithmException {
@@ -43,15 +43,7 @@ public class NetworkTest {
                 bb.limit(11);
                 assert bb.equals(ByteBuffer.wrap("test client".getBytes()));
             }
-
-            public int connect() throws IOException {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
-            public void disconnect() {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-        });
+        }, r);
         int port = c.connect();
         SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.
                 getLocalHost(), port));
@@ -61,6 +53,8 @@ public class NetworkTest {
 
     @Test
     public void testNetworkConnect() throws IOException {
+        Register r = new Register();
+        r.openReadSelector();
         ServerSocket ch = new ServerSocket(0);
         NetworkWriter c = new NetworkWriter(new MessageWriter() {
 
@@ -84,20 +78,12 @@ public class NetworkTest {
             public boolean isEmpty(Peer arg0) {
                 return true;
             }
-
-            public int connect() throws IOException {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
-            public void disconnect() {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-        });
+        }, r);
         c.connect();
         InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(),
                 ch.getLocalPort());
         Peer peer = new Peer(a, null, "X".getBytes("ISO-8859-1"));
-        c.registerNow(peer, SelectionKey.OP_WRITE);
+        r.registerWrite(peer);
         Socket s = ch.accept();
         byte[] b = new byte[15];
         int i = s.getInputStream().read(b);

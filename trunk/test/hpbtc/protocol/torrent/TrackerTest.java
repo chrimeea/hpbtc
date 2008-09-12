@@ -10,7 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.Set;
+import java.util.List;
 import org.junit.Test;
 
 /**
@@ -49,14 +49,13 @@ public class TrackerTest {
         t.add(l);
         Tracker ti = new Tracker("INFOHASH".getBytes("ISO-8859-1"),
                 "PID".getBytes("ISO-8859-1"), 2000, t);
-        Set<Peer> peers = ti.updateTracker(Tracker.Event.started, 1, 2, 3, 4,
-                false);
+        Iterable<Peer> peers = ti.updateTracker(Tracker.Event.started, 1, 2, 3,
+                4, false);
         server.stop(0);
         assert ti.getInterval() == 10;
         assert ti.getMinInterval() == 5;
         assert ti.getComplete() == 20;
         assert ti.getIncomplete() == 9;
-        assert peers.size() == 2;
         for (Peer p : peers) {
             assert Arrays.equals(p.getId(), "1P".getBytes("ISO-8859-1")) ||
                     Arrays.equals(p.getId(), "2P".getBytes("ISO-8859-1"));

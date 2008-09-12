@@ -22,18 +22,21 @@ import java.util.logging.Logger;
  * @author Cristian Mocanu
  *
  */
-public class NetworkReader implements Network {
+public class NetworkReader {
 
     private static final int MIN_PORT = 6881;
     private static final int MAX_PORT = 6999;
-    private static Logger logger = Logger.getLogger(NetworkReader.class.getName());
+    private static Logger logger = Logger.getLogger(
+            NetworkReader.class.getName());
     private ServerSocketChannel serverCh;
     private Selector selector;
     private boolean running;
     private MessageReader processor;
+    private Register register;
 
-    public NetworkReader(MessageReader processor) {
+    public NetworkReader(MessageReader processor, Register register) {
         this.processor = processor;
+        this.register = register;
     }
 
     public int connect() throws IOException {
@@ -52,8 +55,8 @@ public class NetworkReader implements Network {
         if (port > MAX_PORT) {
             throw new IOException("No ports available");
         } else {
+            selector = register.openReadSelector();
             serverCh.configureBlocking(false);
-            selector = Selector.open();
             serverCh.register(selector, SelectionKey.OP_ACCEPT);
         }
         running = true;
@@ -124,6 +127,7 @@ public class NetworkReader implements Network {
                         }
                     }
                 }
+                register.performReadRegistration();
             }
         }
     }
