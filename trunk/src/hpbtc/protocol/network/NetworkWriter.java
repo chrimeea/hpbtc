@@ -92,10 +92,10 @@ public class NetworkWriter implements Network {
                             peer = (Peer) key.attachment();
                             SocketChannel ch = (SocketChannel) key.channel();
                             if (key.isConnectable() && ch.finishConnect()) {
+                                logger.info("Connected to " + peer);
                                 ch.register(selector, (key.interestOps() |
                                         SelectionKey.OP_READ) &
                                         ~SelectionKey.OP_CONNECT, peer);
-                                logger.info("Connected to " + peer);
                             } else {
                                 if (key.isValid() && key.isWritable()) {
                                     ch.register(selector, key.interestOps() &
@@ -105,7 +105,6 @@ public class NetworkWriter implements Network {
                                         ch.register(selector, key.interestOps() |
                                                 SelectionKey.OP_WRITE, peer);
                                     }
-                                    logger.info("Sent message to " + peer);
                                 }
                             }
                         } catch (IOException ioe) {
@@ -127,7 +126,6 @@ public class NetworkWriter implements Network {
                         } else if (w == null) {
                             q.register(selector, ro.operation, ro.peer);
                         }
-                        logger.info("Registered " + ro.peer);
                     } catch (ClosedChannelException e) {
                         logger.log(Level.WARNING, e.getLocalizedMessage(), e);
                     }

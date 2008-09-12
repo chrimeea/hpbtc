@@ -22,7 +22,8 @@ import java.util.logging.Logger;
  */
 public class MessageWriterImpl implements MessageWriter {
 
-    private static Logger logger = Logger.getLogger(MessageWriterImpl.class.getName());
+    private static Logger logger = Logger.getLogger(MessageWriterImpl.class.
+            getName());
     private Map<Peer, Queue<SimpleMessage>> messagesToSend;
     private ByteBuffer currentWrite;
     private NetworkWriter network;
@@ -35,7 +36,7 @@ public class MessageWriterImpl implements MessageWriter {
     public int connect() throws IOException {
         return network.connect();
     }
-    
+
     public void cancelPieceMessage(int begin, int index, int length, Peer peer) {
         Queue<SimpleMessage> q = messagesToSend.get(peer);
         if (q != null) {
@@ -66,6 +67,8 @@ public class MessageWriterImpl implements MessageWriter {
             Queue<SimpleMessage> q = messagesToSend.get(peer);
             SimpleMessage sm = q.poll();
             currentWrite = sm.send();
+            logger.info("Sending message type " + sm.getMessageType() + " to " +
+                    peer);
         }
         try {
             peer.upload(currentWrite);
@@ -85,11 +88,11 @@ public class MessageWriterImpl implements MessageWriter {
         q.add(message);
         network.registerNow(peer, SelectionKey.OP_WRITE);
     }
-    
+
     public boolean isEmpty(Peer peer) {
         return messagesToSend.get(peer).isEmpty();
     }
-    
+
     public void disconnect() {
         network.disconnect();
     }
