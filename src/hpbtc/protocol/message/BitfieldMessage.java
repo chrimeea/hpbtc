@@ -17,8 +17,8 @@ public class BitfieldMessage extends SimpleMessage {
     
     private BitSet pieces;
     
-    public BitfieldMessage(ByteBuffer message, int len, Peer destination) {
-        super(len, TYPE_BITFIELD, destination);
+    public BitfieldMessage(ByteBuffer message, Peer destination) {
+        super(message.remaining(), TYPE_BITFIELD, destination);
         pieces = IOUtil.bytesToBits(message);
     }
     

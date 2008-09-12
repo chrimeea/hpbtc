@@ -6,8 +6,8 @@ import java.nio.ByteBuffer;
 public class HandshakeMessage extends SimpleMessage {
 
     private byte[] infoHash;
-    private byte[] peerId;
     private byte[] protocol;
+    private byte[] peerId;
 
     public HandshakeMessage(ByteBuffer message, Peer destination) {
         this.disc = SimpleMessage.TYPE_HANDSHAKE;
@@ -19,12 +19,6 @@ public class HandshakeMessage extends SimpleMessage {
         message.position(28);
         infoHash = new byte[20];
         message.get(infoHash);
-        if (message.capacity() >= 68) {
-            message.limit(68);
-            message.position(48);
-            peerId = new byte[20];
-            message.get(peerId);
-        }
     }
 
     public HandshakeMessage(byte[] infoHash, byte[] peerId, byte[] protocol,
