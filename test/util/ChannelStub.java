@@ -11,25 +11,19 @@ import java.nio.channels.ByteChannel;
 public class ChannelStub implements ByteChannel {
 
     private ByteBuffer ch;
-    private int chunk;
     private boolean closed;
     
-    public ChannelStub(int size, int chunk, boolean closed) {
+    public ChannelStub(int size, boolean closed) {
         ch = ByteBuffer.allocate(size);
-        this.chunk = chunk <= size ? chunk : size;
         this.closed = closed;
     }
     
-    public ChannelStub(int size) {
-        this(size, size, false);
-    }
-    
     public int read(ByteBuffer destination) throws IOException {
-        if (!ch.hasRemaining() && closed) {
+        if (closed) {
             return -1;
         }
         int s = 0;
-        while (ch.hasRemaining() && destination.hasRemaining() && s < chunk) {
+        while (ch.hasRemaining() && destination.hasRemaining()) {
             destination.put(ch.get());
             s++;
         }
@@ -37,11 +31,11 @@ public class ChannelStub implements ByteChannel {
     }
 
     public int write(ByteBuffer source) throws IOException {
-        if (!ch.hasRemaining() && closed) {
+        if (closed) {
             return -1;
         }
         int s = 0;
-        while (ch.hasRemaining() && source.hasRemaining() && s < chunk) {
+        while (ch.hasRemaining() && source.hasRemaining()) {
             ch.put(source.get());
             s++;
         }

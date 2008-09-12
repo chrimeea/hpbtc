@@ -23,18 +23,22 @@ public class TrackerTest {
     public void testConnectToTracker() throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
         server.createContext("/test", new HttpHandler() {
+
             public void handle(HttpExchange t) throws IOException {
                 try {
-                    assert t.getRequestURI().equals(new URI("/test?info_hash=INFOHASH&peer_id=PID&port=2000&uploaded=1&downloaded=2&left=3&numwant=4&compact=0&event=started"));
+                    assert t.getRequestURI().equals(
+                            new URI(
+                            "/test?info_hash=INFOHASH&peer_id=PID&port=2000&uploaded=1&downloaded=2&left=3&numwant=4&compact=0&event=started"));
                 } catch (URISyntaxException e) {
                     assert false;
                 }
-                String response = "d8:intervali10e12:min intervali5e10:tracker id3:foo8:completei20e10:incompletei9e5:peersld7:peer id2:1P2:ip9:localhost4:porti9000eed7:peer id2:2P2:ip9:localhost4:porti3003eeee";
+                String response =
+                        "d8:intervali10e12:min intervali5e10:tracker id3:foo8:completei20e10:incompletei9e5:peersld7:peer id2:1P2:ip9:localhost4:porti9000eed7:peer id2:2P2:ip9:localhost4:porti3003eeee";
                 t.sendResponseHeaders(200, response.length());
                 OutputStream os = t.getResponseBody();
                 os.write(response.getBytes("ISO-8859-1"));
                 os.close();
-            }            
+            }
         });
         server.setExecutor(null);
         server.start();
@@ -45,7 +49,8 @@ public class TrackerTest {
         t.add(l);
         Tracker ti = new Tracker("INFOHASH".getBytes("ISO-8859-1"),
                 "PID".getBytes("ISO-8859-1"), 2000, t);
-        Set<Peer> peers = ti.updateTracker(Tracker.Event.started, 1, 2, 3, 4, false);
+        Set<Peer> peers = ti.updateTracker(Tracker.Event.started, 1, 2, 3, 4,
+                false);
         server.stop(0);
         assert ti.getInterval() == 10;
         assert ti.getMinInterval() == 5;
