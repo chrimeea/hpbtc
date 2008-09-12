@@ -14,11 +14,11 @@ public class BencodingWriter {
 
     private OutputStream os;
     
-    public BencodingWriter(OutputStream os) {
+    public BencodingWriter(final OutputStream os) {
         this.os = os;
     }
     
-    public void write(Number n) throws IOException {
+    public void write(final Number n) throws IOException {
         os.write((int) 'i');
         if (n == null) {
             os.write((int) '0');
@@ -28,7 +28,7 @@ public class BencodingWriter {
         os.write((int) 'e');
     }
     
-    public void write(String s) throws IOException {
+    public void write(final String s) throws IOException {
         if (s == null || s.isEmpty()) {
             os.write("0:".getBytes("ISO-8859-1"));
         } else {
@@ -38,7 +38,7 @@ public class BencodingWriter {
         }
     }
     
-    public void write(List l)  throws IOException {
+    public void write(final List l)  throws IOException {
         os.write((int) 'l');
         for (Object o: l) {
             write(o);
@@ -46,7 +46,7 @@ public class BencodingWriter {
         os.write((int) 'e');
     }
     
-    public void write(Map<String, Object> m)  throws IOException {
+    public void write(final Map<String, Object> m)  throws IOException {
         os.write((int) 'd');
         TreeSet<String> s = new TreeSet<String>(m.keySet());
         for (String key: s) {
@@ -56,7 +56,7 @@ public class BencodingWriter {
         os.write((int) 'e');
     }
     
-    private void write(Object o) throws IOException {
+    private void write(final Object o) throws IOException {
         if (o instanceof Number) {
             write((Number) o);
         } else if (o instanceof String) {

@@ -9,15 +9,16 @@ public class BlockMessage extends SimpleMessage {
     private int begin;
     private int length;
     
-    public BlockMessage(ByteBuffer message, byte disc, Peer destination) {
+    public BlockMessage(final ByteBuffer message, final byte disc,
+            final Peer destination) {
         super(12, disc, destination);
         index = message.getInt();
         begin = message.getInt();
         length = message.getInt();
     }
     
-    public BlockMessage(int begin, int index, int length, byte disc,
-            Peer destination) {
+    public BlockMessage(final int begin, final int index, final int length,
+            final byte disc, final Peer destination) {
         super(12, disc, destination);
         this.index = index;
         this.begin = begin;

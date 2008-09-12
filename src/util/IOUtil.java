@@ -20,21 +20,21 @@ import java.util.BitSet;
  */
 public class IOUtil {
 
-    public static InetSocketAddress getAddress(SocketChannel c) {
+    public static InetSocketAddress getAddress(final SocketChannel c) {
         return (InetSocketAddress) c.socket().getRemoteSocketAddress();
     }
 
-    public static int readFromChannel(ReadableByteChannel s, ByteBuffer b)
-            throws IOException {
+    public static int readFromChannel(final ReadableByteChannel s,
+            final ByteBuffer b) throws IOException {
         return s.read(b);
     }
 
-    public static int writeToChannel(WritableByteChannel s, ByteBuffer b) throws 
-            IOException {
+    public static int writeToChannel(final WritableByteChannel s,
+            final ByteBuffer b) throws IOException {
         return s.write(b);
     }
 
-    public static BitSet bytesToBits(ByteBuffer bb) {
+    public static BitSet bytesToBits(final ByteBuffer bb) {
         int len = bb.remaining();
         int j = 0;
         int k = 0;
@@ -54,7 +54,7 @@ public class IOUtil {
         return pieces;
     }
 
-    public static void bitsToBytes(BitSet bs, ByteBuffer dest) {
+    public static void bitsToBytes(final BitSet bs, final ByteBuffer dest) {
         int len = bs.length();
         byte x = 0;
         byte y = (byte) -128;
@@ -77,8 +77,8 @@ public class IOUtil {
         }
     }
 
-    public static int writeToFile(File file, int begin, ByteBuffer piece)
-            throws IOException {
+    public static int writeToFile(final File file, final int begin,
+            final ByteBuffer piece) throws IOException {
         RandomAccessFile r = new RandomAccessFile(file, "rw");
         r.seek(begin);
         int i = writeToChannel(r.getChannel(), piece);
@@ -86,8 +86,8 @@ public class IOUtil {
         return i;
     }
 
-    public static int readFromFile(File file, int begin, ByteBuffer dest)
-            throws IOException {
+    public static int readFromFile(final File file, final int begin,
+            final ByteBuffer dest) throws IOException {
         RandomAccessFile r = new RandomAccessFile(file, "r");
         r.seek(begin);
         int i = readFromChannel(r.getChannel(), dest);

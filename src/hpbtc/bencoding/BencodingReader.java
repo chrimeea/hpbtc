@@ -20,7 +20,7 @@ public class BencodingReader {
 
     private InputStream is;
 
-    public BencodingReader(InputStream is) {
+    public BencodingReader(final InputStream is) {
         if (is.markSupported()) {
             this.is = is;
         } else {
@@ -28,7 +28,7 @@ public class BencodingReader {
         }
     }
 
-    private int readNextNumber(char terminator) throws IOException {
+    private int readNextNumber(final char terminator) throws IOException {
         int c = is.read();
         if (c == terminator) {
             throw new BencodingException("Parse error !");

@@ -10,19 +10,21 @@ import java.util.Random;
  */
 public class TorrentUtil {
 
-    public static int computeBeginIndex(int begin, int chunkSize) {
+    public static int computeBeginIndex(final int begin, final int chunkSize) {
         return begin / chunkSize;
     }
 
-    public static int computeEndIndex(int begin, int length, int chunkSize) {
+    public static int computeEndIndex(final int begin, final int length,
+            final int chunkSize) {
         return 1 + (begin + length) / chunkSize;
     }
 
-    public static int computeBeginPosition(int begin, int chunkSize) {
+    public static int computeBeginPosition(final int begin,
+            final int chunkSize) {
         return begin * chunkSize;
     }
 
-    public static byte[] computeInfoHash(byte[] info)
+    public static byte[] computeInfoHash(final byte[] info)
             throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA1");
         return md.digest(info);

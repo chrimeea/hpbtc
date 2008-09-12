@@ -17,7 +17,7 @@ public class BencodingException extends IOException {
     /**
      * @param message
      */
-    public BencodingException(String message) {
+    public BencodingException(final String message) {
         super(message);
     }
 }

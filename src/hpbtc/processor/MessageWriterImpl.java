@@ -29,12 +29,13 @@ public class MessageWriterImpl implements MessageWriter {
     private ByteBuffer currentWrite;
     private Register register;
 
-    public MessageWriterImpl(Register register) {
+    public MessageWriterImpl(final Register register) {
         messagesToSend = new ConcurrentHashMap<Peer, Queue<SimpleMessage>>();
         this.register = register;
     }
     
-    public void cancelPieceMessage(int begin, int index, int length, Peer peer) {
+    public void cancelPieceMessage(final int begin, final int index,
+            final int length, final Peer peer) {
         Queue<SimpleMessage> q = messagesToSend.get(peer);
         if (q != null) {
             Iterator<SimpleMessage> i = q.iterator();
@@ -51,7 +52,7 @@ public class MessageWriterImpl implements MessageWriter {
         }
     }
 
-    public void closeConnection(Peer peer) throws IOException {
+    public void closeConnection(final Peer peer) throws IOException {
         messagesToSend.remove(peer);
         ByteChannel ch = peer.getChannel();
         if (ch != null) {
@@ -59,7 +60,7 @@ public class MessageWriterImpl implements MessageWriter {
         }
     }
 
-    public void writeNext(Peer peer) throws IOException {
+    public void writeNext(final Peer peer) throws IOException {
         if (currentWrite == null || currentWrite.remaining() == 0) {
             Queue<SimpleMessage> q = messagesToSend.get(peer);
             SimpleMessage sm = q.poll();
@@ -75,7 +76,7 @@ public class MessageWriterImpl implements MessageWriter {
         }
     }
 
-    public void postMessage(SimpleMessage message) throws IOException {
+    public void postMessage(final SimpleMessage message) throws IOException {
         Peer peer = message.getDestination();
         Queue<SimpleMessage> q = messagesToSend.get(peer);
         if (q == null) {
@@ -86,7 +87,7 @@ public class MessageWriterImpl implements MessageWriter {
         register.registerWrite(peer);
     }
 
-    public boolean isEmpty(Peer peer) {
+    public boolean isEmpty(final Peer peer) {
         return messagesToSend.get(peer).isEmpty();
     }
 }

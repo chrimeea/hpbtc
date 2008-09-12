@@ -16,8 +16,8 @@ import java.util.Map;
  */
 public class TrackerUtil {
 
-    public static List<Peer> doCompactPeer(Map<String, Object> response,
-            byte[] infoHash) throws UnsupportedEncodingException,
+    public static List<Peer> doCompactPeer(final Map<String, Object> response,
+            final byte[] infoHash) throws UnsupportedEncodingException,
             UnknownHostException {
         List<Peer> peers = new LinkedList<Peer>();
         byte[] prs = ((String) response.get("peers")).getBytes("ISO-8859-1");
@@ -34,8 +34,8 @@ public class TrackerUtil {
         return peers;
     }
 
-    public static List<Peer> doLoosePeer(Map<String, Object> response,
-            byte[] infoHash) throws
+    public static List<Peer> doLoosePeer(final Map<String, Object> response,
+            final byte[] infoHash) throws
             UnsupportedEncodingException {
         List<Peer> peers = new LinkedList<Peer>();
         List<Map<String, Object>> prs =
@@ -48,7 +48,7 @@ public class TrackerUtil {
         return peers;
     }
 
-    private static int getUnsigned(byte b) {
+    private static int getUnsigned(final byte b) {
         return b < 0 ? 127 - b : b;
     }
 }

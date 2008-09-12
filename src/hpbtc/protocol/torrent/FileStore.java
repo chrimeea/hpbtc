@@ -47,8 +47,8 @@ public class FileStore {
         return chunkSize;
     }
 
-    private void init(int pieceLength, byte[] pieceHash) throws IOException,
-            NoSuchAlgorithmException {
+    private void init(final int pieceLength, final byte[] pieceHash)
+            throws IOException, NoSuchAlgorithmException {
         completePieces = new BitSet(nrPieces);
         this.pieceLength = pieceLength;
         nrPieces = fileLength / pieceLength;
@@ -78,8 +78,8 @@ public class FileStore {
         return files;
     }
 
-    public FileStore(int pieceLength, byte[] pieceHash, String rootFolder,
-            List<Map> fls)
+    public FileStore(final int pieceLength, final byte[] pieceHash,
+            final String rootFolder, final List<Map> fls)
             throws IOException, NoSuchAlgorithmException {
         files = new ArrayList<BTFile>(fls.size());
         fileLength = 0;
@@ -99,17 +99,17 @@ public class FileStore {
         init(pieceLength, pieceHash);
     }
 
-    public FileStore(int pieceLength, byte[] pieceHash, String rootFolder,
-            String fileName, int fileLength) throws IOException,
-            NoSuchAlgorithmException {
+    public FileStore(final int pieceLength, final byte[] pieceHash,
+            final String rootFolder, final String fileName,
+            final int fileLength) throws IOException, NoSuchAlgorithmException {
         files = new ArrayList<BTFile>(1);
         this.fileLength = fileLength;
         files.add(new BTFile(rootFolder + File.separator + fileName, fileLength));
         init(pieceLength, pieceHash);
     }
 
-    private void loadFileChunk(List<File> files, int begin, ByteBuffer dest)
-            throws IOException {
+    private void loadFileChunk(final List<File> files, final int begin,
+            final ByteBuffer dest) throws IOException {
         Iterator<File> i = files.iterator();
         IOUtil.readFromFile(i.next(), begin, dest);
         for (int j = 0; j < files.size() - 1; j++) {
@@ -117,8 +117,8 @@ public class FileStore {
         }
     }
 
-    private void saveFileChunk(List<File> files, int begin, ByteBuffer piece)
-            throws IOException {
+    private void saveFileChunk(final List<File> files, final int begin,
+            final ByteBuffer piece) throws IOException {
         Iterator<File> i = files.iterator();
         IOUtil.writeToFile(i.next(), begin, piece);
         for (int j = 0; j < files.size() - 1; j++) {
@@ -130,12 +130,12 @@ public class FileStore {
         return completePieces.cardinality() == nrPieces;
     }
     
-    public boolean isPieceComplete(int index) {
+    public boolean isPieceComplete(final int index) {
         return completePieces.get(index);
     }
 
-    public boolean savePiece(int begin, int index, ByteBuffer piece)
-            throws IOException, NoSuchAlgorithmException {
+    public boolean savePiece(final int begin, final int index,
+            final ByteBuffer piece) throws IOException, NoSuchAlgorithmException {
         pieces[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
                 TorrentUtil.computeEndIndex(begin, piece.remaining(), chunkSize));
         saveFileChunk(getFileList(begin, index, piece.remaining()), offset,
@@ -149,7 +149,8 @@ public class FileStore {
         }
     }
 
-    private List<File> getFileList(int begin, int index, int length) {
+    private List<File> getFileList(final int begin, final int index,
+            final int length) {
         int o = index * chunkSize + begin;
         Iterator<BTFile> i = files.iterator();
         BTFile f;
@@ -169,15 +170,15 @@ public class FileStore {
         return fls;
     }
 
-    public ByteBuffer loadPiece(int begin, int index, int length)
-            throws IOException {
+    public ByteBuffer loadPiece(final int begin, final int index,
+            final int length) throws IOException {
         ByteBuffer bb = ByteBuffer.allocate(length);
         loadFileChunk(getFileList(begin, index, length), offset, bb);
         return bb;
     }
 
-    private boolean isHashCorrect(int index) throws NoSuchAlgorithmException,
-            IOException {
+    private boolean isHashCorrect(final int index)
+            throws NoSuchAlgorithmException, IOException {
         MessageDigest md = MessageDigest.getInstance("SHA1");
         md.update(loadPiece(0, index, pieceLength));
         int i = index * 20;
