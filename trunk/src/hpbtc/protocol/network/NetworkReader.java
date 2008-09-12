@@ -116,6 +116,7 @@ public class NetworkReader implements Network {
                                                 key.interestOps() |
                                                 SelectionKey.OP_READ, peer);
                                     }
+                                    logger.info("Received data from " + peer);
                                 }
                             }
                         } catch (IOException ioe) {

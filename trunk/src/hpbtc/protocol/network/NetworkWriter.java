@@ -105,6 +105,7 @@ public class NetworkWriter implements Network {
                                         ch.register(selector, key.interestOps() |
                                                 SelectionKey.OP_WRITE, peer);
                                     }
+                                    logger.info("Sent message to " + peer);
                                 }
                             }
                         } catch (IOException ioe) {
