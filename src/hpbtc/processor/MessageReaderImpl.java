@@ -17,6 +17,7 @@ import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import util.TorrentUtil;
 
 /**
@@ -25,6 +26,8 @@ import util.TorrentUtil;
  */
 public class MessageReaderImpl implements MessageReader {
 
+    private static Logger logger = Logger.getLogger(MessageReaderImpl.class.
+            getName());
     private MessageWriter writer;
     private byte[] peerId;
     private Map<byte[], Torrent> torrents;
@@ -52,6 +55,7 @@ public class MessageReaderImpl implements MessageReader {
                 peer.setNextDataExpectation(20);
                 if (peer.download()) {
                     peer.setId(peer.getData().array());
+                    logger.info("Received id for " + peer);
                 }
             } else {
                 if (!expectBody.contains(peer.getInfoHash())) {
@@ -71,6 +75,8 @@ public class MessageReaderImpl implements MessageReader {
                 if (peer.download()) {
                     ByteBuffer data = peer.getData();
                     byte disc = data.get();
+                    logger.info("Received message type " + disc + " from " +
+                            peer);
                     switch (disc) {
                         case SimpleMessage.TYPE_BITFIELD:
                             BitfieldMessage mBit = new BitfieldMessage(
@@ -114,6 +120,7 @@ public class MessageReaderImpl implements MessageReader {
         } else {
             peer.setNextDataExpectation(48);
             if (peer.download()) {
+                logger.info("Received handshake from " + peer);
                 HandshakeMessage mHand = new HandshakeMessage(peer.getData(),
                         peer);
                 processHandshake(mHand);
