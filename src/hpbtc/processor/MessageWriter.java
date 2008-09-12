@@ -1,7 +1,6 @@
 package hpbtc.processor;
 
 import hpbtc.protocol.message.SimpleMessage;
-import hpbtc.protocol.network.Network;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 
@@ -9,7 +8,7 @@ import java.io.IOException;
  *
  * @author Cristian Mocanu
  */
-public interface MessageWriter extends Network {
+public interface MessageWriter {
 
     void postMessage(SimpleMessage message) throws IOException;
     

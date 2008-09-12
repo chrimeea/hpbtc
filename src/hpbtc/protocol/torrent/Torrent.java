@@ -14,7 +14,6 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,8 @@ public class Torrent {
     private String encoding;
     private FileStore fileStore;
     private Tracker tracker;
-    private Set<Peer> peers;
+    private List<Peer> peers;
+    private Iterable<Peer> freshPeers;
     private Random random;
     private int uploaded;
     private int downloaded;
@@ -87,17 +87,12 @@ public class Torrent {
                     fileName, fileLength);
         }
         tracker = new Tracker(infoHash, peerId, port, trackers);
-        peers = new HashSet<Peer>();
+        peers = new LinkedList<Peer>();
+        freshPeers = new LinkedList<Peer>();
     }
 
     public List<Peer> getConnectedPeers() {
-        List<Peer> prs = new LinkedList<Peer>();
-        for (Peer p : peers) {
-            if (p.isConnected()) {
-                prs.add(p);
-            }
-        }
-        return prs;
+        return peers;
     }
 
     public List<SimpleMessage> decideChoking() {
@@ -177,12 +172,8 @@ public class Torrent {
         return null;
     }
 
-    public Iterable<Peer> getPeers() {
-        return peers;
-    }
-
-    public void removePeer(Peer peer) {
-        peers.remove(peer);
+    public Iterable<Peer> getFreshPeers() {
+        return freshPeers;
     }
 
     public void addPeer(Peer peer) {
@@ -190,10 +181,7 @@ public class Torrent {
     }
 
     public void beginTracker() {
-        Set<Peer> p = tracker.beginTracker(getFileLength());
-        if (p != null) {
-            peers.addAll(p);
-        }
+        freshPeers = tracker.beginTracker(getFileLength());
     }
 
     public void endTracker() {

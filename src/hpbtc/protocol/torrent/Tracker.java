@@ -5,12 +5,10 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import util.TrackerUtil;
@@ -45,7 +43,7 @@ public class Tracker {
         this.trackers = trackers;
     }
 
-    public Set<Peer> beginTracker(int bytesLeft) {
+    public Iterable<Peer> beginTracker(int bytesLeft) {
         return updateTracker(Event.started, 0, 0, bytesLeft, TOTAL_PEERS, true);
     }
 
@@ -53,14 +51,14 @@ public class Tracker {
         updateTracker(Event.completed, uploaded, downloaded, 0, 0, true);
     }
 
-    public Set<Peer> updateTracker(Event event, int uploaded, int downloaded,
+    public Iterable<Peer> updateTracker(Event event, int uploaded, int downloaded,
             int bytesLeft, int totalPeers, boolean compact) {
         for (LinkedList<String> ul : trackers) {
             Iterator<String> i = ul.iterator();
             while (i.hasNext()) {
                 String tracker = i.next();
                 try {
-                    Set<Peer> peers = connectToTracker(event, tracker, uploaded,
+                    Iterable<Peer> peers = connectToTracker(event, tracker, uploaded,
                             downloaded, bytesLeft, totalPeers, compact);
                     i.remove();
                     ul.addFirst(tracker);
@@ -73,7 +71,7 @@ public class Tracker {
         return null;
     }
 
-    private Set<Peer> connectToTracker(Event event, String tracker, int uploaded,
+    private Iterable<Peer> connectToTracker(Event event, String tracker, int uploaded,
             int dloaded, int bytesLeft, int totalPeers, boolean compact) throws
             IOException {
         StringBuilder req = new StringBuilder(tracker);
@@ -134,7 +132,7 @@ public class Tracker {
             return compact ? TrackerUtil.doCompactPeer(response, infoHash) :
                 TrackerUtil.doLoosePeer(response, infoHash);
         }
-        return new HashSet<Peer>();
+        return new LinkedList<Peer>();
     }
 
     public int getComplete() {

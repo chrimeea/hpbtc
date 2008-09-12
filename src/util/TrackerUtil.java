@@ -6,10 +6,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -17,10 +16,10 @@ import java.util.Set;
  */
 public class TrackerUtil {
 
-    public static Set<Peer> doCompactPeer(Map<String, Object> response,
+    public static List<Peer> doCompactPeer(Map<String, Object> response,
             byte[] infoHash) throws UnsupportedEncodingException,
             UnknownHostException {
-        Set<Peer> peers = new HashSet<Peer>();
+        List<Peer> peers = new LinkedList<Peer>();
         byte[] prs = ((String) response.get("peers")).getBytes("ISO-8859-1");
         int k = 0;
         while (k < prs.length) {
@@ -35,10 +34,10 @@ public class TrackerUtil {
         return peers;
     }
 
-    public static Set<Peer> doLoosePeer(Map<String, Object> response,
+    public static List<Peer> doLoosePeer(Map<String, Object> response,
             byte[] infoHash) throws
             UnsupportedEncodingException {
-        Set<Peer> peers = new HashSet<Peer>();
+        List<Peer> peers = new LinkedList<Peer>();
         List<Map<String, Object>> prs =
                 (List<Map<String, Object>>) response.get("peers");
         for (Map<String, Object> d : prs) {

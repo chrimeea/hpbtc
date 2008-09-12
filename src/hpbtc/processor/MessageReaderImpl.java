@@ -6,7 +6,6 @@ import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
-import hpbtc.protocol.network.Network;
 import hpbtc.protocol.network.NetworkReader;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
@@ -33,21 +32,18 @@ public class MessageReaderImpl implements MessageReader {
     private Map<byte[], Torrent> torrents;
     private MessageValidator validator;
     private Map<byte[], BitSet[]> requests;
-    private Network network;
     private List<byte[]> expectBody;
 
-    public MessageReaderImpl(MessageWriter writer,
-            Map<byte[], Torrent> torrents, byte[] peerId,
-            Map<byte[], BitSet[]> requests) {
+    public MessageReaderImpl(Map<byte[], Torrent> torrents, byte[] peerId,
+            Map<byte[], BitSet[]> requests, MessageWriter writer) {
         this.writer = writer;
         this.peerId = peerId;
         this.torrents = torrents;
         this.requests = requests;
         validator = new MessageValidator(torrents);
-        this.network = new NetworkReader(this);
         this.expectBody = new LinkedList<byte[]>();
     }
-
+    
     public void readMessage(Peer peer) throws IOException,
             NoSuchAlgorithmException {
         if (peer.isHandshakeReceived()) {
@@ -135,17 +131,20 @@ public class MessageReaderImpl implements MessageReader {
             byte[] infoHash = message.getInfoHash();
             peer.setInfoHash(infoHash);
             peer.setHandshakeReceived();
-            HandshakeMessage reply = new HandshakeMessage(infoHash, peerId,
-                    Protocol.getSupportedProtocol(), peer);
-            writer.postMessage(reply);
             Torrent t = torrents.get(peer.getInfoHash());
+            if (!peer.isHandshakeSent()) {
+                HandshakeMessage reply = new HandshakeMessage(infoHash, peerId,
+                        Protocol.getSupportedProtocol(), peer);
+                writer.postMessage(reply);
+            } else {
+                t.addPeer(peer);
+            }
             BitSet bs = t.getCompletePieces();
             if (bs.cardinality() > 0) {
                 BitfieldMessage bmessage = new BitfieldMessage(bs,
                         t.getNrPieces(), peer);
                 writer.postMessage(bmessage);
             }
-            t.addPeer(peer);
         } else {
             writer.closeConnection(peer);
         }
@@ -269,13 +268,5 @@ public class MessageReaderImpl implements MessageReader {
         } else {
             writer.postMessage(bm);
         }
-    }
-
-    public void disconnect() {
-        network.disconnect();
-    }
-
-    public int connect() throws IOException {
-        return network.connect();
     }
 }

@@ -3,15 +3,11 @@ package hpbtc.protocol.network;
 import hpbtc.processor.MessageWriter;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,21 +15,22 @@ import java.util.logging.Logger;
  *
  * @author Cristian Mocanu
  */
-public class NetworkWriter implements Network {
+public class NetworkWriter {
 
-    private static Logger logger = Logger.getLogger(NetworkWriter.class.getName());
+    private static Logger logger = Logger.getLogger(
+            NetworkWriter.class.getName());
     private boolean running;
     private Selector selector;
-    private Queue<RegisterOp> registered;
     private MessageWriter writer;
-    
-    public NetworkWriter(MessageWriter writer) {
+    private Register register;
+
+    public NetworkWriter(MessageWriter writer, Register register) {
         this.writer = writer;
-        registered = new ConcurrentLinkedQueue<RegisterOp>();
+        this.register = register;
     }
-    
+
     public int connect() throws IOException {
-        selector = Selector.open();
+        selector = register.openWriteSelector();
         running = true;
         new Thread(new Runnable() {
 
@@ -54,30 +51,6 @@ public class NetworkWriter implements Network {
         return 0;
     }
 
-    public void registerNow(Peer peer, int op) throws IOException {
-        SocketChannel ch = (SocketChannel) peer.getChannel();
-        if (ch != null) {
-            if (ch.isOpen()) {
-                SelectionKey sk = ch.keyFor(selector);
-                if (sk == null || (sk != null && (sk.interestOps() & op) == 0)) {
-                    registered.add(new RegisterOp(op, peer));
-                    selector.wakeup();
-                }
-            }
-        } else {
-            ch = SocketChannel.open();
-            ch.configureBlocking(false);
-            peer.setChannel(ch);
-            if (ch.connect(peer.getAddress())) {
-                registered.add(new RegisterOp(op, peer));
-            } else {
-                registered.add(
-                        new RegisterOp(SelectionKey.OP_CONNECT | op, peer));
-            }
-            selector.wakeup();
-        }
-    }
-    
     private void listen() throws IOException,
             NoSuchAlgorithmException {
         while (running) {
@@ -93,9 +66,9 @@ public class NetworkWriter implements Network {
                             SocketChannel ch = (SocketChannel) key.channel();
                             if (key.isConnectable() && ch.finishConnect()) {
                                 logger.info("Connected to " + peer);
-                                ch.register(selector, (key.interestOps() |
-                                        SelectionKey.OP_READ) &
+                                ch.register(selector, key.interestOps() &
                                         ~SelectionKey.OP_CONNECT, peer);
+                                register.registerRead(peer);
                             } else {
                                 if (key.isValid() && key.isWritable()) {
                                     ch.register(selector, key.interestOps() &
@@ -104,6 +77,8 @@ public class NetworkWriter implements Network {
                                     if (ch.isOpen() && !writer.isEmpty(peer)) {
                                         ch.register(selector, key.interestOps() |
                                                 SelectionKey.OP_WRITE, peer);
+                                    } else {
+                                        key.cancel();
                                     }
                                 }
                             }
@@ -114,40 +89,12 @@ public class NetworkWriter implements Network {
                     }
                 }
             }
-            RegisterOp ro = registered.poll();
-            while (ro != null) {
-                SelectableChannel q = (SelectableChannel) ro.peer.getChannel();
-                if (q.isOpen()) {
-                    SelectionKey w = q.keyFor(selector);
-                    try {
-                        if (w != null && w.isValid()) {
-                            q.register(selector, w.interestOps() | ro.operation,
-                                    ro.peer);
-                        } else if (w == null) {
-                            q.register(selector, ro.operation, ro.peer);
-                        }
-                    } catch (ClosedChannelException e) {
-                        logger.log(Level.WARNING, e.getLocalizedMessage(), e);
-                    }
-                }
-                ro = registered.poll();
-            }
+            register.performWriteRegistration();
         }
     }
 
     public void disconnect() {
         running = false;
         selector.wakeup();
-    }
-    
-    private class RegisterOp {
-
-        private Peer peer;
-        private int operation;
-
-        private RegisterOp(int op, Peer peer) {
-            this.operation = op;
-            this.peer = peer;
-        }
     }
 }

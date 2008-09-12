@@ -2,6 +2,9 @@ package hpbtc.processor;
 
 import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.SimpleMessage;
+import hpbtc.protocol.network.NetworkReader;
+import hpbtc.protocol.network.NetworkWriter;
+import hpbtc.protocol.network.Register;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.File;
@@ -34,15 +37,14 @@ public class Protocol {
     private MessageWriter writer;
     private MessageReader processor;
     private int port;
+    private NetworkReader netReader;
+    private NetworkWriter netWriter;
 
     public Protocol() throws UnsupportedEncodingException {
         this.peerId = TorrentUtil.generateId();
         torrents = new HashMap<byte[], Torrent>();
         timer = new Timer(true);
         requests = new HashMap<byte[], BitSet[]>();
-        writer = new MessageWriterImpl();
-        processor = new MessageReaderImpl(writer, torrents, peerId,
-                requests);
     }
 
     public void download(File fileName, String rootFolder) throws IOException,
@@ -85,23 +87,27 @@ public class Protocol {
     private void beginPeers(Torrent ti) throws UnsupportedEncodingException,
             IOException {
         ti.beginTracker();
-        for (Peer peer : ti.getPeers()) {
-            if (!peer.isConnected()) {
-                SimpleMessage m = new HandshakeMessage(peer.getInfoHash(),
-                        peerId, getSupportedProtocol(), peer);
-                writer.postMessage(m);
-            }
+        for (Peer peer : ti.getFreshPeers()) {
+            SimpleMessage m = new HandshakeMessage(peer.getInfoHash(),
+                    peerId, getSupportedProtocol(), peer);
+            writer.postMessage(m);
+            peer.setHandshakeSent();
         }
     }
 
     public void stopProtocol() {
-        processor.disconnect();
-        writer.disconnect();
+        netReader.disconnect();
+        netWriter.disconnect();
     }
 
     public void startProtocol() throws IOException {
-        port = processor.connect();
-        writer.connect();
+        Register register = new Register();
+        writer = new MessageWriterImpl(register);
+        netWriter = new NetworkWriter(writer, register);
+        processor = new MessageReaderImpl(torrents, peerId, requests, writer);
+        netReader = new NetworkReader(processor, register);
+        port = netReader.connect();
+        netWriter.connect();
     }
 
     public static byte[] getSupportedProtocol() throws

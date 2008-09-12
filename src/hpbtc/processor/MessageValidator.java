@@ -23,11 +23,11 @@ public class MessageValidator {
         this.torrents = torrents;
     }
 
-    public boolean validateHandshakeMessage(HandshakeMessage message) throws 
+    public boolean validateHandshakeMessage(HandshakeMessage message) throws
             UnsupportedEncodingException {
-        return Arrays.equals(message.getProtocol(), Protocol.
-                getSupportedProtocol()) && torrents.containsKey(message.
-                getInfoHash());
+        return !message.getDestination().isHandshakeReceived() && Arrays.equals(
+                message.getProtocol(), Protocol.getSupportedProtocol()) &&
+                torrents.containsKey(message.getInfoHash());
     }
 
     public boolean validateBitfieldMessage(BitfieldMessage message) {
