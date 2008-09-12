@@ -17,8 +17,8 @@ public class PieceMessage extends SimpleMessage {
     private int index;
     private ByteBuffer piece;
     
-    public PieceMessage(ByteBuffer message, int len, Peer destination) {
-        super(len, TYPE_PIECE, destination);
+    public PieceMessage(ByteBuffer message, Peer destination) {
+        super(message.remaining(), TYPE_PIECE, destination);
         index = message.getInt();
         begin = message.getInt();
         piece = message;

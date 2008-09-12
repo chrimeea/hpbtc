@@ -27,13 +27,14 @@ public class Peer {
     private boolean handshakeReceived;
     private int uploaded;
     private int downloaded;
-    
+    private ByteBuffer data;
+
     public Peer(InetSocketAddress address, byte[] infoHash, byte[] id) {
         this.address = address;
         this.id = id;
         this.infoHash = infoHash;
     }
-    
+
     public Peer(SocketChannel chn) {
         this.channel = chn;
         this.address = IOUtil.getAddress(chn);
@@ -42,21 +43,38 @@ public class Peer {
     public int countUploaded() {
         return uploaded;
     }
-    
+
     public int countDownloaded() {
         return downloaded;
     }
-    
+
     public int upload(ByteBuffer bb) throws IOException {
         int i = IOUtil.writeToChannel(channel, bb);
         uploaded += i;
         return i;
     }
     
-    public int download(ByteBuffer bb) throws IOException {
-        int i = IOUtil.readFromChannel(channel, bb);
-        downloaded += i;
-        return i;
+    public void setNextDataExpectation(int i) {
+        if (data == null || data.capacity() < i) {
+            data = ByteBuffer.allocate(i);
+        }
+    }
+    
+    public boolean download() throws IOException {
+        int i = IOUtil.readFromChannel(channel, data);
+        if (i > 0) {
+            downloaded += i;
+        } else {
+            throw new IOException();
+        }
+        return !data.hasRemaining();
+    }
+    
+    public ByteBuffer getData() {
+        data.rewind();
+        ByteBuffer result = data;
+        data = null;
+        return result;
     }
     
     public boolean isClientChoking() {
@@ -74,7 +92,7 @@ public class Peer {
     public boolean isClientInterested() {
         return clientInterested;
     }
-    
+
     public boolean isHandshakeReceived() {
         return handshakeReceived;
     }
@@ -82,7 +100,7 @@ public class Peer {
     public void setHandshakeReceived() {
         this.handshakeReceived = true;
     }
-    
+
     public byte[] getId() {
         return id;
     }
@@ -90,11 +108,11 @@ public class Peer {
     public InetSocketAddress getAddress() {
         return address;
     }
-    
+
     public boolean isConnected() {
-        return channel != null;
+        return channel != null && handshakeReceived;
     }
-    
+
     public ByteChannel getChannel() {
         return channel;
     }
@@ -102,11 +120,11 @@ public class Peer {
     public void setChannel(ByteChannel channel) {
         this.channel = channel;
     }
-    
+
     public void setId(byte[] id) {
         this.id = id;
     }
-        
+
     public void setInfoHash(byte[] infoHash) {
         this.infoHash = infoHash;
     }
@@ -114,31 +132,31 @@ public class Peer {
     public byte[] getInfoHash() {
         return infoHash;
     }
-    
+
     public void setPeerInterested(boolean interested) {
         peerInterested = interested;
     }
-    
+
     public boolean isPeerInterested() {
         return peerInterested;
     }
-    
+
     public void setPeerChoking(boolean choking) {
         peerChoking = choking;
     }
-    
+
     public boolean isPeerChoking() {
         return peerChoking;
     }
-    
+
     public void setPieces(BitSet bs) {
         pieces = bs;
     }
-    
+
     public void setPiece(int index) {
         pieces.set(index);
     }
-    
+
     public boolean isMessagesReceived() {
         return messagesReceived;
     }
@@ -146,11 +164,11 @@ public class Peer {
     public void setMessagesReceived() {
         this.messagesReceived = true;
     }
-    
+
     public BitSet getPieces() {
         return pieces;
     }
-    
+
     public BitSet getOtherPieces(BitSet bs) {
         if (pieces == null) {
             pieces = new BitSet(bs.size());
