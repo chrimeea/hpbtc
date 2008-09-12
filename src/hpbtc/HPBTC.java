@@ -14,7 +14,7 @@ import java.util.logging.Handler;
 import java.util.logging.SimpleFormatter;
 
 /**
- * @author chris
+ * @author Cristian Mocanu
  *
  */
 public class HPBTC {

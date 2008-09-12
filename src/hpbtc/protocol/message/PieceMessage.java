@@ -8,7 +8,7 @@ import hpbtc.protocol.torrent.Peer;
 import java.nio.ByteBuffer;
 
 /**
- * @author chris
+ * @author Cristian Mocanu
  *
  */
 public class PieceMessage extends SimpleMessage {

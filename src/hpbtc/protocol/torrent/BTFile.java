@@ -3,7 +3,7 @@ package hpbtc.protocol.torrent;
 import java.io.File;
 
 /**
- * @author chris
+ * @author Cristian Mocanu
  *
  */
 public class BTFile {

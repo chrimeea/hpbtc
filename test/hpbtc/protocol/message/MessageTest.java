@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 /**
  *
- * @author Chris
+ * @author Cristian Mocanu
  */
 public class MessageTest {
 

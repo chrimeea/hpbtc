@@ -13,7 +13,7 @@ import java.util.Map;
 
 /**
  *
- * @author Chris
+ * @author Cristian Mocanu
  */
 public class MessageValidator {
 

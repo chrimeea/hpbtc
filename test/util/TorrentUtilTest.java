@@ -4,7 +4,7 @@ import org.junit.Test;
 
 /**
  *
- * @author Chris
+ * @author Cristian Mocanu
  */
 public class TorrentUtilTest {
 
