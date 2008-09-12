@@ -28,7 +28,7 @@ public class TrackerTest {
                 try {
                     assert t.getRequestURI().equals(
                             new URI(
-                            "/test?info_hash=INFOHASH&peer_id=PID&port=2000&uploaded=1&downloaded=2&left=3&numwant=4&compact=0&event=started"));
+                            "/test?info_hash=INFOHASH&peer_id=PID&port=2000&uploaded=1&downloaded=2&left=3&compact=0&event=started"));
                 } catch (URISyntaxException e) {
                     assert false;
                 }
@@ -50,7 +50,7 @@ public class TrackerTest {
         Tracker ti = new Tracker("INFOHASH".getBytes("ISO-8859-1"),
                 "PID".getBytes("ISO-8859-1"), 2000, t);
         Iterable<Peer> peers = ti.updateTracker(Tracker.Event.started, 1, 2, 3,
-                4, false);
+                false);
         server.stop(0);
         assert ti.getInterval() == 10;
         assert ti.getMinInterval() == 5;

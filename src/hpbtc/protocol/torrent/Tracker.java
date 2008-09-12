@@ -24,7 +24,6 @@ public class Tracker {
         started, stopped, completed
     };
     private static Logger logger = Logger.getLogger(Tracker.class.getName());
-    private static final int TOTAL_PEERS = 50;
     private int complete;
     private int interval;
     private int incomplete;
@@ -44,23 +43,22 @@ public class Tracker {
     }
 
     public Iterable<Peer> beginTracker(final int bytesLeft) {
-        return updateTracker(Event.started, 0, 0, bytesLeft, TOTAL_PEERS, true);
+        return updateTracker(Event.started, 0, 0, bytesLeft, true);
     }
 
     public void endTracker(final int uploaded, final int downloaded) {
-        updateTracker(Event.completed, uploaded, downloaded, 0, 0, true);
+        updateTracker(Event.completed, uploaded, downloaded, 0, true);
     }
 
     public Iterable<Peer> updateTracker(final Event event, final int uploaded,
-            final int downloaded, final int bytesLeft, final int totalPeers,
-            final boolean compact) {
+            final int downloaded, final int bytesLeft, final boolean compact) {
         for (LinkedList<String> ul : trackers) {
             Iterator<String> i = ul.iterator();
             while (i.hasNext()) {
                 String tracker = i.next();
                 try {
                     Iterable<Peer> peers = connectToTracker(event, tracker, uploaded,
-                            downloaded, bytesLeft, totalPeers, compact);
+                            downloaded, bytesLeft, compact);
                     i.remove();
                     ul.addFirst(tracker);
                     return peers;
@@ -74,7 +72,7 @@ public class Tracker {
 
     private Iterable<Peer> connectToTracker(final Event event,
             final String tracker, final int uploaded, final int dloaded,
-            final int bytesLeft, final int totalPeers, final boolean compact)
+            final int bytesLeft, final boolean compact)
             throws IOException {
         StringBuilder req = new StringBuilder(tracker);
         req.append("?info_hash=");
@@ -91,8 +89,6 @@ public class Tracker {
         req.append(dloaded);
         req.append("&left=");
         req.append(bytesLeft);
-        req.append("&numwant=");
-        req.append(totalPeers);
         req.append("&compact=");
         req.append(compact ? "1" : "0");
         if (event != null) {
