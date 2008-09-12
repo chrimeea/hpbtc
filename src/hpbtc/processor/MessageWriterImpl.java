@@ -20,14 +20,14 @@ import java.util.logging.Logger;
  *
  * @author Chris
  */
-public class PeerWriter implements MessageWriter {
+public class MessageWriterImpl implements MessageWriter {
 
-    private static Logger logger = Logger.getLogger(PeerWriter.class.getName());
+    private static Logger logger = Logger.getLogger(MessageWriterImpl.class.getName());
     private Map<Peer, Queue<SimpleMessage>> messagesToSend;
     private ByteBuffer currentWrite;
     private NetworkWriter network;
 
-    public PeerWriter() {
+    public MessageWriterImpl() {
         messagesToSend = new ConcurrentHashMap<Peer, Queue<SimpleMessage>>();
         network = new NetworkWriter(this);
     }
