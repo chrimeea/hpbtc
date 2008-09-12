@@ -29,6 +29,7 @@ public class Peer {
     private int uploaded;
     private int downloaded;
     private ByteBuffer data;
+    private boolean expectBody;
 
     public Peer(final InetSocketAddress address, final byte[] infoHash,
             final byte[] id) {
@@ -42,6 +43,14 @@ public class Peer {
         this.address = IOUtil.getAddress(chn);
     }
 
+    public void setExpectBody(boolean expectBody) {
+        this.expectBody = expectBody;
+    }
+    
+    public boolean isExpectBody() {
+        return expectBody;
+    }
+    
     public boolean isHandshakeSent() {
         return handshakeSent;
     }
