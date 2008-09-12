@@ -66,7 +66,6 @@ public class PeerWriter implements MessageWriter {
             Queue<SimpleMessage> q = messagesToSend.get(peer);
             SimpleMessage sm = q.poll();
             currentWrite = sm.send();
-            logger.info("Sending message " + sm);
         }
         try {
             peer.upload(currentWrite);
