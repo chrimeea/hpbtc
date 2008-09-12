@@ -7,6 +7,7 @@ import hpbtc.protocol.network.NetworkWriter;
 import hpbtc.protocol.network.Register;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
+import hpbtc.protocol.torrent.Tracker;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class Protocol {
     private static Logger logger = Logger.getLogger(Protocol.class.getName());
     private Map<byte[], Torrent> torrents;
     private Map<byte[], BitSet[]> requests;
+    private Map<byte[], Tracker> trackers;
     private byte[] peerId;
     private Timer timer;
     private MessageWriter writer;
@@ -45,12 +47,13 @@ public class Protocol {
         torrents = new HashMap<byte[], Torrent>();
         timer = new Timer(true);
         requests = new HashMap<byte[], BitSet[]>();
+        trackers = new HashMap<byte[], Tracker>();
     }
 
     public void download(final File fileName, final String rootFolder)
             throws IOException, NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
-        final Torrent ti = new Torrent(fis, rootFolder, peerId, port);
+        final Torrent ti = new Torrent(fis, rootFolder);
         byte[] infoHash = ti.getInfoHash();
         fis.close();
         torrents.put(infoHash, ti);
@@ -84,15 +87,34 @@ public class Protocol {
         }, 10000);
     }
 
+    private void contactFreshPeers(final Iterable<Peer> freshPeers) {
+        for (Peer peer : freshPeers) {
+            try {
+                SimpleMessage m = new HandshakeMessage(peer.getInfoHash(),
+                        peerId, getSupportedProtocol(), peer);
+                writer.postMessage(m);
+                peer.setHandshakeSent();
+            } catch (Exception e) {
+                logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+            }
+        }
+    }
+
     private void beginPeers(final Torrent ti)
             throws UnsupportedEncodingException, IOException {
-        ti.beginTracker();
-        for (Peer peer : ti.getFreshPeers()) {
-            SimpleMessage m = new HandshakeMessage(peer.getInfoHash(),
-                    peerId, getSupportedProtocol(), peer);
-            writer.postMessage(m);
-            peer.setHandshakeSent();
-        }
+        final Tracker tracker = new Tracker(ti.getInfoHash(), peerId, port,
+                ti.getTrackers());
+        trackers.put(ti.getInfoHash(), tracker);
+        contactFreshPeers(tracker.beginTracker(ti.getFileLength()));
+        timer.schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+                contactFreshPeers(tracker.updateTracker(null, ti.getUploaded(),
+                        ti.getDownloaded(),
+                        ti.getFileLength() - ti.getDownloaded(), true));
+            }
+        }, tracker.getInterval() * 1000);
     }
 
     public void stopProtocol() {
@@ -104,7 +126,8 @@ public class Protocol {
         Register register = new Register();
         writer = new MessageWriterImpl(register);
         netWriter = new NetworkWriter(writer, register);
-        processor = new MessageReaderImpl(torrents, peerId, requests, writer);
+        processor = new MessageReaderImpl(torrents, peerId, requests, writer,
+                trackers);
         netReader = new NetworkReader(processor, register);
         port = netReader.connect();
         netWriter.connect();

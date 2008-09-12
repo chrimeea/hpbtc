@@ -6,9 +6,9 @@ import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
-import hpbtc.protocol.network.NetworkReader;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
+import hpbtc.protocol.torrent.Tracker;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
@@ -33,10 +33,12 @@ public class MessageReaderImpl implements MessageReader {
     private MessageValidator validator;
     private Map<byte[], BitSet[]> requests;
     private List<byte[]> expectBody;
+    private Map<byte[], Tracker> trackers;
 
     public MessageReaderImpl(final Map<byte[], Torrent> torrents,
             final byte[] peerId, final Map<byte[], BitSet[]> requests,
-            final MessageWriter writer) {
+            final MessageWriter writer, Map<byte[], Tracker> trackers) {
+        this.trackers = trackers;
         this.writer = writer;
         this.peerId = peerId;
         this.torrents = torrents;
@@ -222,7 +224,8 @@ public class MessageReaderImpl implements MessageReader {
                 }
             }
             if (t.isTorrentComplete()) {
-                t.endTracker();
+                trackers.get(t.getInfoHash()).endTracker(t.getUploaded(),
+                        t.getDownloaded());
             }
         }
         if (!peer.isPeerChoking() && peer.isClientInterested()) {
