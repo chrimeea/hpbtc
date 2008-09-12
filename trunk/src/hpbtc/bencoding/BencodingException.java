@@ -7,7 +7,7 @@ package hpbtc.bencoding;
 import java.io.IOException;
 
 /**
- * @author chris
+ * @author Cristian Mocanu
  *
  */
 public class BencodingException extends IOException {

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author chris
+ * @author Cristian Mocanu
  *
  */
 public class BencodingReader {

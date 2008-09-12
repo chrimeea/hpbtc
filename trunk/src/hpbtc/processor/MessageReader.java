@@ -7,7 +7,7 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  *
- * @author Chris
+ * @author Cristian Mocanu
  */
 public interface MessageReader extends Network {
 

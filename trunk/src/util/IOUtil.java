@@ -15,7 +15,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.BitSet;
 
 /**
- * @author chris
+ * @author Cristian Mocanu
  *
  */
 public class IOUtil {

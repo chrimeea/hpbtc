@@ -22,7 +22,7 @@ import util.TorrentUtil;
 
 /**
  *
- * @author Chris
+ * @author Cristian Mocanu
  */
 public class MessageReaderImpl implements MessageReader {
 

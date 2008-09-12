@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author Chris
+ * @author Cristian Mocanu
  */
 public class NetworkWriter implements Network {
 

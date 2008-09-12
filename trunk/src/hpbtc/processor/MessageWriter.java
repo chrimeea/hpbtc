@@ -7,7 +7,7 @@ import java.io.IOException;
 
 /**
  *
- * @author Chris
+ * @author Cristian Mocanu
  */
 public interface MessageWriter extends Network {
 

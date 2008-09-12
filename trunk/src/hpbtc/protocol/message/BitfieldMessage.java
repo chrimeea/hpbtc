@@ -10,7 +10,7 @@ import java.util.BitSet;
 import util.IOUtil;
 
 /**
- * @author chris
+ * @author Cristian Mocanu
  *
  */
 public class BitfieldMessage extends SimpleMessage {

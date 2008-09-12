@@ -13,7 +13,7 @@ import java.util.Set;
 
 /**
  *
- * @author Chris
+ * @author Cristian Mocanu
  */
 public class TrackerUtil {
 

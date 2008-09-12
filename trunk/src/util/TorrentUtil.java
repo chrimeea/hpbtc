@@ -6,7 +6,7 @@ import java.util.Random;
 
 /**
  *
- * @author chris
+ * @author Cristian Mocanu
  */
 public class TorrentUtil {
 
