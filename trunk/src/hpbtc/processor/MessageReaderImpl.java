@@ -14,7 +14,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.BitSet;
-import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import util.TorrentUtil;
 
@@ -30,7 +31,7 @@ public class MessageReaderImpl implements MessageReader {
     private MessageValidator validator;
     private Map<byte[], BitSet[]> requests;
     private Network network;
-    private Map<byte[], Boolean> expectBody;
+    private List<byte[]> expectBody;
 
     public MessageReaderImpl(MessageWriter writer,
             Map<byte[], Torrent> torrents, byte[] peerId,
@@ -41,7 +42,7 @@ public class MessageReaderImpl implements MessageReader {
         this.requests = requests;
         validator = new MessageValidator(torrents);
         this.network = new NetworkReader(this);
-        this.expectBody = new HashMap<byte[], Boolean>();
+        this.expectBody = new LinkedList<byte[]>();
     }
 
     public void readMessage(Peer peer) throws IOException,
@@ -53,14 +54,15 @@ public class MessageReaderImpl implements MessageReader {
                     peer.setId(peer.getData().array());
                 }
             } else {
-                if (expectBody.get(peer.getInfoHash()) == Boolean.FALSE) {
+                if (!expectBody.contains(peer.getInfoHash())) {
                     peer.setNextDataExpectation(4);
                     if (peer.download()) {
                         int len = peer.getData().getInt();
                         if (len < 0) {
                             throw new IOException();
                         } else {
-                            peer.setNextDataExpectation(len);           
+                            expectBody.add(peer.getInfoHash());
+                            peer.setNextDataExpectation(len);
                         }
                     } else {
                         return;
