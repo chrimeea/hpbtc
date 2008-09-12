@@ -199,4 +199,21 @@ public class Peer {
     public String toString() {
         return address.toString();
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        try {
+            Peer other = (Peer) obj;
+            return address.equals(other.address);
+        } catch (ClassCastException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.address.hashCode();
+    }
+    
+    
 }

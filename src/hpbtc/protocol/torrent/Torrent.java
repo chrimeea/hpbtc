@@ -11,9 +11,11 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +36,7 @@ public class Torrent {
     private String createdBy;
     private String encoding;
     private FileStore fileStore;
-    private List<Peer> peers;
+    private Set<Peer> peers;
     private Random random;
     private int uploaded;
     private int downloaded;
@@ -84,15 +86,15 @@ public class Torrent {
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder,
                     fileName, fileLength);
         }
-        peers = new LinkedList<Peer>();
+        peers = new HashSet<Peer>();
     }
 
-    public List<Peer> getConnectedPeers() {
+    public Collection<Peer> getConnectedPeers() {
         return peers;
     }
 
     public List<SimpleMessage> decideChoking() {
-        List<Peer> prs = getConnectedPeers();
+        List<Peer> prs = new ArrayList<Peer>(peers);
         Comparator<Peer> comp = isTorrentComplete() ? new Comparator<Peer>() {
 
             public int compare(Peer p1, Peer p2) {
@@ -169,10 +171,10 @@ public class Torrent {
         return null;
     }
 
-    public void addPeer(Peer peer) {
+    public void addPeer(final Peer peer) {
         peers.add(peer);
     }
-
+    
     public int getUploaded() {
         return uploaded;
     }
