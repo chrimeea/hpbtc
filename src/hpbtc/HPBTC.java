@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.SimpleFormatter;
 
 /**
@@ -28,7 +29,9 @@ public class HPBTC {
             NoSuchAlgorithmException {
         Handler fh = new FileHandler("D:\\Documents and Settings\\Administrator\\Desktop\\hpbtc.log");
         fh.setFormatter(new SimpleFormatter());
-        Logger.getLogger("").addHandler(fh);
+        Logger l = Logger.getLogger("hpbtc");
+        l.addHandler(fh);
+        l.setLevel(Level.ALL);
         if (args.length < 2) {
             logger.severe("Mandatory parameter missing");
         } else {
