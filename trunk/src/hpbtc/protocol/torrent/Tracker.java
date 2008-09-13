@@ -44,16 +44,16 @@ public class Tracker {
         this.trackers = trackers;
     }
 
-    public Set<Peer> beginTracker(final int bytesLeft) {
+    public Set<Peer> beginTracker(final long bytesLeft) {
         return updateTracker(Event.started, 0, 0, bytesLeft, true);
     }
 
-    public void endTracker(final int uploaded, final int downloaded) {
+    public void endTracker(final long uploaded, final long downloaded) {
         updateTracker(Event.completed, uploaded, downloaded, 0, true);
     }
 
-    public Set<Peer> updateTracker(final Event event, final int uploaded,
-            final int downloaded, final int bytesLeft, final boolean compact) {
+    public Set<Peer> updateTracker(final Event event, final long uploaded,
+            final long downloaded, final long bytesLeft, final boolean compact) {
         for (LinkedList<String> ul : trackers) {
             Iterator<String> i = ul.iterator();
             while (i.hasNext()) {
@@ -73,8 +73,8 @@ public class Tracker {
     }
 
     private Set<Peer> connectToTracker(final Event event,
-            final String tracker, final int uploaded, final int dloaded,
-            final int bytesLeft, final boolean compact)
+            final String tracker, final long uploaded, final long dloaded,
+            final long bytesLeft, final boolean compact)
             throws IOException {
         StringBuilder req = new StringBuilder(tracker);
         req.append("?info_hash=");
