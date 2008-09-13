@@ -65,7 +65,7 @@ public class MessageWriterImpl implements MessageWriter {
             Queue<SimpleMessage> q = messagesToSend.get(peer);
             SimpleMessage sm = q.poll();
             currentWrite = sm.send();
-            logger.info("Sending message type " + sm.getMessageType() + " to " +
+            logger.fine("Sending message type " + sm.getMessageType() + " to " +
                     peer);
         }
         try {

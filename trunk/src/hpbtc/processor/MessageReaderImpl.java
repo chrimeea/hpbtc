@@ -50,7 +50,7 @@ public class MessageReaderImpl implements MessageReader {
                 peer.setNextDataExpectation(20);
                 if (peer.download()) {
                     peer.setId(peer.getData().array());
-                    logger.info("Received id for " + peer);
+                    logger.fine("Received id for " + peer);
                 }
             } else {
                 if (!peer.isExpectBody()) {
@@ -71,7 +71,7 @@ public class MessageReaderImpl implements MessageReader {
                     peer.setExpectBody(false);
                     ByteBuffer data = peer.getData();
                     byte disc = data.get();
-                    logger.info("Received message type " + disc + " from " +
+                    logger.fine("Received message type " + disc + " from " +
                             peer);
                     switch (disc) {
                         case SimpleMessage.TYPE_BITFIELD:
@@ -116,7 +116,7 @@ public class MessageReaderImpl implements MessageReader {
         } else {
             peer.setNextDataExpectation(48);
             if (peer.download()) {
-                logger.info("Received handshake from " + peer);
+                logger.fine("Received handshake from " + peer);
                 HandshakeMessage mHand = new HandshakeMessage(peer.getData(),
                         peer);
                 processHandshake(mHand);
