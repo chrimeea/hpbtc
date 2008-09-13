@@ -108,18 +108,16 @@ public class NetworkReader {
                                 chan.register(selector, SelectionKey.OP_READ,
                                         peer);
                                 logger.fine("Accepted connection from " + peer);
-                            } else {
+                            } else if (key.isReadable()) {
                                 peer = (Peer) key.attachment();
                                 SocketChannel ch = (SocketChannel) key.channel();
-                                if (key.isReadable()) {
-                                    ch.register(selector, key.interestOps() &
-                                            ~SelectionKey.OP_READ, peer);
-                                    processor.readMessage(peer);
-                                    if (ch.isOpen()) {
-                                        ch.register(selector,
-                                                key.interestOps() |
-                                                SelectionKey.OP_READ, peer);
-                                    }
+                                ch.register(selector, key.interestOps() &
+                                        ~SelectionKey.OP_READ, peer);
+                                processor.readMessage(peer);
+                                if (ch.isOpen()) {
+                                    ch.register(selector,
+                                            key.interestOps() |
+                                            SelectionKey.OP_READ, peer);
                                 }
                             }
                         } catch (IOException ioe) {
