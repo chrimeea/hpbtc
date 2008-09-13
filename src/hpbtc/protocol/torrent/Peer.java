@@ -1,11 +1,13 @@
 package hpbtc.protocol.torrent;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
+import java.util.logging.Logger;
 import util.IOUtil;
 
 /**
@@ -14,6 +16,7 @@ import util.IOUtil;
  */
 public class Peer {
 
+    private static Logger logger = Logger.getLogger(Peer.class.getName());
     private ByteChannel channel;
     private byte[] id;
     private boolean messagesReceived;
@@ -74,17 +77,17 @@ public class Peer {
     }
     
     public void setNextDataExpectation(final int i) {
-        if (data == null || data.capacity() < i) {
+        if (data == null || data.remaining() < i) {
             data = ByteBuffer.allocate(i);
         }
     }
     
     public boolean download() throws IOException {
         int i = IOUtil.readFromChannel(channel, data);
-        if (i > 0) {
+        if (i >= 0) {
             downloaded += i;
         } else {
-            throw new IOException();
+            throw new EOFException();
         }
         return !data.hasRemaining();
     }
@@ -188,6 +191,12 @@ public class Peer {
         return pieces;
     }
 
+    public void disconnect() throws IOException {
+        if (channel != null) {
+            channel.close();
+        }
+    }
+    
     public BitSet getOtherPieces(final BitSet bs) {
         if (pieces == null) {
             pieces = new BitSet(bs.size());

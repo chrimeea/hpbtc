@@ -43,6 +43,11 @@ public class MessageReaderImpl implements MessageReader {
         validator = new MessageValidator(torrents);
     }
     
+    public void disconnect(final Peer peer) throws IOException {
+        torrents.get(peer.getInfoHash()).removePeer(peer);
+        peer.disconnect();
+    }
+    
     public void readMessage(final Peer peer) throws IOException,
             NoSuchAlgorithmException {
         if (peer.isHandshakeReceived()) {
