@@ -65,7 +65,7 @@ public class NetworkWriter {
                             peer = (Peer) key.attachment();
                             SocketChannel ch = (SocketChannel) key.channel();
                             if (key.isConnectable() && ch.finishConnect()) {
-                                logger.info("Connected to " + peer);
+                                logger.fine("Connected to " + peer);
                                 ch.register(selector, key.interestOps() &
                                         ~SelectionKey.OP_CONNECT, peer);
                                 register.registerRead(peer);
