@@ -126,9 +126,9 @@ public class MessageReaderImpl implements MessageReader {
         } else {
             peer.setNextDataExpectation(48);
             if (peer.download()) {
-                logger.fine("Received handshake from " + peer);
                 HandshakeMessage mHand = new HandshakeMessage(peer.getData(),
                         peer);
+                logger.fine("Received " + mHand);
                 processHandshake(mHand);
                 peer.setNextDataExpectation(20);
                 checkPeerId(peer);
@@ -158,6 +158,7 @@ public class MessageReaderImpl implements MessageReader {
                 writer.postMessage(bmessage);
             }
         } else {
+            logger.warning("Invalid message: " + message);
             writer.disconnect(peer);
         }
     }
@@ -174,6 +175,8 @@ public class MessageReaderImpl implements MessageReader {
                 writer.postMessage(smessage);
                 peer.setClientInterested(true);
             }
+        } else {
+            logger.warning("Invalid message: " + message);
         }
     }
 
@@ -182,6 +185,8 @@ public class MessageReaderImpl implements MessageReader {
             Peer peer = message.getDestination();
             writer.cancelPieceMessage(message.getBegin(),
                     message.getIndex(), message.getLength(), peer);
+        } else {
+            logger.warning("Invalid message: " + message);
         }
     }
 
@@ -201,6 +206,8 @@ public class MessageReaderImpl implements MessageReader {
                 writer.postMessage(m);
                 peer.setClientInterested(true);
             }
+        } else {
+            logger.warning("Invalid message: " + message);
         }
     }
 
@@ -236,6 +243,8 @@ public class MessageReaderImpl implements MessageReader {
                 trackers.get(t.getInfoHash()).endTracker(t.getUploaded(),
                         t.getDownloaded());
             }
+        } else {
+            logger.warning("Invalid message: " + message);
         }
         if (!peer.isPeerChoking() && peer.isClientInterested()) {
             decideNextPiece(t, peer);
@@ -254,6 +263,8 @@ public class MessageReaderImpl implements MessageReader {
             PieceMessage pm = new PieceMessage(message.getBegin(),
                     message.getIndex(), piece, message.getLength(), peer);
             writer.postMessage(pm);
+        } else {
+            logger.warning("Invalid message: " + message);
         }
     }
 
