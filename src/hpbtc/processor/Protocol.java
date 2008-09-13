@@ -18,7 +18,6 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -36,7 +35,8 @@ public class Protocol {
     private Map<byte[], BitSet[]> requests;
     private Map<byte[], Tracker> trackers;
     private byte[] peerId;
-    private Timer timer;
+    private Timer slowTimer;
+    private Timer fastTimer;
     private MessageWriter writer;
     private MessageReader processor;
     private int port;
@@ -47,7 +47,8 @@ public class Protocol {
     public Protocol() throws UnsupportedEncodingException {
         this.peerId = TorrentUtil.generateId();
         torrents = new HashMap<byte[], Torrent>();
-        timer = new Timer(true);
+        slowTimer = new Timer(true);
+        fastTimer = new Timer(true);
         requests = new HashMap<byte[], BitSet[]>();
         trackers = new HashMap<byte[], Tracker>();
         protocol = getSupportedProtocol();
@@ -66,8 +67,28 @@ public class Protocol {
             req[i] = new BitSet(ti.getChunksInPiece());
         }
         requests.put(infoHash, req);
-        beginPeers(ti);
-        timer.schedule(new TimerTask() {
+        final Tracker tracker = new Tracker(ti.getInfoHash(), peerId, port,
+                ti.getTrackers(), ti.getByteEncoding());
+        trackers.put(ti.getInfoHash(), tracker);
+        ti.addFreshPeers(tracker.beginTracker(ti.getFileLength()));
+        long d = tracker.getInterval() * 1000;
+        slowTimer.schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+                contactFreshPeers(ti.getFreshPeers());
+            }
+        }, 0, d);
+        fastTimer.schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+                ti.addFreshPeers(tracker.updateTracker(null, ti.getUploaded(),
+                        ti.getDownloaded(),
+                        ti.getFileLength() - ti.getDownloaded(), true));
+            }
+        }, d, d);
+        fastTimer.schedule(new TimerTask() {
 
             @Override
             public void run() {
@@ -101,26 +122,6 @@ public class Protocol {
                 logger.log(Level.WARNING, e.getLocalizedMessage(), e);
             }
         }
-    }
-
-    private void beginPeers(final Torrent ti)
-            throws UnsupportedEncodingException, IOException {
-        final Tracker tracker = new Tracker(ti.getInfoHash(), peerId, port,
-                ti.getTrackers(), ti.getByteEncoding());
-        trackers.put(ti.getInfoHash(), tracker);
-        contactFreshPeers(tracker.beginTracker(ti.getFileLength()));
-        long d = tracker.getInterval() * 1000;
-        timer.schedule(new TimerTask() {
-
-            @Override
-            public void run() {
-                Set<Peer> p = tracker.updateTracker(null, ti.getUploaded(),
-                        ti.getDownloaded(),
-                        ti.getFileLength() - ti.getDownloaded(), true);
-                p.removeAll(ti.getConnectedPeers());
-                contactFreshPeers(p);
-            }
-        }, d, d);
     }
 
     public void stopProtocol() {

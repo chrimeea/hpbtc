@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ public class Torrent {
     private String encoding;
     private FileStore fileStore;
     private Set<Peer> peers;
+    private Set<Peer> freshPeers;
     private Random random;
     private long uploaded;
     private long downloaded;
@@ -96,6 +98,7 @@ public class Torrent {
                     fileName, fileLength);
         }
         peers = new CopyOnWriteArraySet<Peer>();
+        freshPeers = new HashSet<Peer>();
     }
 
     public String getByteEncoding() {
@@ -106,6 +109,17 @@ public class Torrent {
         return peers;
     }
 
+    public synchronized void addFreshPeers(Set<Peer> otherPeers) {
+        freshPeers.addAll(otherPeers);
+    }
+    
+    public synchronized Set<Peer> getFreshPeers() {
+        Set<Peer> p = freshPeers;
+        freshPeers = null;
+        p.removeAll(peers);
+        return p;
+    }
+    
     public List<SimpleMessage> decideChoking() {
         List<Peer> prs = new ArrayList<Peer>(peers);
         Comparator<Peer> comp = isTorrentComplete() ? new Comparator<Peer>() {
