@@ -28,9 +28,18 @@ public class MessageValidator {
 
     public boolean validateHandshakeMessage(final HandshakeMessage message)
             throws UnsupportedEncodingException {
-        return !message.getDestination().isHandshakeReceived() && Arrays.equals(
-                message.getProtocol(), protocol) &&
-                torrents.containsKey(message.getInfoHash());
+        if (message.getDestination().isHandshakeReceived() || !Arrays.equals(
+                message.getProtocol(), protocol)) {
+            return false;
+        }
+        byte[] ih = message.getInfoHash();
+        for (byte[] b: torrents.keySet()) {
+            if (Arrays.equals(b, ih)) {
+                message.setInfoHash(b);
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean validateBitfieldMessage(final BitfieldMessage message) {

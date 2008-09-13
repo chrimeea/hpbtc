@@ -140,11 +140,11 @@ public class MessageReaderImpl implements MessageReader {
             IOException {
         Peer peer = message.getDestination();
         if (validator.validateHandshakeMessage(message)) {
-            byte[] infoHash = message.getInfoHash();
-            peer.setInfoHash(infoHash);
             peer.setHandshakeReceived();
-            Torrent t = torrents.get(peer.getInfoHash());
+            byte[] infoHash = message.getInfoHash();
+            Torrent t = torrents.get(infoHash);
             if (!peer.isHandshakeSent()) {
+                peer.setInfoHash(infoHash);
                 HandshakeMessage reply = new HandshakeMessage(infoHash, peerId,
                         protocol, peer);
                 writer.postMessage(reply);
