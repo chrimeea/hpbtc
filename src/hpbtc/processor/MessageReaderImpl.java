@@ -45,20 +45,23 @@ public class MessageReaderImpl implements MessageReader {
         this.requests = requests;
         validator = new MessageValidator(torrents, protocol);
     }
-    
+
     public void disconnect(final Peer peer) throws IOException {
         writer.disconnect(peer);
     }
-    
+
+    private void checkPeerId(final Peer peer) throws IOException {
+        if (peer.download()) {
+            peer.setId(peer.getData().array());
+            logger.fine("Received id for " + peer);
+        }
+    }
+
     public void readMessage(final Peer peer) throws IOException,
             NoSuchAlgorithmException {
         if (peer.isHandshakeReceived()) {
             if (peer.getId() == null) {
-                peer.setNextDataExpectation(20);
-                if (peer.download()) {
-                    peer.setId(peer.getData().array());
-                    logger.fine("Received id for " + peer);
-                }
+                checkPeerId(peer);
             } else {
                 if (!peer.isExpectBody()) {
                     peer.setNextDataExpectation(4);
@@ -127,6 +130,8 @@ public class MessageReaderImpl implements MessageReader {
                 HandshakeMessage mHand = new HandshakeMessage(peer.getData(),
                         peer);
                 processHandshake(mHand);
+                peer.setNextDataExpectation(20);
+                checkPeerId(peer);
             }
         }
     }
