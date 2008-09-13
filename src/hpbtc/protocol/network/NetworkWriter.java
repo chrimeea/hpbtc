@@ -69,17 +69,15 @@ public class NetworkWriter {
                                 ch.register(selector, key.interestOps() &
                                         ~SelectionKey.OP_CONNECT, peer);
                                 register.registerRead(peer);
-                            } else {
-                                if (key.isValid() && key.isWritable()) {
-                                    ch.register(selector, key.interestOps() &
-                                            ~SelectionKey.OP_WRITE, peer);
-                                    writer.writeNext(peer);
-                                    if (ch.isOpen() && !writer.isEmpty(peer)) {
-                                        ch.register(selector, key.interestOps() |
-                                                SelectionKey.OP_WRITE, peer);
-                                    } else {
-                                        key.cancel();
-                                    }
+                            } else if (key.isWritable()) {
+                                ch.register(selector, key.interestOps() &
+                                        ~SelectionKey.OP_WRITE, peer);
+                                writer.writeNext(peer);
+                                if (ch.isOpen() && !writer.isEmpty(peer)) {
+                                    ch.register(selector, key.interestOps() |
+                                            SelectionKey.OP_WRITE, peer);
+                                } else {
+                                    key.cancel();
                                 }
                             }
                         } catch (IOException ioe) {
