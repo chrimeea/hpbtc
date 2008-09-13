@@ -128,8 +128,8 @@ public class NetworkReader {
                         }
                     }
                 }
-                register.performReadRegistration();
             }
+            register.performReadRegistration();
         }
     }
 }
