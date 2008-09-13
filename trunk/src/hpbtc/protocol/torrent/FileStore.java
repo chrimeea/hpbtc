@@ -79,19 +79,20 @@ public class FileStore {
     }
 
     public FileStore(final int pieceLength, final byte[] pieceHash,
-            final String rootFolder, final List<Map> fls)
+            final String rootFolder, final List<Map> fls, String byteEncoding)
             throws IOException, NoSuchAlgorithmException {
         files = new ArrayList<BTFile>(fls.size());
         fileLength = 0L;
         for (Map fd : fls) {
-            List<String> dirs = (List<String>) fd.get("path");
+            List<byte[]> dirs = (List<byte[]>) fd.get("path".getBytes(
+                    byteEncoding));
             StringBuilder sb = new StringBuilder(rootFolder);
             sb.append(File.separator);
-            for (String dir : dirs) {
-                sb.append(dir);
+            for (byte[] dir : dirs) {
+                sb.append(new String(dir, byteEncoding));
                 sb.append(File.separator);
             }
-            int fl = (Integer) fd.get("length");
+            int fl = (Integer) fd.get("length".getBytes(byteEncoding));
             fileLength += fl;
             files.add(
                     new BTFile(sb.substring(0, sb.length() - 1).toString(), fl));

@@ -14,9 +14,9 @@ public interface MessageWriter {
     
     void writeNext(Peer peer) throws IOException;
     
-    void closeConnection(Peer peer) throws IOException;
-    
     void cancelPieceMessage(int begin, int index, int length, Peer peer);
     
     boolean isEmpty(Peer peer);
+    
+    void disconnect(final Peer peer) throws IOException;
 }

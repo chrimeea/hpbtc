@@ -10,7 +10,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 import org.junit.Test;
 
 /**
@@ -19,6 +18,8 @@ import org.junit.Test;
  */
 public class TrackerTest {
 
+    private String byteEncoding = "US-ASCII";
+    
     @Test
     public void testConnectToTracker() throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
@@ -36,19 +37,19 @@ public class TrackerTest {
                         "d8:intervali10e12:min intervali5e10:tracker id3:foo8:completei20e10:incompletei9e5:peersld7:peer id2:1P2:ip9:localhost4:porti9000eed7:peer id2:2P2:ip9:localhost4:porti3003eeee";
                 t.sendResponseHeaders(200, response.length());
                 OutputStream os = t.getResponseBody();
-                os.write(response.getBytes("ISO-8859-1"));
+                os.write(response.getBytes(byteEncoding));
                 os.close();
             }
         });
         server.setExecutor(null);
         server.start();
-        LinkedList<LinkedList<String>> t = new LinkedList<LinkedList<String>>();
-        LinkedList<String> l = new LinkedList<String>();
-        l.add("http://localhost:8001/test");
-        l.add("http://localhost:8000/test");
+        LinkedList<LinkedList<byte[]>> t = new LinkedList<LinkedList<byte[]>>();
+        LinkedList<byte[]> l = new LinkedList<byte[]>();
+        l.add("http://localhost:8001/test".getBytes(byteEncoding));
+        l.add("http://localhost:8000/test".getBytes(byteEncoding));
         t.add(l);
-        Tracker ti = new Tracker("INFOHASH".getBytes("ISO-8859-1"),
-                "PID".getBytes("ISO-8859-1"), 2000, t);
+        Tracker ti = new Tracker("INFOHASH".getBytes(byteEncoding),
+                "PID".getBytes(byteEncoding), 2000, t, byteEncoding);
         Iterable<Peer> peers = ti.updateTracker(Tracker.Event.started, 1, 2, 3,
                 false);
         server.stop(0);
@@ -57,8 +58,8 @@ public class TrackerTest {
         assert ti.getComplete() == 20;
         assert ti.getIncomplete() == 9;
         for (Peer p : peers) {
-            assert Arrays.equals(p.getId(), "1P".getBytes("ISO-8859-1")) ||
-                    Arrays.equals(p.getId(), "2P".getBytes("ISO-8859-1"));
+            assert Arrays.equals(p.getId(), "1P".getBytes(byteEncoding)) ||
+                    Arrays.equals(p.getId(), "2P".getBytes(byteEncoding));
         }
     }
 }

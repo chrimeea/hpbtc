@@ -42,6 +42,7 @@ public class Protocol {
     private int port;
     private NetworkReader netReader;
     private NetworkWriter netWriter;
+    private byte[] protocol;
 
     public Protocol() throws UnsupportedEncodingException {
         this.peerId = TorrentUtil.generateId();
@@ -49,6 +50,7 @@ public class Protocol {
         timer = new Timer(true);
         requests = new HashMap<byte[], BitSet[]>();
         trackers = new HashMap<byte[], Tracker>();
+        protocol = getSupportedProtocol();
     }
 
     public void download(final File fileName, final String rootFolder)
@@ -104,7 +106,7 @@ public class Protocol {
     private void beginPeers(final Torrent ti)
             throws UnsupportedEncodingException, IOException {
         final Tracker tracker = new Tracker(ti.getInfoHash(), peerId, port,
-                ti.getTrackers());
+                ti.getTrackers(), ti.getByteEncoding());
         trackers.put(ti.getInfoHash(), tracker);
         contactFreshPeers(tracker.beginTracker(ti.getFileLength()));
         timer.schedule(new TimerTask() {
@@ -127,21 +129,21 @@ public class Protocol {
 
     public void startProtocol() throws IOException {
         Register register = new Register();
-        writer = new MessageWriterImpl(register);
+        writer = new MessageWriterImpl(torrents, register);
         netWriter = new NetworkWriter(writer, register);
         processor = new MessageReaderImpl(torrents, peerId, requests, writer,
-                trackers);
+                trackers, protocol);
         netReader = new NetworkReader(processor, register);
         port = netReader.connect();
         netWriter.connect();
     }
 
-    public static byte[] getSupportedProtocol() throws
+    private static byte[] getSupportedProtocol() throws
             UnsupportedEncodingException {
         byte[] protocol = new byte[20];
         ByteBuffer pr = ByteBuffer.wrap(protocol);
         pr.put((byte) 19);
-        pr.put("BitTorrent protocol".getBytes("ISO-8859-1"));
+        pr.put("BitTorrent protocol".getBytes("US-ASCII"));
         return protocol;
     }
 }

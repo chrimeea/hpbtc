@@ -31,21 +31,23 @@ public class MessageReaderImpl implements MessageReader {
     private MessageValidator validator;
     private Map<byte[], BitSet[]> requests;
     private Map<byte[], Tracker> trackers;
+    private byte[] protocol;
 
     public MessageReaderImpl(final Map<byte[], Torrent> torrents,
             final byte[] peerId, final Map<byte[], BitSet[]> requests,
-            final MessageWriter writer, Map<byte[], Tracker> trackers) {
+            final MessageWriter writer, final Map<byte[], Tracker> trackers,
+            final byte[] protocol) {
+        this.protocol = protocol;
         this.trackers = trackers;
         this.writer = writer;
         this.peerId = peerId;
         this.torrents = torrents;
         this.requests = requests;
-        validator = new MessageValidator(torrents);
+        validator = new MessageValidator(torrents, protocol);
     }
     
     public void disconnect(final Peer peer) throws IOException {
-        torrents.get(peer.getInfoHash()).removePeer(peer);
-        peer.disconnect();
+        writer.disconnect(peer);
     }
     
     public void readMessage(final Peer peer) throws IOException,
@@ -139,7 +141,7 @@ public class MessageReaderImpl implements MessageReader {
             Torrent t = torrents.get(peer.getInfoHash());
             if (!peer.isHandshakeSent()) {
                 HandshakeMessage reply = new HandshakeMessage(infoHash, peerId,
-                        Protocol.getSupportedProtocol(), peer);
+                        protocol, peer);
                 writer.postMessage(reply);
             } else {
                 t.addPeer(peer);
@@ -151,7 +153,7 @@ public class MessageReaderImpl implements MessageReader {
                 writer.postMessage(bmessage);
             }
         } else {
-            writer.closeConnection(peer);
+            writer.disconnect(peer);
         }
     }
 

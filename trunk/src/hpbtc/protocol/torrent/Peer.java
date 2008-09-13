@@ -132,7 +132,7 @@ public class Peer {
     }
 
     public boolean isConnected() {
-        return channel != null && handshakeReceived;
+        return handshakeReceived;
     }
 
     public ByteChannel getChannel() {
@@ -192,7 +192,7 @@ public class Peer {
     }
 
     public void disconnect() throws IOException {
-        if (channel != null) {
+        if (channel != null && channel.isOpen()) {
             channel.close();
         }
     }

@@ -70,9 +70,16 @@ public class NetworkWriter {
                                         peer);
                                 register.registerRead(peer);
                             } else if (key.isWritable()) {
-                                writer.writeNext(peer);
-                                if (!ch.isOpen() || writer.isEmpty(peer)) {
-                                    ch.register(selector, 0, peer);
+                                try {
+                                    writer.writeNext(peer);
+                                    if (!ch.isOpen() || writer.isEmpty(peer)) {
+                                        ch.register(selector, 0, peer);
+                                    }
+                                } catch (IOException e) {
+                                    logger.log(Level.WARNING,
+                                            e.getLocalizedMessage(), e);
+                                    key.cancel();
+                                    writer.disconnect(peer);
                                 }
                             }
                         } catch (IOException ioe) {

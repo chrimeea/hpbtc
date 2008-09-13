@@ -17,11 +17,10 @@ import java.util.Set;
  */
 public class TrackerUtil {
 
-    public static Set<Peer> doCompactPeer(final Map<String, Object> response,
+    public static Set<Peer> doCompactPeer(final byte[] prs,
             final byte[] infoHash) throws UnsupportedEncodingException,
             UnknownHostException {
         Set<Peer> peers = new HashSet<Peer>();
-        byte[] prs = ((String) response.get("peers")).getBytes("ISO-8859-1");
         int k = 0;
         while (k < prs.length) {
             InetAddress peerIp = InetAddress.getByAddress(
@@ -35,16 +34,15 @@ public class TrackerUtil {
         return peers;
     }
 
-    public static Set<Peer> doLoosePeer(final Map<String, Object> response,
-            final byte[] infoHash) throws
+    public static Set<Peer> doLoosePeer(final List<Map<byte[], Object>> prs,
+            final byte[] infoHash, final String byteEncoding) throws
             UnsupportedEncodingException {
         Set<Peer> peers = new HashSet<Peer>();
-        List<Map<String, Object>> prs =
-                (List<Map<String, Object>>) response.get("peers");
-        for (Map<String, Object> d : prs) {
-            peers.add(new Peer(new InetSocketAddress((String) d.get("ip"),
-                    ((Integer) d.get("port")).intValue()), infoHash,
-                    ((String) d.get("peer id")).getBytes("ISO-8859-1")));
+        for (Map<byte[], Object> d : prs) {
+            peers.add(new Peer(new InetSocketAddress(new String((byte[]) d.get("ip".
+                    getBytes(byteEncoding)), byteEncoding), ((Integer) d.get("port".
+                    getBytes(byteEncoding))).intValue()), infoHash, ((byte[]) d.
+                    get("peer id".getBytes(byteEncoding)))));
         }
         return peers;
     }
