@@ -27,7 +27,7 @@ public class FileStore {
     private int offset;
     private byte[] pieceHash;
     private List<BTFile> files;
-    private int fileLength;
+    private long fileLength;
     private int pieceLength;
     private BitSet completePieces;
 
@@ -51,7 +51,7 @@ public class FileStore {
             throws IOException, NoSuchAlgorithmException {
         completePieces = new BitSet(nrPieces);
         this.pieceLength = pieceLength;
-        nrPieces = fileLength / pieceLength;
+        nrPieces = (int) (fileLength / pieceLength);
         if (fileLength % pieceLength > 0) {
             nrPieces++;
         }
@@ -70,7 +70,7 @@ public class FileStore {
         }
     }
 
-    public int getFileLength() {
+    public long getFileLength() {
         return fileLength;
     }
 
@@ -82,7 +82,7 @@ public class FileStore {
             final String rootFolder, final List<Map> fls)
             throws IOException, NoSuchAlgorithmException {
         files = new ArrayList<BTFile>(fls.size());
-        fileLength = 0;
+        fileLength = 0L;
         for (Map fd : fls) {
             List<String> dirs = (List<String>) fd.get("path");
             StringBuilder sb = new StringBuilder(rootFolder);

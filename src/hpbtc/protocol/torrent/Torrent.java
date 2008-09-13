@@ -38,8 +38,8 @@ public class Torrent {
     private FileStore fileStore;
     private Set<Peer> peers;
     private Random random;
-    private int uploaded;
-    private int downloaded;
+    private long uploaded;
+    private long downloaded;
     private int optimisticCounter;
 
     public Torrent(final InputStream is, final String rootFolder)
@@ -139,7 +139,7 @@ public class Torrent {
     private int getActualPieceSize(final int index) {
         int n = getNrPieces();
         int l = getPieceLength();
-        return index == n - 1 ? (n - 1) * l + getFileLength() : l;
+        return index == n - 1 ? (int) (getFileLength() - (n - 1) * l)  : l;
     }
 
     public int getChunkSize() {
@@ -192,11 +192,11 @@ public class Torrent {
         peers.add(peer);
     }
 
-    public int getUploaded() {
+    public long getUploaded() {
         return uploaded;
     }
 
-    public int getDownloaded() {
+    public long getDownloaded() {
         return downloaded;
     }
 
@@ -221,7 +221,7 @@ public class Torrent {
         return fileStore.getFiles();
     }
 
-    public int getFileLength() {
+    public long getFileLength() {
         return fileStore.getFileLength();
     }
 
