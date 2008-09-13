@@ -87,7 +87,7 @@ public class Protocol {
                     }
                 }
             }
-        }, 10000);
+        }, 10000, 10000);
     }
 
     private void contactFreshPeers(final Iterable<Peer> freshPeers) {
@@ -109,6 +109,7 @@ public class Protocol {
                 ti.getTrackers(), ti.getByteEncoding());
         trackers.put(ti.getInfoHash(), tracker);
         contactFreshPeers(tracker.beginTracker(ti.getFileLength()));
+        long d = tracker.getInterval() * 1000;
         timer.schedule(new TimerTask() {
 
             @Override
@@ -119,7 +120,7 @@ public class Protocol {
                 p.removeAll(ti.getConnectedPeers());
                 contactFreshPeers(p);
             }
-        }, tracker.getInterval() * 1000);
+        }, d, d);
     }
 
     public void stopProtocol() {
