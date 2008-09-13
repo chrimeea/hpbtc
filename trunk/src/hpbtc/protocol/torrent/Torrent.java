@@ -15,12 +15,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import util.TorrentUtil;
 
 /**
@@ -86,7 +86,7 @@ public class Torrent {
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder,
                     fileName, fileLength);
         }
-        peers = new HashSet<Peer>();
+        peers = new CopyOnWriteArraySet<Peer>();
     }
 
     public Collection<Peer> getConnectedPeers() {
@@ -146,39 +146,56 @@ public class Torrent {
         return fileStore.getChunkSize();
     }
 
+    public int getChunksInPiece() {
+        int a = fileStore.getPieceLength();
+        int b = fileStore.getChunkSize();
+        int c = a / b;
+        int r = a % b;
+        return r == 0 ? c : c + 1;
+    }
+
+    private BlockMessage choosePiece(final BitSet bs, final Peer peer,
+            final BitSet[] requests) {
+        int r = random.nextInt(bs.cardinality());
+        int index = bs.nextSetBit(0);
+        for (; index < r; index = bs.nextSetBit(index + 1)) {
+        }
+        int ind = requests[index].nextSetBit(0);
+        int begin = TorrentUtil.computeBeginPosition(ind < 0 ? 0 : ind,
+                getChunkSize());
+        int length = getActualPieceSize(index);
+        return new BlockMessage(begin, index, length,
+                SimpleMessage.TYPE_REQUEST, peer);
+    }
+
     public BlockMessage decideNextPiece(final Peer peer,
             final BitSet[] requests) {
         BitSet bs = peer.getOtherPieces(getCompletePieces());
-        int chunkSize = getChunkSize();
-        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-            if (requests[i].cardinality() == chunkSize) {
-                bs.clear(i);
+        if (bs.cardinality() > 0) {
+            BitSet two = (BitSet) bs.clone();
+            int x = getChunksInPiece();
+            for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+                if (requests[i].cardinality() == x) {
+                    bs.clear(i);
+                }
             }
-        }
-        int c = bs.cardinality();
-        if (c > 0) {
-            int r = random.nextInt(c);
-            int index = bs.nextSetBit(0);
-            for (; index < r; index = bs.nextSetBit(index + 1)) {
-            }
-            int ind = requests[index].nextSetBit(0);
-            int begin = TorrentUtil.computeBeginPosition(ind < 0 ? 0 : ind,
-                    chunkSize);
-            int length = getActualPieceSize(index);
-            return new BlockMessage(begin, index, length,
-                    SimpleMessage.TYPE_REQUEST, peer);
+            return choosePiece(bs.cardinality() > 0 ? bs : two, peer, requests);
         }
         return null;
+    }
+
+    public void removePeer(final Peer peer) {
+        peers.remove(peer);
     }
 
     public void addPeer(final Peer peer) {
         peers.add(peer);
     }
-    
+
     public int getUploaded() {
         return uploaded;
     }
-    
+
     public int getDownloaded() {
         return downloaded;
     }

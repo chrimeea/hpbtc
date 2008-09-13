@@ -43,6 +43,10 @@ public class NetworkTest {
                 bb.limit(11);
                 assert bb.equals(ByteBuffer.wrap("test client".getBytes()));
             }
+
+            public void disconnect(Peer arg0) throws IOException {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }            
         }, r);
         int port = c.connect();
         SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.

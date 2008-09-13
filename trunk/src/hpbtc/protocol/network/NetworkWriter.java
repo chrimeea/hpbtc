@@ -66,18 +66,13 @@ public class NetworkWriter {
                             SocketChannel ch = (SocketChannel) key.channel();
                             if (key.isConnectable() && ch.finishConnect()) {
                                 logger.fine("Connected to " + peer);
-                                ch.register(selector, key.interestOps() &
-                                        ~SelectionKey.OP_CONNECT, peer);
+                                ch.register(selector, SelectionKey.OP_WRITE,
+                                        peer);
                                 register.registerRead(peer);
                             } else if (key.isWritable()) {
-                                ch.register(selector, key.interestOps() &
-                                        ~SelectionKey.OP_WRITE, peer);
                                 writer.writeNext(peer);
-                                if (ch.isOpen() && !writer.isEmpty(peer)) {
-                                    ch.register(selector, key.interestOps() |
-                                            SelectionKey.OP_WRITE, peer);
-                                } else {
-                                    key.cancel();
+                                if (!ch.isOpen() || writer.isEmpty(peer)) {
+                                    ch.register(selector, 0, peer);
                                 }
                             }
                         } catch (IOException ioe) {

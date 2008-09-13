@@ -61,7 +61,7 @@ public class Protocol {
         int np = ti.getNrPieces();
         BitSet[] req = new BitSet[np];
         for (int i = 0; i < np; i++) {
-            req[i] = new BitSet();
+            req[i] = new BitSet(ti.getChunksInPiece());
         }
         requests.put(infoHash, req);
         beginPeers(ti);
