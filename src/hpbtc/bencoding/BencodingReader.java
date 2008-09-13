@@ -7,10 +7,10 @@ package hpbtc.bencoding;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author Cristian Mocanu
@@ -64,7 +64,7 @@ public class BencodingReader {
         return n;
     }
 
-    public String readNextString() throws IOException {
+    public byte[] readNextString() throws IOException {
         int n = readNextNumber(':');
         if (n < 0) {
             throw new BencodingException(
@@ -76,7 +76,7 @@ public class BencodingReader {
             while (s < n) {
                 s += is.read(dst, s, n - s);
             }
-            return new String(dst, "ISO-8859-1");
+            return dst;
         }
         return null;
     }
@@ -108,8 +108,9 @@ public class BencodingReader {
         return r;
     }
 
-    public Map<String, Object> readNextDictionary() throws IOException {
-        Map<String, Object> r = new HashMap<String, Object>();
+    public Map<byte[], Object> readNextDictionary() throws IOException {
+        Map<byte[], Object> r = new TreeMap<byte[], Object>(
+                new ByteStringComparator());
         int c = is.read();
         if (c != 'd') {
             throw new BencodingException("Found char: '" + (char) c +
@@ -119,7 +120,7 @@ public class BencodingReader {
         c = is.read();
         while (c != 'e') {
             is.reset();
-            String key = readNextString();
+            byte[] key = readNextString();
             Object value = readNextElement();
             r.put(key, value);
             is.mark(1);

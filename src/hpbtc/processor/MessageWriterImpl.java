@@ -4,11 +4,9 @@ import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Register;
 import hpbtc.protocol.torrent.Peer;
+import hpbtc.protocol.torrent.Torrent;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ByteChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
@@ -28,12 +26,15 @@ public class MessageWriterImpl implements MessageWriter {
     private Map<Peer, Queue<SimpleMessage>> messagesToSend;
     private ByteBuffer currentWrite;
     private Register register;
+    private Map<byte[], Torrent> torrents;
 
-    public MessageWriterImpl(final Register register) {
+    public MessageWriterImpl(final Map<byte[], Torrent> torrents,
+            final Register register) {
+        this.torrents = torrents;
         messagesToSend = new ConcurrentHashMap<Peer, Queue<SimpleMessage>>();
         this.register = register;
     }
-    
+
     public void cancelPieceMessage(final int begin, final int index,
             final int length, final Peer peer) {
         Queue<SimpleMessage> q = messagesToSend.get(peer);
@@ -52,12 +53,10 @@ public class MessageWriterImpl implements MessageWriter {
         }
     }
 
-    public void closeConnection(final Peer peer) throws IOException {
+    public void disconnect(final Peer peer) throws IOException {
         messagesToSend.remove(peer);
-        ByteChannel ch = peer.getChannel();
-        if (ch != null) {
-            ch.close();
-        }
+        torrents.get(peer.getInfoHash()).removePeer(peer);
+        peer.disconnect();
     }
 
     public void writeNext(final Peer peer) throws IOException {
@@ -68,12 +67,7 @@ public class MessageWriterImpl implements MessageWriter {
             logger.fine("Sending message type " + sm.getMessageType() + " to " +
                     peer);
         }
-        try {
-            peer.upload(currentWrite);
-        } catch (IOException e) {
-            logger.log(Level.WARNING, e.getLocalizedMessage(), e);
-            closeConnection(peer);
-        }
+        peer.upload(currentWrite);
     }
 
     public void postMessage(final SimpleMessage message) throws IOException {

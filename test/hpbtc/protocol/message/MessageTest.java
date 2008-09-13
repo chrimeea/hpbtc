@@ -13,6 +13,16 @@ import java.util.Arrays;
  */
 public class MessageTest {
 
+    private String byteEncoding = "US-ASCII";
+    
+    private byte[] getSupportedProtocol() throws UnsupportedEncodingException {
+        byte[] protocol = new byte[20];
+        ByteBuffer pr = ByteBuffer.wrap(protocol);
+        pr.put((byte) 19);
+        pr.put("BitTorrent protocol".getBytes(byteEncoding));
+        return protocol;        
+    }
+    
     @Test
     public void testReadBitfield() {
         ByteBuffer bb = ByteBuffer.allocate(3);
@@ -55,14 +65,14 @@ public class MessageTest {
     public void testReadHandshake() throws UnsupportedEncodingException {
         ByteBuffer bb = ByteBuffer.allocate(68);
         bb.put((byte) 19);
-        bb.put("BitTorrent protocol".getBytes("ISO-8859-1"));
+        bb.put("BitTorrent protocol".getBytes(byteEncoding));
         bb.putLong(0L);
-        bb.put("01234567890123456789".getBytes("ISO-8859-1"));
-        bb.put("ABCDEFGHIJKLMNOPQRST".getBytes("ISO-8859-1"));
+        bb.put("01234567890123456789".getBytes(byteEncoding));
+        bb.put("ABCDEFGHIJKLMNOPQRST".getBytes(byteEncoding));
         bb.rewind();
         HandshakeMessage m = new HandshakeMessage(bb, null);
-        assert Arrays.equals(Protocol.getSupportedProtocol(), m.getProtocol());
-        assert "01234567890123456789".equals(new String(m.getInfoHash(), "ISO-8859-1"));
+        assert Arrays.equals(getSupportedProtocol(), m.getProtocol());
+        assert "01234567890123456789".equals(new String(m.getInfoHash(), byteEncoding));
         assert m.getPeerId() == null;
     }
     
@@ -70,44 +80,44 @@ public class MessageTest {
     public void testNullPeerInfoHandshake() throws UnsupportedEncodingException {
         ByteBuffer bb = ByteBuffer.allocate(48);
         bb.put((byte) 19);
-        bb.put("BitTorrent protocol".getBytes("ISO-8859-1"));
+        bb.put("BitTorrent protocol".getBytes(byteEncoding));
         bb.putLong(0L);
-        bb.put("01234567890123456789".getBytes("ISO-8859-1"));
+        bb.put("01234567890123456789".getBytes(byteEncoding));
         bb.rewind();
         HandshakeMessage m = new HandshakeMessage(bb, null);
-        assert Arrays.equals(Protocol.getSupportedProtocol(), m.getProtocol());
-        assert "01234567890123456789".equals(new String(m.getInfoHash(), "ISO-8859-1"));
+        assert Arrays.equals(getSupportedProtocol(), m.getProtocol());
+        assert "01234567890123456789".equals(new String(m.getInfoHash(), byteEncoding));
         assert m.getPeerId() == null;
         bb = m.send();
         bb.rewind();
         assert bb.get() == 19;
         byte[] p = new byte[19];
         bb.get(p);
-        assert "BitTorrent protocol".equals(new String(p, "ISO-8859-1"));
+        assert "BitTorrent protocol".equals(new String(p, byteEncoding));
         assert bb.getLong() == 0L;
         byte[] i = new byte[20];
         bb.get(i);
-        assert "01234567890123456789".equals(new String(i, "ISO-8859-1"));
+        assert "01234567890123456789".equals(new String(i, byteEncoding));
     }
     
     @Test
     public void testWriteHandshake() throws UnsupportedEncodingException {
         HandshakeMessage m = new HandshakeMessage(
-                "01234567890123456789".getBytes("ISO-8859-1"),
-                "ABCDEFGHIJKLMNOPQRST".getBytes("ISO-8859-1"),
-                Protocol.getSupportedProtocol(), null);
+                "01234567890123456789".getBytes(byteEncoding),
+                "ABCDEFGHIJKLMNOPQRST".getBytes(byteEncoding),
+                getSupportedProtocol(), null);
         ByteBuffer bb = m.send();
         bb.rewind();
         assert bb.get() == 19;
         byte[] p = new byte[19];
         bb.get(p);
-        assert "BitTorrent protocol".equals(new String(p, "ISO-8859-1"));
+        assert "BitTorrent protocol".equals(new String(p, byteEncoding));
         assert bb.getLong() == 0L;
         byte[] i = new byte[20];
         bb.get(i);
-        assert "01234567890123456789".equals(new String(i, "ISO-8859-1"));
+        assert "01234567890123456789".equals(new String(i, byteEncoding));
         bb.get(i);
-        assert "ABCDEFGHIJKLMNOPQRST".equals(new String(i, "ISO-8859-1"));
+        assert "ABCDEFGHIJKLMNOPQRST".equals(new String(i, byteEncoding));
         assert !bb.hasRemaining();
     }
     

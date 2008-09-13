@@ -70,10 +70,6 @@ public class NetworkTest {
                 p.upload(ByteBuffer.wrap("bit torrent".getBytes("ISO-8859-1")));
             }
 
-            public void closeConnection(Peer arg0) throws IOException {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
             public void cancelPieceMessage(int arg0, int arg1, int arg2,
                     Peer arg3) {
                 throw new UnsupportedOperationException("Not supported yet.");
@@ -81,6 +77,10 @@ public class NetworkTest {
 
             public boolean isEmpty(Peer arg0) {
                 return true;
+            }
+
+            public void disconnect(Peer arg0) throws IOException {
+                throw new UnsupportedOperationException("Not supported yet.");
             }
         }, r);
         c.connect();

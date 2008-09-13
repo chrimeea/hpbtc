@@ -29,7 +29,8 @@ import util.TorrentUtil;
  */
 public class Torrent {
 
-    private List<LinkedList<String>> trackers;
+    private List<LinkedList<byte[]>> trackers;
+    private String byteEncoding = "US-ASCII";
     private byte[] infoHash;
     private Date creationDate;
     private String comment;
@@ -46,47 +47,59 @@ public class Torrent {
             throws IOException, NoSuchAlgorithmException {
         random = new Random();
         BencodingReader parser = new BencodingReader(is);
-        Map<String, Object> meta = parser.readNextDictionary();
-        Map<String, Object> info = (Map) meta.get("info");
+        Map<byte[], Object> meta = parser.readNextDictionary();
+        Map<byte[], Object> info = (Map) meta.get("info".getBytes(byteEncoding));
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         BencodingWriter w = new BencodingWriter(os);
         w.write(info);
         infoHash = TorrentUtil.computeInfoHash(os.toByteArray());
         os.close();
-        if (meta.containsKey("announce-list")) {
-            trackers = (List<LinkedList<String>>) meta.get("announce-list");
+        if (meta.containsKey("announce-list".getBytes(byteEncoding))) {
+            trackers = (List<LinkedList<byte[]>>) meta.get("announce-list".
+                    getBytes(byteEncoding));
         } else {
-            trackers = new ArrayList<LinkedList<String>>(1);
-            LinkedList<String> ul = new LinkedList<String>();
-            ul.add((String) meta.get("announce"));
+            trackers = new ArrayList<LinkedList<byte[]>>(1);
+            LinkedList<byte[]> ul = new LinkedList<byte[]>();
+            ul.add((byte[]) meta.get("announce".getBytes(byteEncoding)));
             trackers.add(ul);
         }
-        if (meta.containsKey("creation date")) {
-            creationDate = new Date(((Integer) meta.get("creation date")) *
+        if (meta.containsKey("creation date".getBytes(byteEncoding))) {
+            creationDate = new Date(((Integer) meta.get(
+                    "creation date".getBytes(byteEncoding))) *
                     1000L);
         }
-        if (meta.containsKey("comment")) {
-            comment = (String) meta.get("comment");
+        if (meta.containsKey("comment".getBytes(byteEncoding))) {
+            comment = new String((byte[]) meta.get("comment".getBytes(
+                    byteEncoding)), byteEncoding);
         }
-        if (meta.containsKey("created by")) {
-            createdBy = (String) meta.get("created by");
+        if (meta.containsKey("created by".getBytes(byteEncoding))) {
+            createdBy = new String((byte[]) meta.get("created by".getBytes(
+                    byteEncoding)), byteEncoding);
         }
-        if (meta.containsKey("encoding")) {
-            encoding = (String) meta.get("encoding");
+        if (meta.containsKey("encoding".getBytes(byteEncoding))) {
+            encoding = new String((byte[]) meta.get("encoding".getBytes(
+                    byteEncoding)), byteEncoding);
         }
-        boolean multiple = info.containsKey("files");
-        int pieceLength = (Integer) info.get("piece length");
-        byte[] pieceHash = ((String) info.get("pieces")).getBytes("ISO-8859-1");
+        boolean multiple = info.containsKey("files".getBytes(byteEncoding));
+        int pieceLength = (Integer) info.get("piece length".getBytes(
+                byteEncoding));
+        byte[] pieceHash = (byte[]) info.get("pieces".getBytes(byteEncoding));
         if (multiple) {
-            List<Map> fls = (List<Map>) info.get("files");
-            fileStore = new FileStore(pieceLength, pieceHash, rootFolder, fls);
+            List<Map> fls = (List<Map>) info.get("files".getBytes(byteEncoding));
+            fileStore = new FileStore(pieceLength, pieceHash, rootFolder, fls,
+                    byteEncoding);
         } else {
-            String fileName = (String) info.get("name");
-            int fileLength = (Integer) info.get("length");
+            String fileName = new String((byte[]) info.get("name".getBytes(
+                    byteEncoding)), byteEncoding);
+            int fileLength = (Integer) info.get("length".getBytes(byteEncoding));
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder,
                     fileName, fileLength);
         }
         peers = new CopyOnWriteArraySet<Peer>();
+    }
+
+    public String getByteEncoding() {
+        return byteEncoding;
     }
 
     public Collection<Peer> getConnectedPeers() {
@@ -139,7 +152,7 @@ public class Torrent {
     private int getActualPieceSize(final int index) {
         int n = getNrPieces();
         int l = getPieceLength();
-        return index == n - 1 ? (int) (getFileLength() - (n - 1) * l)  : l;
+        return index == n - 1 ? (int) (getFileLength() - (n - 1) * l) : l;
     }
 
     public int getChunkSize() {
@@ -245,7 +258,7 @@ public class Torrent {
         return fileStore.getPieceLength();
     }
 
-    public List<LinkedList<String>> getTrackers() {
+    public List<LinkedList<byte[]>> getTrackers() {
         return trackers;
     }
 

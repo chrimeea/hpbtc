@@ -26,22 +26,25 @@ public class Tracker {
         started, stopped, completed
     };
     private static Logger logger = Logger.getLogger(Tracker.class.getName());
+    private String trackerEncoding = "ISO-8859-1";
+    private String byteEncoding;
     private int complete;
     private int interval;
     private int incomplete;
-    private String trackerId;
+    private byte[] trackerId;
     private int minInterval;
     private byte[] infoHash;
     private byte[] pid;
     private int port;
-    private List<LinkedList<String>> trackers;
+    private List<LinkedList<byte[]>> trackers;
 
     public Tracker(final byte[] infoHash, final byte[] pid, final int port,
-            final List<LinkedList<String>> trackers) {
+            final List<LinkedList<byte[]>> trackers, String byteEncoding) {
         this.infoHash = infoHash;
         this.pid = pid;
         this.port = port;
         this.trackers = trackers;
+        this.byteEncoding = byteEncoding;
     }
 
     public Set<Peer> beginTracker(final long bytesLeft) {
@@ -54,10 +57,10 @@ public class Tracker {
 
     public Set<Peer> updateTracker(final Event event, final long uploaded,
             final long downloaded, final long bytesLeft, final boolean compact) {
-        for (LinkedList<String> ul : trackers) {
-            Iterator<String> i = ul.iterator();
+        for (LinkedList<byte[]> ul : trackers) {
+            Iterator<byte[]> i = ul.iterator();
             while (i.hasNext()) {
-                String tracker = i.next();
+                byte[] tracker = i.next();
                 try {
                     Set<Peer> peers = connectToTracker(event, tracker, uploaded,
                             downloaded, bytesLeft, compact);
@@ -73,16 +76,16 @@ public class Tracker {
     }
 
     private Set<Peer> connectToTracker(final Event event,
-            final String tracker, final long uploaded, final long dloaded,
+            final byte[] tracker, final long uploaded, final long dloaded,
             final long bytesLeft, final boolean compact)
             throws IOException {
-        StringBuilder req = new StringBuilder(tracker);
+        StringBuilder req = new StringBuilder(new String(tracker, byteEncoding));
         req.append("?info_hash=");
-        req.append(URLEncoder.encode(new String(infoHash, "ISO-8859-1"),
-                "ISO-8859-1"));
+        req.append(URLEncoder.encode(new String(infoHash, trackerEncoding),
+                trackerEncoding));
         req.append("&peer_id=");
-        req.append(
-                URLEncoder.encode(new String(pid, "ISO-8859-1"), "ISO-8859-1"));
+        req.append(URLEncoder.encode(new String(pid, trackerEncoding),
+                trackerEncoding));
         req.append("&port=");
         req.append(port);
         req.append("&uploaded=");
@@ -99,7 +102,8 @@ public class Tracker {
         }
         if (trackerId != null) {
             req.append("trackerid");
-            req.append(URLEncoder.encode(trackerId, "ISO-8859-1"));
+            req.append(URLEncoder.encode(new String(trackerId, trackerEncoding),
+                    trackerEncoding));
         }
         URL track = new URL(req.toString());
         HttpURLConnection con = (HttpURLConnection) track.openConnection();
@@ -108,29 +112,37 @@ public class Tracker {
         con.setDoOutput(false);
         con.connect();
         BencodingReader parser = new BencodingReader(con.getInputStream());
-        Map<String, Object> response = parser.readNextDictionary();
+        Map<byte[], Object> response = parser.readNextDictionary();
         con.disconnect();
-        if (response.containsKey("failure reason")) {
-            logger.warning((String) response.get("failure reason"));
+        if (response.containsKey("failure reason".getBytes(byteEncoding))) {
+            logger.warning(new String((byte[]) response.get("failure reason".
+                    getBytes(byteEncoding)), byteEncoding));
         } else {
-            if (response.containsKey("warning message")) {
-                logger.warning((String) response.get("warning message"));
+            if (response.containsKey("warning message".getBytes(byteEncoding))) {
+                logger.warning(new String((byte[]) response.get("warning message".
+                        getBytes(byteEncoding)), byteEncoding));
             }
-            interval = (Integer) response.get("interval");
-            if (response.containsKey("min interval")) {
-                minInterval = (Integer) response.get("min interval");
+            interval = (Integer) response.get("interval".getBytes(byteEncoding));
+            if (response.containsKey("min interval".getBytes(byteEncoding))) {
+                minInterval = (Integer) response.get("min interval".getBytes(
+                        byteEncoding));
             }
-            if (response.containsKey("complete")) {
-                complete = (Integer) response.get("complete");
+            if (response.containsKey("complete".getBytes(byteEncoding))) {
+                complete = (Integer) response.get("complete".getBytes(
+                        byteEncoding));
             }
-            if (response.containsKey("incomplete")) {
-                incomplete = (Integer) response.get("incomplete");
+            if (response.containsKey("incomplete".getBytes(byteEncoding))) {
+                incomplete = (Integer) response.get("incomplete".getBytes(
+                        byteEncoding));
             }
-            if (response.containsKey("tracker id")) {
-                trackerId = (String) response.get("tracker id");
+            if (response.containsKey("tracker id".getBytes(byteEncoding))) {
+                trackerId = (byte[]) response.get("tracker id".getBytes(
+                        byteEncoding));
             }
-            return compact ? TrackerUtil.doCompactPeer(response, infoHash) :
-                TrackerUtil.doLoosePeer(response, infoHash);
+            Object o = response.get("peers".getBytes(byteEncoding));
+            return compact ? TrackerUtil.doCompactPeer((byte[]) o, infoHash) : TrackerUtil.
+                    doLoosePeer((List<Map<byte[], Object>>) o, infoHash,
+                    byteEncoding);
         }
         return new HashSet<Peer>();
     }

@@ -18,15 +18,18 @@ import java.util.Map;
 public class MessageValidator {
 
     private Map<byte[], Torrent> torrents;
+    private byte[] protocol;
 
-    public MessageValidator(final Map<byte[], Torrent> torrents) {
+    public MessageValidator(final Map<byte[], Torrent> torrents,
+            final byte[] protocol) {
         this.torrents = torrents;
+        this.protocol = protocol;
     }
 
     public boolean validateHandshakeMessage(final HandshakeMessage message)
             throws UnsupportedEncodingException {
         return !message.getDestination().isHandshakeReceived() && Arrays.equals(
-                message.getProtocol(), Protocol.getSupportedProtocol()) &&
+                message.getProtocol(), protocol) &&
                 torrents.containsKey(message.getInfoHash());
     }
 

@@ -15,6 +15,7 @@ import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.BitSet;
 import util.ChannelStub;
 
@@ -24,9 +25,11 @@ import util.ChannelStub;
  */
 public class TorrentTest {
     
+    private String byteEncoding = "US-ASCII";
+    
     @Test
     public void testTorrentInfo() throws IOException, NoSuchAlgorithmException {
-        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("ISO-8859-1"));
+        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes(byteEncoding));
         Torrent info = new Torrent(b, ".");
         b.close();
         assert info.getFileLength() == 85;
@@ -36,11 +39,11 @@ public class TorrentTest {
         assert info.getEncoding().equals("UTF-8");
         assert info.getPieceLength() == 65536;
         assert info.getNrPieces() == 1;
-        List<LinkedList<String>> trackers = info.getTrackers();
+        List<LinkedList<byte[]>> trackers = info.getTrackers();
         assert trackers.size() == 1;
-        List<String> l = trackers.get(0);
+        List<byte[]> l = trackers.get(0);
         assert l.size() == 1;
-        assert l.get(0).equals("http://www.test.ro/announce");
+        assert Arrays.equals(l.get(0), "http://www.test.ro/announce".getBytes(byteEncoding));
         List<BTFile> files = info.getFiles();
         assert files.size() == 1;
         BTFile f = files.get(0);
@@ -54,11 +57,11 @@ public class TorrentTest {
         String t = "d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name";
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         BencodingWriter wr = new BencodingWriter(bos);
-        wr.write(f.getName());
-        String s = new String(bos.toByteArray(), "ISO-8859-1");
+        wr.write(f.getName().getBytes(byteEncoding));
+        String s = new String(bos.toByteArray(), byteEncoding);
         t += s + "12:piece lengthi65536e6:pieces20:12345678901234567890ee";        
         bos.close();
-        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("ISO-8859-1"));
+        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes(byteEncoding));
         Torrent info = new Torrent(b, f.getParent());
         b.close();
         ByteBuffer piece = ByteBuffer.allocate(info.getPieceLength());
@@ -81,11 +84,11 @@ public class TorrentTest {
         String t = "d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name";
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         BencodingWriter wr = new BencodingWriter(bos);
-        wr.write(f.getName());
-        String s = new String(bos.toByteArray(), "ISO-8859-1");
+        wr.write(f.getName().getBytes(byteEncoding));
+        String s = new String(bos.toByteArray(), byteEncoding);
         t += s + "12:piece lengthi65536e6:pieces20:12345678901234567890ee";        
         bos.close();
-        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes("ISO-8859-1"));
+        ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes(byteEncoding));
         Torrent info = new Torrent(b, f.getParent());
         b.close();
         ByteBuffer piece = ByteBuffer.allocate(info.getPieceLength());
@@ -104,7 +107,7 @@ public class TorrentTest {
     @Test
     public void testDecideNextPiece() throws IOException,
             NoSuchAlgorithmException {
-        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("ISO-8859-1"));
+        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes(byteEncoding));
         Torrent info = new Torrent(b, ".");
         b.close();
         Peer peer = new Peer(null, null, null);
@@ -123,7 +126,7 @@ public class TorrentTest {
     @Test
     public void testDecideChoking() throws IOException,
             NoSuchAlgorithmException {
-        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes("ISO-8859-1"));
+        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes(byteEncoding));
         Torrent info = new Torrent(b, ".");
         b.close();
         ChannelStub cs = new ChannelStub(0, false);
