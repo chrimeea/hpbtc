@@ -1,6 +1,5 @@
 package hpbtc.protocol.torrent;
 
-import hpbtc.protocol.message.BlockMessage;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -8,9 +7,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
-import java.util.Iterator;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Hashtable;
+import java.util.Map;
 import util.IOUtil;
 import util.TorrentUtil;
 
@@ -36,8 +34,7 @@ public class Peer {
     private int downloaded;
     private ByteBuffer data;
     private boolean expectBody;
-    private Queue<BlockMessage> requests =
-            new ConcurrentLinkedQueue<BlockMessage>();
+    private Map<Integer, BitSet> requests = new Hashtable<Integer, BitSet>();
 
     public Peer(final InetSocketAddress address, final byte[] infoHash,
             final byte[] id) {
@@ -51,36 +48,33 @@ public class Peer {
         this.address = IOUtil.getAddress(chn);
     }
 
-    public int countRequests(int index) {
-        int k = 0;
-        for (BlockMessage bm: requests) {
-            if (bm.getIndex() == index) {
-                k++;
-            }
-        }
-        return k;
+    public int countRequests(final int index) {
+        BitSet bs = requests.get(index);
+        return bs == null ? 0 : bs.cardinality();
     }
     
-    public int getFirstFreeBegin(int index, int chunks, int chunkSize) {
-        BitSet bs = new BitSet(chunks);
-        for (BlockMessage bm: requests) {
-            bs.set(TorrentUtil.computeBeginIndex(bm.getBegin(), chunkSize));
-        }
-        return bs.nextClearBit(0);
+    public int getFirstFreeBegin(final int index) {
+        BitSet bs = requests.get(index);
+        return bs == null ? 0 : bs.nextClearBit(0);
     }
     
-    public void addRequest(BlockMessage bm) {
-        requests.add(bm);
+    public void addRequest(final int index, final int begin,
+            final int chunkSize, final int chunks) {
+        BitSet bs = requests.get(index);
+        if (bs == null) {
+            bs = new BitSet(chunks);
+            requests.put(index, bs);
+        }
+        bs.set(TorrentUtil.computeBeginIndex(begin, chunkSize));
     }
 
-    public void removeRequest(int index, int begin, int length) {
-        Iterator<BlockMessage> i = requests.iterator();
-        while (i.hasNext()) {
-            BlockMessage message = i.next();
-            if (message.getIndex() == index &&
-                    message.getBegin() == begin &&
-                    message.getLength() == length) {
-                i.remove();
+    public void removeRequest(final int index, final int begin,
+            final int chunkSize) {
+        BitSet bs = requests.get(index);
+        if (bs != null) {
+            bs.clear(TorrentUtil.computeBeginIndex(begin, chunkSize));
+            if (bs.isEmpty()) {
+                requests.remove(index);
             }
         }
     }

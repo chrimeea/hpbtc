@@ -168,15 +168,21 @@ public class Torrent {
         return fileStore.getChunkSize();
     }
 
+    public int computeChunksInPiece(int index) {
+        int cs = getChunkSize();
+        return index == getNrPieces() - 1 ?
+            TorrentUtil.computeChunksInLastPiece(getFileLength(),
+            getNrPieces(), cs) :
+            TorrentUtil.computeChunksInNotLastPiece(getPieceLength(), cs);
+    }
+    
     private BlockMessage choosePiece(final BitSet bs, final Peer peer) {
         int r = random.nextInt(bs.cardinality());
         int index = bs.nextSetBit(0);
         for (; index < r; index = bs.nextSetBit(index + 1)) {
         }
         int cs = getChunkSize();
-        int ind = peer.getFirstFreeBegin(index, index == getNrPieces() - 1 ?
-            TorrentUtil.computeChunksInLastPiece(getFileLength(), getNrPieces(), cs) :
-            TorrentUtil.computeChunksInNotLastPiece(getPieceLength(), cs), cs);
+        int ind = peer.getFirstFreeBegin(index);
         int begin = TorrentUtil.computeBeginPosition(ind < 0 ? 0 : ind, cs);
         int length = TorrentUtil.computeChunkSize(index, begin, cs,
                 getFileLength(), getNrPieces(), getPieceLength());
