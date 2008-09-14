@@ -51,10 +51,7 @@ public class FileStore {
             throws IOException, NoSuchAlgorithmException {
         completePieces = new BitSet(nrPieces);
         this.pieceLength = pieceLength;
-        nrPieces = (int) (fileLength / pieceLength);
-        if (fileLength % pieceLength > 0) {
-            nrPieces++;
-        }
+        nrPieces = TorrentUtil.computeNrPieces(fileLength, pieceLength);
         pieces = new BitSet[nrPieces];
         for (int i = 0; i < nrPieces; i++) {
             pieces[i] = new BitSet(chunkSize);

@@ -168,14 +168,6 @@ public class Torrent {
         return fileStore.getChunkSize();
     }
 
-    public int getChunksInPiece() {
-        int a = getPieceLength();
-        int b = getChunkSize();
-        int c = a / b;
-        int r = a % b;
-        return r == 0 ? c : c + 1;
-    }
-
     private BlockMessage choosePiece(final BitSet bs, final Peer peer,
             final BitSet[] requests) {
         int r = random.nextInt(bs.cardinality());
@@ -185,8 +177,8 @@ public class Torrent {
         int ind = requests[index].nextSetBit(0);
         int cs = getChunkSize();
         int begin = TorrentUtil.computeBeginPosition(ind < 0 ? 0 : ind, cs);
-        int length = index == getNrPieces() - 1 ? TorrentUtil.computeLastChunkSize(
-                index, begin, cs, getFileLength()) : cs;
+        int length = TorrentUtil.computeChunkSize(index, begin, cs,
+                getFileLength(), getNrPieces(), getPieceLength());
         return new BlockMessage(begin, index, length,
                 SimpleMessage.TYPE_REQUEST, peer);
     }
@@ -209,9 +201,13 @@ public class Torrent {
         BitSet bs = getOtherPieces(peer);
         if (bs.cardinality() > 0) {
             BitSet two = (BitSet) bs.clone();
-            int x = getChunksInPiece();
+            int x = TorrentUtil.computeChunksInNotLastPiece(getPieceLength(),
+                    getChunkSize());
+            int n = getNrPieces();
             for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-                if (requests[i].cardinality() == x) {
+                int j = i < n - 1 ? x : TorrentUtil.computeChunksInLastPiece(
+                        getFileLength(), getNrPieces(), getChunkSize());
+                if (requests[i].cardinality() == j) {
                     bs.clear(i);
                 }
             }
