@@ -1,15 +1,18 @@
 package hpbtc.protocol.torrent;
 
+import hpbtc.protocol.message.BlockMessage;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
-import java.util.logging.Logger;
+import java.util.Iterator;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import util.IOUtil;
+import util.TorrentUtil;
 
 /**
  *
@@ -17,7 +20,6 @@ import util.IOUtil;
  */
 public class Peer {
 
-    private static Logger logger = Logger.getLogger(Peer.class.getName());
     private ByteChannel channel;
     private byte[] id;
     private boolean messagesReceived;
@@ -34,6 +36,8 @@ public class Peer {
     private int downloaded;
     private ByteBuffer data;
     private boolean expectBody;
+    private Queue<BlockMessage> requests =
+            new ConcurrentLinkedQueue<BlockMessage>();
 
     public Peer(final InetSocketAddress address, final byte[] infoHash,
             final byte[] id) {
@@ -47,22 +51,56 @@ public class Peer {
         this.address = IOUtil.getAddress(chn);
     }
 
+    public int countRequests(int index) {
+        int k = 0;
+        for (BlockMessage bm: requests) {
+            if (bm.getIndex() == index) {
+                k++;
+            }
+        }
+        return k;
+    }
+    
+    public int getFirstFreeBegin(int index, int chunks, int chunkSize) {
+        BitSet bs = new BitSet(chunks);
+        for (BlockMessage bm: requests) {
+            bs.set(TorrentUtil.computeBeginIndex(bm.getBegin(), chunkSize));
+        }
+        return bs.nextClearBit(0);
+    }
+    
+    public void addRequest(BlockMessage bm) {
+        requests.add(bm);
+    }
+
+    public void removeRequest(int index, int begin, int length) {
+        Iterator<BlockMessage> i = requests.iterator();
+        while (i.hasNext()) {
+            BlockMessage message = i.next();
+            if (message.getIndex() == index &&
+                    message.getBegin() == begin &&
+                    message.getLength() == length) {
+                i.remove();
+            }
+        }
+    }
+
     public void setExpectBody(boolean expectBody) {
         this.expectBody = expectBody;
     }
-    
+
     public boolean isExpectBody() {
         return expectBody;
     }
-    
+
     public boolean isHandshakeSent() {
         return handshakeSent;
     }
-    
+
     public void setHandshakeSent() {
         handshakeSent = true;
     }
-    
+
     public int countUploaded() {
         return uploaded;
     }
@@ -76,13 +114,13 @@ public class Peer {
         uploaded += i;
         return i;
     }
-    
+
     public void setNextDataExpectation(final int i) {
         if (data == null || data.capacity() < i) {
             data = ByteBuffer.allocate(i);
         }
     }
-    
+
     public boolean download() throws IOException {
         int i = IOUtil.readFromChannel(channel, data);
         if (i >= 0) {
@@ -92,14 +130,14 @@ public class Peer {
         }
         return !data.hasRemaining();
     }
-    
+
     public ByteBuffer getData() {
         ByteBuffer result = data;
         data = null;
         result.rewind();
         return result;
     }
-    
+
     public boolean isClientChoking() {
         return clientChoking;
     }
@@ -166,6 +204,7 @@ public class Peer {
 
     public void setPeerChoking(final boolean choking) {
         peerChoking = choking;
+        requests.clear();
     }
 
     public boolean isPeerChoking() {
@@ -196,8 +235,9 @@ public class Peer {
         if (channel != null && channel.isOpen()) {
             channel.close();
         }
+        requests.clear();
     }
-    
+
     void resetCounters() {
         uploaded = 0;
         downloaded = 0;
@@ -222,6 +262,4 @@ public class Peer {
     public int hashCode() {
         return this.address.hashCode();
     }
-    
-    
 }

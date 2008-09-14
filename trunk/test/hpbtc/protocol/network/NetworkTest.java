@@ -62,6 +62,10 @@ public class NetworkTest {
         ServerSocket ch = new ServerSocket(0);
         NetworkWriter c = new NetworkWriter(new MessageWriter() {
 
+            public void cancelPieceMessage(Peer arg0) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+            
             public void postMessage(SimpleMessage arg0) throws IOException {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
