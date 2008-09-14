@@ -121,8 +121,8 @@ public class MessageReaderImpl implements MessageReader {
                             processPiece(mPiece);
                             break;
                         case SimpleMessage.TYPE_REQUEST:
-                            BlockMessage mReq = new BlockMessage(data,
-                                    SimpleMessage.TYPE_REQUEST, peer);
+                            BlockMessage mReq = new BlockMessage(data, disc,
+                                    peer);
                             logger.fine("Received " + mReq);
                             processRequest(mReq);
                             break;
