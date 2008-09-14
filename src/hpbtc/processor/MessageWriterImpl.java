@@ -7,10 +7,10 @@ import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
@@ -30,8 +30,21 @@ public class MessageWriterImpl implements MessageWriter {
     public MessageWriterImpl(final Map<byte[], Torrent> torrents,
             final Register register) {
         this.torrents = torrents;
-        messagesToSend = new ConcurrentHashMap<Peer, Queue<SimpleMessage>>();
+        messagesToSend = new Hashtable<Peer, Queue<SimpleMessage>>();
         this.register = register;
+    }
+
+    public void cancelPieceMessage(final Peer peer) {
+        Queue<SimpleMessage> q = messagesToSend.get(peer);
+        if (q != null) {
+            Iterator<SimpleMessage> i = q.iterator();
+            while (i.hasNext()) {
+                SimpleMessage m = i.next();
+                if (m.getMessageType() == SimpleMessage.TYPE_PIECE) {
+                    i.remove();
+                }
+            }
+        }
     }
 
     public void cancelPieceMessage(final int begin, final int index,
@@ -41,10 +54,10 @@ public class MessageWriterImpl implements MessageWriter {
             Iterator<SimpleMessage> i = q.iterator();
             while (i.hasNext()) {
                 SimpleMessage m = i.next();
-                if (m instanceof PieceMessage) {
+                if (m.getMessageType() == SimpleMessage.TYPE_PIECE) {
                     PieceMessage pm = (PieceMessage) m;
-                    if (pm.getIndex() == index && pm.getBegin() == begin && pm.
-                            getLength() == length) {
+                    if (pm.getIndex() == index && pm.getBegin() == begin &&
+                            pm.getLength() == length) {
                         i.remove();
                     }
                 }
@@ -60,8 +73,8 @@ public class MessageWriterImpl implements MessageWriter {
 
     public void writeNext(final Peer peer) throws IOException {
         if (currentWrite == null || currentWrite.remaining() == 0) {
-            Queue<SimpleMessage> q = messagesToSend.get(peer);
-            SimpleMessage sm = q.poll();
+            SimpleMessage sm = null;
+            sm = messagesToSend.get(peer).poll();
             currentWrite = sm.send();
             currentWrite.rewind();
             logger.fine("Sending: " + sm);
@@ -69,7 +82,8 @@ public class MessageWriterImpl implements MessageWriter {
         peer.upload(currentWrite);
     }
 
-    public void postMessage(final SimpleMessage message) throws IOException {
+    public void postMessage(final SimpleMessage message) throws
+            IOException {
         Peer peer = message.getDestination();
         Queue<SimpleMessage> q = messagesToSend.get(peer);
         if (q == null) {
