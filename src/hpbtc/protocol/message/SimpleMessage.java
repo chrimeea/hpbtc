@@ -67,6 +67,6 @@ public class SimpleMessage {
 
     @Override
     public String toString() {
-        return "type " + disc + ", peer " + destination;
+        return "Type: " + disc + ", Peer: " + destination;
     }
 }

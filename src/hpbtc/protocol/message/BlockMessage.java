@@ -8,7 +8,7 @@ public class BlockMessage extends SimpleMessage {
     private int index;
     private int begin;
     private int length;
-    
+
     public BlockMessage(final ByteBuffer message, final byte disc,
             final Peer destination) {
         super(12, disc, destination);
@@ -16,7 +16,7 @@ public class BlockMessage extends SimpleMessage {
         begin = message.getInt();
         length = message.getInt();
     }
-    
+
     public BlockMessage(final int begin, final int index, final int length,
             final byte disc, final Peer destination) {
         super(12, disc, destination);
@@ -36,7 +36,7 @@ public class BlockMessage extends SimpleMessage {
     public int getLength() {
         return length;
     }
-    
+
     @Override
     public ByteBuffer send() {
         ByteBuffer bb = super.send();
@@ -44,5 +44,11 @@ public class BlockMessage extends SimpleMessage {
         bb.putInt(begin);
         bb.putInt(length);
         return bb;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + ", Index: " + index + ", Begin: " + begin +
+                ", Length: " + length;
     }
 }

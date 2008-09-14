@@ -16,7 +16,7 @@ public class PieceMessage extends SimpleMessage {
     private int begin;
     private int index;
     private ByteBuffer piece;
-    
+
     public PieceMessage(final ByteBuffer message, final Peer destination) {
         super(message.remaining(), TYPE_PIECE, destination);
         index = message.getInt();
@@ -31,7 +31,7 @@ public class PieceMessage extends SimpleMessage {
         this.index = index;
         this.piece = piece;
     }
-    
+
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */
@@ -47,7 +47,7 @@ public class PieceMessage extends SimpleMessage {
     public int getLength() {
         return messageLength - 9;
     }
-    
+
     public ByteBuffer getPiece() {
         return piece;
     }
@@ -58,5 +58,10 @@ public class PieceMessage extends SimpleMessage {
 
     public int getBegin() {
         return begin;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + ", Index: " + index + ", Begin: " + begin;
     }
 }
