@@ -236,8 +236,8 @@ public class MessageReaderImpl implements MessageReader {
         int index = message.getIndex();
         int begin = message.getBegin();
         if (validator.validatePieceMessage(message)) {
-            peer.removeRequest(message.getIndex(), message.getBegin(), message.
-                    getLength());
+            peer.removeRequest(message.getIndex(), message.getBegin(),
+                    t.getChunkSize());
             if (t.savePiece(begin, index, message.getPiece())) {
                 for (Peer p : t.getConnectedPeers()) {
                     SimpleMessage msg = new HaveMessage(index, p);
@@ -298,7 +298,8 @@ public class MessageReaderImpl implements MessageReader {
             peer.setClientInterested(false);
         } else {
             writer.postMessage(bm);
-            peer.addRequest(bm);
+            peer.addRequest(bm.getIndex(), bm.getBegin(), t.getChunkSize(),
+                    t.computeChunksInPiece(bm.getIndex()));
         }
     }
 }

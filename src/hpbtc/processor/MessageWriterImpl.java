@@ -43,8 +43,10 @@ public class MessageWriterImpl implements MessageWriter {
                 if (m.getMessageType() == SimpleMessage.TYPE_PIECE) {
                     i.remove();
                     PieceMessage pm = (PieceMessage) m;
-                    pm.getDestination().removeRequest(pm.getIndex(),
-                            pm.getBegin(), pm.getLength());
+                    Peer p = pm.getDestination();
+                    Torrent t = torrents.get(p.getInfoHash());
+                    peer.removeRequest(pm.getIndex(), pm.getBegin(),
+                            t.getChunkSize());
                 }
             }
         }
@@ -62,8 +64,10 @@ public class MessageWriterImpl implements MessageWriter {
                     if (pm.getIndex() == index && pm.getBegin() == begin &&
                             pm.getLength() == length) {
                         i.remove();
-                        pm.getDestination().removeRequest(pm.getIndex(),
-                                pm.getBegin(), pm.getLength());
+                        Peer p = pm.getDestination();
+                        Torrent t = torrents.get(p.getInfoHash());
+                        p.removeRequest(pm.getIndex(), pm.getBegin(),
+                                t.getChunkSize());
                     }
                 }
             }
