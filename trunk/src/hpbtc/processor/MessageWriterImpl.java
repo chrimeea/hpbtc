@@ -64,8 +64,7 @@ public class MessageWriterImpl implements MessageWriter {
             SimpleMessage sm = q.poll();
             currentWrite = sm.send();
             currentWrite.rewind();
-            logger.fine("Sending message type " + sm.getMessageType() + " to " +
-                    peer);
+            logger.fine("Sending: " + sm);
         }
         peer.upload(currentWrite);
     }

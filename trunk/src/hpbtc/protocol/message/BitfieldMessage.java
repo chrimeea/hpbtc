@@ -41,4 +41,9 @@ public class BitfieldMessage extends SimpleMessage {
     public BitSet getBitfield() {
         return pieces;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ", Pieces: " + pieces.cardinality();
+    }
 }

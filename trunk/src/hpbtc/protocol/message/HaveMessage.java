@@ -38,4 +38,9 @@ public class HaveMessage extends SimpleMessage {
     public int getIndex() {
         return index;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ", Index: " + index;
+    }
 }
