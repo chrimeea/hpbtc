@@ -63,9 +63,13 @@ public class Protocol {
         torrents.put(infoHash, ti);
         int np = ti.getNrPieces();
         BitSet[] req = new BitSet[np];
-        for (int i = 0; i < np; i++) {
-            req[i] = new BitSet(ti.getChunksInPiece());
+        int cip = TorrentUtil.computeChunksInNotLastPiece(ti.getPieceLength(),
+                ti.getChunkSize());
+        for (int i = 0; i < np - 1; i++) {
+            req[i] = new BitSet(cip);
         }
+        req[np - 1] = new BitSet(TorrentUtil.computeChunksInLastPiece(ti.
+                getFileLength(), np, ti.getChunkSize()));
         requests.put(infoHash, req);
         final Tracker tracker = new Tracker(ti.getInfoHash(), peerId, port,
                 ti.getTrackers(), ti.getByteEncoding());
