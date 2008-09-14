@@ -11,7 +11,7 @@ import java.util.Random;
  * @author Cristian Mocanu
  */
 public class TorrentUtil {
-
+    
     public static int computeChunksInLastPiece(final long fileLength,
             final int nrPieces, final int chunkSize) {
         return computeChunksInNotLastPiece(computeLastPieceSize(fileLength,

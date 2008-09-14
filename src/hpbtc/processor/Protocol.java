@@ -32,7 +32,6 @@ public class Protocol {
 
     private static Logger logger = Logger.getLogger(Protocol.class.getName());
     private Map<byte[], Torrent> torrents;
-    private Map<byte[], BitSet[]> requests;
     private Map<byte[], Tracker> trackers;
     private byte[] peerId;
     private Timer slowTimer;
@@ -49,7 +48,6 @@ public class Protocol {
         torrents = new Hashtable<byte[], Torrent>();
         slowTimer = new Timer(true);
         fastTimer = new Timer(true);
-        requests = new Hashtable<byte[], BitSet[]>();
         trackers = new Hashtable<byte[], Tracker>();
         protocol = getSupportedProtocol();
     }
@@ -61,16 +59,6 @@ public class Protocol {
         byte[] infoHash = ti.getInfoHash();
         fis.close();
         torrents.put(infoHash, ti);
-        int np = ti.getNrPieces();
-        BitSet[] req = new BitSet[np];
-        int cip = TorrentUtil.computeChunksInNotLastPiece(ti.getPieceLength(),
-                ti.getChunkSize());
-        for (int i = 0; i < np - 1; i++) {
-            req[i] = new BitSet(cip);
-        }
-        req[np - 1] = new BitSet(TorrentUtil.computeChunksInLastPiece(ti.
-                getFileLength(), np, ti.getChunkSize()));
-        requests.put(infoHash, req);
         final Tracker tracker = new Tracker(ti.getInfoHash(), peerId, port,
                 ti.getTrackers(), ti.getByteEncoding());
         trackers.put(ti.getInfoHash(), tracker);
@@ -106,7 +94,6 @@ public class Protocol {
                         } else if (sm.getMessageType() ==
                                 SimpleMessage.TYPE_CHOKE) {
                             p.setClientChoking(true);
-                            writer.cancelPieceMessage(p);
                         }
                     } catch (IOException ex) {
                         logger.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -138,7 +125,7 @@ public class Protocol {
         Register register = new Register();
         writer = new MessageWriterImpl(torrents, register);
         netWriter = new NetworkWriter(writer, register);
-        processor = new MessageReaderImpl(torrents, peerId, requests, writer,
+        processor = new MessageReaderImpl(torrents, peerId, writer,
                 trackers, protocol);
         netReader = new NetworkReader(processor, register);
         port = netReader.connect();

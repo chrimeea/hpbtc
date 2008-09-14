@@ -30,20 +30,17 @@ public class MessageReaderImpl implements MessageReader {
     private byte[] peerId;
     private Map<byte[], Torrent> torrents;
     private MessageValidator validator;
-    private Map<byte[], BitSet[]> requests;
     private Map<byte[], Tracker> trackers;
     private byte[] protocol;
 
     public MessageReaderImpl(final Map<byte[], Torrent> torrents,
-            final byte[] peerId, final Map<byte[], BitSet[]> requests,
-            final MessageWriter writer, final Map<byte[], Tracker> trackers,
-            final byte[] protocol) {
+            final byte[] peerId, final MessageWriter writer,
+            final Map<byte[], Tracker> trackers, final byte[] protocol) {
         this.protocol = protocol;
         this.trackers = trackers;
         this.writer = writer;
         this.peerId = peerId;
         this.torrents = torrents;
-        this.requests = requests;
         validator = new MessageValidator(torrents, protocol);
     }
 
@@ -202,7 +199,9 @@ public class MessageReaderImpl implements MessageReader {
     }
 
     private void processChoke(final SimpleMessage message) {
-        message.getDestination().setPeerChoking(true);
+        Peer peer = message.getDestination();
+        peer.setPeerChoking(true);
+        writer.cancelPieceMessage(peer);
     }
 
     private void processHave(final HaveMessage message) throws IOException {
@@ -237,6 +236,8 @@ public class MessageReaderImpl implements MessageReader {
         int index = message.getIndex();
         int begin = message.getBegin();
         if (validator.validatePieceMessage(message)) {
+            peer.removeRequest(message.getIndex(), message.getBegin(), message.
+                    getLength());
             if (t.savePiece(begin, index, message.getPiece())) {
                 for (Peer p : t.getConnectedPeers()) {
                     SimpleMessage msg = new HaveMessage(index, p);
@@ -289,20 +290,15 @@ public class MessageReaderImpl implements MessageReader {
 
     private void decideNextPiece(final Torrent t, final Peer peer)
             throws IOException {
-        BitSet[] req = requests.get(t.getInfoHash());
-        BlockMessage bm = t.decideNextPiece(peer, req);
+        BlockMessage bm = t.decideNextPiece(peer);
         if (bm == null) {
             SimpleMessage smessage = new SimpleMessage(
                     SimpleMessage.TYPE_NOT_INTERESTED, peer);
             writer.postMessage(smessage);
-            int cs = t.getChunkSize();
-            req[bm.getIndex()].set(TorrentUtil.computeBeginIndex(bm.getBegin(),
-                    cs),
-                    TorrentUtil.computeEndIndex(bm.getBegin(), bm.getLength(),
-                    cs));
             peer.setClientInterested(false);
         } else {
             writer.postMessage(bm);
+            peer.addRequest(bm);
         }
     }
 }
