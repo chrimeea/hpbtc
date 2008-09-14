@@ -4,6 +4,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
@@ -77,7 +78,7 @@ public class Peer {
     }
     
     public void setNextDataExpectation(final int i) {
-        if (data == null || data.remaining() < i) {
+        if (data == null || data.capacity() < i) {
             data = ByteBuffer.allocate(i);
         }
     }
@@ -93,9 +94,9 @@ public class Peer {
     }
     
     public ByteBuffer getData() {
-        data.rewind();
         ByteBuffer result = data;
         data = null;
+        result.rewind();
         return result;
     }
     

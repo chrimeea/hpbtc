@@ -9,6 +9,7 @@ import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import hpbtc.protocol.torrent.Tracker;
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
@@ -68,7 +69,7 @@ public class MessageReaderImpl implements MessageReader {
                     if (peer.download()) {
                         int len = peer.getData().getInt();
                         if (len < 0) {
-                            throw new IOException();
+                            throw new EOFException();
                         } else {
                             peer.setExpectBody(true);
                             peer.setNextDataExpectation(len);
@@ -78,8 +79,8 @@ public class MessageReaderImpl implements MessageReader {
                     }
                 }
                 if (peer.download()) {
-                    peer.setExpectBody(false);
                     ByteBuffer data = peer.getData();
+                    peer.setExpectBody(false);
                     byte disc = data.get();
                     logger.fine("Received message type " + disc + " from " +
                             peer);

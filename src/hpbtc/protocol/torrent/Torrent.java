@@ -136,9 +136,8 @@ public class Torrent {
         };
         if (++optimisticCounter == 3) {
             Peer optimisticPeer = prs.remove(random.nextInt(prs.size()));
-            Collections.sort(prs, Collections.reverseOrder(comp));
-            prs.add(optimisticPeer);
-            Collections.reverse(prs);
+            Collections.sort(prs, comp);
+            prs.add(0, optimisticPeer);
             optimisticCounter = 0;
         } else {
             Collections.sort(prs, comp);
@@ -146,10 +145,12 @@ public class Torrent {
         int k = 0;
         List<SimpleMessage> result = new LinkedList<SimpleMessage>();
         for (Peer p : prs) {
-            if (p.isClientChoking() && k < 3) {
-                SimpleMessage mUnchoke = new SimpleMessage(
+            if (k < 4) {
+                if (p.isClientChoking()) {
+                    SimpleMessage mUnchoke = new SimpleMessage(
                         SimpleMessage.TYPE_UNCHOKE, p);
-                result.add(mUnchoke);
+                    result.add(mUnchoke);
+                }
                 if (p.isPeerInterested()) {
                     k++;
                 }
