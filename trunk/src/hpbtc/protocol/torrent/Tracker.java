@@ -122,18 +122,19 @@ public class Tracker {
                 logger.warning(new String((byte[]) response.get("warning message".
                         getBytes(byteEncoding)), byteEncoding));
             }
-            interval = (Integer) response.get("interval".getBytes(byteEncoding));
+            interval = ((Long) response.get("interval".getBytes(byteEncoding))).
+                    intValue();
             if (response.containsKey("min interval".getBytes(byteEncoding))) {
-                minInterval = (Integer) response.get("min interval".getBytes(
-                        byteEncoding));
+                minInterval = ((Long) response.get("min interval".getBytes(
+                        byteEncoding))).intValue();
             }
             if (response.containsKey("complete".getBytes(byteEncoding))) {
-                complete = (Integer) response.get("complete".getBytes(
-                        byteEncoding));
+                complete = ((Long) response.get("complete".getBytes(
+                        byteEncoding))).intValue();
             }
             if (response.containsKey("incomplete".getBytes(byteEncoding))) {
-                incomplete = (Integer) response.get("incomplete".getBytes(
-                        byteEncoding));
+                incomplete = ((Long) response.get("incomplete".getBytes(
+                        byteEncoding))).intValue();
             }
             if (response.containsKey("tracker id".getBytes(byteEncoding))) {
                 trackerId = (byte[]) response.get("tracker id".getBytes(

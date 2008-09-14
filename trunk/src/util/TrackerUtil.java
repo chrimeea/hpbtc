@@ -40,7 +40,7 @@ public class TrackerUtil {
         Set<Peer> peers = new HashSet<Peer>();
         for (Map<byte[], Object> d : prs) {
             peers.add(new Peer(new InetSocketAddress(new String((byte[]) d.get("ip".
-                    getBytes(byteEncoding)), byteEncoding), ((Integer) d.get("port".
+                    getBytes(byteEncoding)), byteEncoding), ((Long) d.get("port".
                     getBytes(byteEncoding))).intValue()), infoHash, ((byte[]) d.
                     get("peer id".getBytes(byteEncoding)))));
         }

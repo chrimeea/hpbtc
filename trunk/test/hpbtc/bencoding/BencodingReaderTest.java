@@ -50,7 +50,7 @@ public class BencodingReaderTest {
             ByteArrayInputStream is = new ByteArrayInputStream("i89e".getBytes(
                     byteEncoding));
             BencodingReader parser = new BencodingReader(is);
-            int i = parser.readNextInteger();
+            long i = parser.readNextInteger();
             assert i == 89 : "Integer is incorrect";
         } catch (UnsupportedEncodingException e) {
             assert false : e.getLocalizedMessage();
@@ -94,7 +94,7 @@ public class BencodingReaderTest {
             byte[] elString = (byte[]) it.next();
             assert Arrays.equals(elString, "gamma".getBytes(byteEncoding)) :
                     "Incorrect list";
-            int elInteger = (Integer) it.next();
+            long elInteger = (Long) it.next();
             assert elInteger == -13 : "Incorrect list";
             assert !it.hasNext() : "Incorrect list";
         } catch (UnsupportedEncodingException e) {
@@ -131,7 +131,7 @@ public class BencodingReaderTest {
             elStringKey = keys.next();
             assert Arrays.equals(elStringKey, "spam".getBytes(byteEncoding)) :
                     "Incorrect dictionary";
-            int elIntValue = (Integer) dict.get(elStringKey);
+            long elIntValue = (Long) dict.get(elStringKey);
             assert elIntValue == 60 : "Incorrect dictionary";
             assert !keys.hasNext() : "Incorrect dictionary";
         } catch (UnsupportedEncodingException e) {

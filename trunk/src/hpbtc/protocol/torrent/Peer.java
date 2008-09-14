@@ -198,17 +198,6 @@ public class Peer {
         }
     }
     
-    public BitSet getOtherPieces(final BitSet bs) {
-        if (pieces == null) {
-            pieces = new BitSet(bs.size());
-            return pieces;
-        } else {
-            BitSet c = (BitSet) pieces.clone();
-            c.andNot(bs);
-            return c;
-        }
-    }
-
     void resetCounters() {
         uploaded = 0;
         downloaded = 0;

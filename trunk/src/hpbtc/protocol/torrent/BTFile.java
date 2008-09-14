@@ -9,10 +9,10 @@ import java.io.File;
 public class BTFile {
     
     private String path;
-    private int length;
+    private long length;
     private File file;
     
-    public BTFile(final String path, final int length) {
+    public BTFile(final String path, final long length) {
         this.path = path;
         this.length = length;
         file = new File(path);
@@ -33,7 +33,7 @@ public class BTFile {
     /**
      * @return
      */
-    public int getLength() {
+    public long getLength() {
         return length;
     }
 }

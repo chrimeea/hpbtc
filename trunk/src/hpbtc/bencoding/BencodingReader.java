@@ -28,13 +28,13 @@ public class BencodingReader {
         }
     }
 
-    private int readNextNumber(final char terminator) throws IOException {
+    private long readNextNumber(final char terminator) throws IOException {
         int c = is.read();
         if (c == terminator) {
             throw new BencodingException("Parse error !");
         }
         int sign = -1;
-        int n = 0;
+        long n = 0L;
         if (c != '-') {
             if (c == '0') {
                 is.mark(1);
@@ -65,7 +65,7 @@ public class BencodingReader {
     }
 
     public byte[] readNextString() throws IOException {
-        int n = readNextNumber(':');
+        int n = (int) readNextNumber(':');
         if (n < 0) {
             throw new BencodingException(
                     "Found string element with negative length");
@@ -81,13 +81,13 @@ public class BencodingReader {
         return null;
     }
 
-    public Integer readNextInteger() throws IOException {
+    public Long readNextInteger() throws IOException {
         int c = is.read();
         if (c != 'i') {
             throw new BencodingException("Found char: '" + (char) c +
                     "', required: 'i'");
         }
-        return new Integer(readNextNumber('e'));
+        return new Long(readNextNumber('e'));
     }
 
     public List<Object> readNextList() throws IOException {
