@@ -82,44 +82,54 @@ public class MessageReaderImpl implements MessageReader {
                     ByteBuffer data = peer.getData();
                     peer.setExpectBody(false);
                     byte disc = data.get();
-                    logger.fine("Received message type " + disc + " from " +
-                            peer);
                     switch (disc) {
                         case SimpleMessage.TYPE_BITFIELD:
-                            BitfieldMessage mBit = new BitfieldMessage(
-                                    data, peer);
+                            BitfieldMessage mBit = new BitfieldMessage(data,
+                                    peer);
+                            logger.fine("Received " + mBit);
                             processBitfield(mBit);
                             break;
                         case SimpleMessage.TYPE_CANCEL:
-                            BlockMessage mCan = new BlockMessage(data,
-                                    SimpleMessage.TYPE_CANCEL, peer);
+                            BlockMessage mCan = new BlockMessage(data, disc,
+                                    peer);
+                            logger.fine("Received " + mCan);
                             processCancel(mCan);
                             break;
                         case SimpleMessage.TYPE_CHOKE:
-                            processChoke(peer);
+                            SimpleMessage mChoke = new SimpleMessage(disc, peer);
+                            logger.fine("Received " + mChoke);
+                            processChoke(mChoke);
                             break;
                         case SimpleMessage.TYPE_HAVE:
-                            HaveMessage mHave = new HaveMessage(data,
-                                    peer);
+                            HaveMessage mHave = new HaveMessage(data, peer);
+                            logger.fine("Received " + mHave);
                             processHave(mHave);
                             break;
                         case SimpleMessage.TYPE_INTERESTED:
-                            processInterested(peer);
+                            SimpleMessage mInt = new SimpleMessage(disc, peer);
+                            logger.fine("Received " + mInt);
+                            processInterested(mInt);
                             break;
                         case SimpleMessage.TYPE_NOT_INTERESTED:
-                            processNotInterested(peer);
+                            SimpleMessage mNot = new SimpleMessage(disc, peer);
+                            logger.fine("Received " + mNot);
+                            processNotInterested(mNot);
                             break;
                         case SimpleMessage.TYPE_PIECE:
                             PieceMessage mPiece = new PieceMessage(data, peer);
+                            logger.fine("Received " + mPiece);
                             processPiece(mPiece);
                             break;
                         case SimpleMessage.TYPE_REQUEST:
                             BlockMessage mReq = new BlockMessage(data,
                                     SimpleMessage.TYPE_REQUEST, peer);
+                            logger.fine("Received " + mReq);
                             processRequest(mReq);
                             break;
                         case SimpleMessage.TYPE_UNCHOKE:
-                            processUnchoke(peer);
+                            SimpleMessage mUn = new SimpleMessage(disc, peer);
+                            logger.fine("Received " + mUn);
+                            processUnchoke(mUn);
                     }
                     peer.setMessagesReceived();
                 }
@@ -191,8 +201,8 @@ public class MessageReaderImpl implements MessageReader {
         }
     }
 
-    private void processChoke(final Peer peer) {
-        peer.setPeerChoking(true);
+    private void processChoke(final SimpleMessage message) {
+        message.getDestination().setPeerChoking(true);
     }
 
     private void processHave(final HaveMessage message) throws IOException {
@@ -212,12 +222,12 @@ public class MessageReaderImpl implements MessageReader {
         }
     }
 
-    private void processInterested(final Peer peer) {
-        peer.setPeerInterested(true);
+    private void processInterested(final SimpleMessage message) {
+        message.getDestination().setPeerInterested(true);
     }
 
-    private void processNotInterested(final Peer peer) {
-        peer.setPeerInterested(false);
+    private void processNotInterested(final SimpleMessage message) {
+        message.getDestination().setPeerInterested(false);
     }
 
     private void processPiece(final PieceMessage message)
@@ -269,7 +279,8 @@ public class MessageReaderImpl implements MessageReader {
         }
     }
 
-    private void processUnchoke(final Peer peer) throws IOException {
+    private void processUnchoke(final SimpleMessage message) throws IOException {
+        Peer peer = message.getDestination();
         peer.setPeerChoking(false);
         if (peer.isClientInterested()) {
             decideNextPiece(torrents.get(peer.getInfoHash()), peer);
