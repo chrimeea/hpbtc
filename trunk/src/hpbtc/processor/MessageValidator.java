@@ -78,11 +78,9 @@ public class MessageValidator {
 
     public boolean validateRequestMessage(final BlockMessage message) {
         Peer peer = message.getDestination();
-        byte[] infoHash = peer.getInfoHash();
-        Torrent t = torrents.get(infoHash);
-        long pieceLength = t.getPieceLength();
+        Torrent t = torrents.get(peer.getInfoHash());
         return message.getIndex() < t.getNrPieces() && message.getBegin() <
-                pieceLength && message.getBegin() + message.getLength() >
-                pieceLength && t.isPieceComplete(message.getIndex());
+                t.getPieceLength() && message.getLength() <= t.getChunkSize()
+                && t.isPieceComplete(message.getIndex());
     }
 }

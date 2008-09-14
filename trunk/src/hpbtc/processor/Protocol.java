@@ -15,7 +15,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.BitSet;
-import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -46,11 +46,11 @@ public class Protocol {
 
     public Protocol() throws UnsupportedEncodingException {
         this.peerId = TorrentUtil.generateId();
-        torrents = new HashMap<byte[], Torrent>();
+        torrents = new Hashtable<byte[], Torrent>();
         slowTimer = new Timer(true);
         fastTimer = new Timer(true);
-        requests = new HashMap<byte[], BitSet[]>();
-        trackers = new HashMap<byte[], Tracker>();
+        requests = new Hashtable<byte[], BitSet[]>();
+        trackers = new Hashtable<byte[], Tracker>();
         protocol = getSupportedProtocol();
     }
 
@@ -106,6 +106,7 @@ public class Protocol {
                         } else if (sm.getMessageType() ==
                                 SimpleMessage.TYPE_CHOKE) {
                             p.setClientChoking(true);
+                            writer.cancelPieceMessage(p);
                         }
                     } catch (IOException ex) {
                         logger.log(Level.WARNING, ex.getLocalizedMessage(), ex);
