@@ -180,7 +180,7 @@ public class MessageReaderImpl implements MessageReader {
             Peer peer = message.getDestination();
             peer.setPieces(message.getBitfield());
             Torrent t = torrents.get(peer.getInfoHash());
-            if (!peer.getOtherPieces(t.getCompletePieces()).isEmpty()) {
+            if (!t.getOtherPieces(peer).isEmpty()) {
                 SimpleMessage smessage = new SimpleMessage(
                         SimpleMessage.TYPE_INTERESTED, peer);
                 writer.postMessage(smessage);
@@ -238,11 +238,10 @@ public class MessageReaderImpl implements MessageReader {
         int begin = message.getBegin();
         if (validator.validatePieceMessage(message)) {
             if (t.savePiece(begin, index, message.getPiece())) {
-                BitSet n = t.getCompletePieces();
                 for (Peer p : t.getConnectedPeers()) {
                     SimpleMessage msg = new HaveMessage(index, p);
                     writer.postMessage(msg);
-                    if (p.getOtherPieces(n).isEmpty()) {
+                    if (t.getOtherPieces(p).isEmpty()) {
                         SimpleMessage smessage = new SimpleMessage(
                                 SimpleMessage.TYPE_NOT_INTERESTED, p);
                         writer.postMessage(smessage);

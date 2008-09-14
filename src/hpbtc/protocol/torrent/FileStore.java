@@ -24,7 +24,7 @@ public class FileStore {
     private int chunkSize = 16384;
     private int nrPieces;
     private BitSet[] pieces;
-    private int offset;
+    private long offset;
     private byte[] pieceHash;
     private List<BTFile> files;
     private long fileLength;
@@ -92,7 +92,7 @@ public class FileStore {
                 sb.append(new String(dir, byteEncoding));
                 sb.append(File.separator);
             }
-            int fl = (Integer) fd.get("length".getBytes(byteEncoding));
+            long fl = (Long) fd.get("length".getBytes(byteEncoding));
             fileLength += fl;
             files.add(
                     new BTFile(sb.substring(0, sb.length() - 1).toString(), fl));
@@ -102,14 +102,14 @@ public class FileStore {
 
     public FileStore(final int pieceLength, final byte[] pieceHash,
             final String rootFolder, final String fileName,
-            final int fileLength) throws IOException, NoSuchAlgorithmException {
+            final long fileLength) throws IOException, NoSuchAlgorithmException {
         files = new ArrayList<BTFile>(1);
         this.fileLength = fileLength;
         files.add(new BTFile(rootFolder + File.separator + fileName, fileLength));
         init(pieceLength, pieceHash);
     }
 
-    private void loadFileChunk(final List<File> files, final int begin,
+    private void loadFileChunk(final List<File> files, final long begin,
             final ByteBuffer dest) throws IOException {
         Iterator<File> i = files.iterator();
         IOUtil.readFromFile(i.next(), begin, dest);
@@ -118,7 +118,7 @@ public class FileStore {
         }
     }
 
-    private void saveFileChunk(final List<File> files, final int begin,
+    private void saveFileChunk(final List<File> files, final long begin,
             final ByteBuffer piece) throws IOException {
         Iterator<File> i = files.iterator();
         IOUtil.writeToFile(i.next(), begin, piece);
@@ -152,7 +152,7 @@ public class FileStore {
 
     private List<File> getFileList(final int begin, final int index,
             final int length) {
-        int o = index * chunkSize + begin;
+        long o = index * chunkSize + begin;
         Iterator<BTFile> i = files.iterator();
         BTFile f;
         do {

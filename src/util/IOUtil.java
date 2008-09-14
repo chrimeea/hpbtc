@@ -77,7 +77,7 @@ public class IOUtil {
         }
     }
 
-    public static int writeToFile(final File file, final int begin,
+    public static int writeToFile(final File file, final long begin,
             final ByteBuffer piece) throws IOException {
         RandomAccessFile r = new RandomAccessFile(file, "rw");
         r.seek(begin);
@@ -86,7 +86,7 @@ public class IOUtil {
         return i;
     }
 
-    public static int readFromFile(final File file, final int begin,
+    public static int readFromFile(final File file, final long begin,
             final ByteBuffer dest) throws IOException {
         RandomAccessFile r = new RandomAccessFile(file, "r");
         r.seek(begin);

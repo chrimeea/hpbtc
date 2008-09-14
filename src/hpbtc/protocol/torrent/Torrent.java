@@ -66,7 +66,7 @@ public class Torrent {
             trackers.add(ul);
         }
         if (meta.containsKey("creation date".getBytes(byteEncoding))) {
-            creationDate = new Date(((Integer) meta.get(
+            creationDate = new Date(((Long) meta.get(
                     "creation date".getBytes(byteEncoding))) *
                     1000L);
         }
@@ -83,8 +83,8 @@ public class Torrent {
                     byteEncoding)), byteEncoding);
         }
         boolean multiple = info.containsKey("files".getBytes(byteEncoding));
-        int pieceLength = (Integer) info.get("piece length".getBytes(
-                byteEncoding));
+        int pieceLength = ((Long) info.get("piece length".getBytes(
+                byteEncoding))).intValue();
         byte[] pieceHash = (byte[]) info.get("pieces".getBytes(byteEncoding));
         if (multiple) {
             List<Map> fls = (List<Map>) info.get("files".getBytes(byteEncoding));
@@ -93,7 +93,7 @@ public class Torrent {
         } else {
             String fileName = new String((byte[]) info.get("name".getBytes(
                     byteEncoding)), byteEncoding);
-            int fileLength = (Integer) info.get("length".getBytes(byteEncoding));
+            long fileLength = (Long) info.get("length".getBytes(byteEncoding));
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder,
                     fileName, fileLength);
         }
@@ -112,14 +112,14 @@ public class Torrent {
     public synchronized void addFreshPeers(Set<Peer> otherPeers) {
         freshPeers.addAll(otherPeers);
     }
-    
+
     public synchronized Set<Peer> getFreshPeers() {
         Set<Peer> p = freshPeers;
         freshPeers = null;
         p.removeAll(peers);
         return p;
     }
-    
+
     public List<SimpleMessage> decideChoking() {
         List<Peer> prs = new ArrayList<Peer>(peers);
         Comparator<Peer> comp = isTorrentComplete() ? new Comparator<Peer>() {
@@ -148,7 +148,7 @@ public class Torrent {
             if (k < 4) {
                 if (p.isClientChoking()) {
                     SimpleMessage mUnchoke = new SimpleMessage(
-                        SimpleMessage.TYPE_UNCHOKE, p);
+                            SimpleMessage.TYPE_UNCHOKE, p);
                     result.add(mUnchoke);
                 }
                 if (p.isPeerInterested()) {
@@ -164,19 +164,13 @@ public class Torrent {
         return result;
     }
 
-    private int getActualPieceSize(final int index) {
-        int n = getNrPieces();
-        int l = getPieceLength();
-        return index == n - 1 ? (int) (getFileLength() - (n - 1) * l) : l;
-    }
-
     public int getChunkSize() {
         return fileStore.getChunkSize();
     }
 
     public int getChunksInPiece() {
-        int a = fileStore.getPieceLength();
-        int b = fileStore.getChunkSize();
+        int a = getPieceLength();
+        int b = getChunkSize();
         int c = a / b;
         int r = a % b;
         return r == 0 ? c : c + 1;
@@ -189,16 +183,30 @@ public class Torrent {
         for (; index < r; index = bs.nextSetBit(index + 1)) {
         }
         int ind = requests[index].nextSetBit(0);
-        int begin = TorrentUtil.computeBeginPosition(ind < 0 ? 0 : ind,
-                getChunkSize());
-        int length = getActualPieceSize(index);
+        int cs = getChunkSize();
+        int begin = TorrentUtil.computeBeginPosition(ind < 0 ? 0 : ind, cs);
+        int length = index == getNrPieces() - 1 ? TorrentUtil.computeLastChunkSize(
+                index, begin, cs, getFileLength()) : cs;
         return new BlockMessage(begin, index, length,
                 SimpleMessage.TYPE_REQUEST, peer);
     }
 
+    public BitSet getOtherPieces(final Peer peer) {
+        BitSet pieces = peer.getPieces();
+        BitSet bs = getCompletePieces();
+        if (pieces == null) {
+            pieces = new BitSet(bs.size());
+            return pieces;
+        } else {
+            BitSet c = (BitSet) pieces.clone();
+            c.andNot(bs);
+            return c;
+        }
+    }
+
     public BlockMessage decideNextPiece(final Peer peer,
             final BitSet[] requests) {
-        BitSet bs = peer.getOtherPieces(getCompletePieces());
+        BitSet bs = getOtherPieces(peer);
         if (bs.cardinality() > 0) {
             BitSet two = (BitSet) bs.clone();
             int x = getChunksInPiece();

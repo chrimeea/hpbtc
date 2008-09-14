@@ -10,6 +10,11 @@ import java.util.Random;
  */
 public class TorrentUtil {
 
+    public static int computeLastChunkSize(final int index, final int begin,
+            final int chunkSize, final long fileLength) {
+        return (int) (fileLength - index * chunkSize - begin);
+    }
+    
     public static int computeBeginIndex(final int begin, final int chunkSize) {
         return begin / chunkSize;
     }
