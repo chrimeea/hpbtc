@@ -16,7 +16,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.BitSet;
 import java.util.Map;
 import java.util.logging.Logger;
-import util.TorrentUtil;
 
 /**
  *
@@ -67,9 +66,11 @@ public class MessageReaderImpl implements MessageReader {
                         int len = peer.getData().getInt();
                         if (len < 0) {
                             throw new EOFException();
-                        } else {
+                        } else if (len > 0) {
                             peer.setExpectBody(true);
                             peer.setNextDataExpectation(len);
+                        } else {
+                            return;
                         }
                     } else {
                         return;
