@@ -60,9 +60,8 @@ public class NetworkWriter {
                     SelectionKey key = i.next();
                     i.remove();
                     if (key.isValid()) {
-                        Peer peer;
+                        Peer peer = (Peer) key.attachment();
                         try {
-                            peer = (Peer) key.attachment();
                             SocketChannel ch = (SocketChannel) key.channel();
                             if (key.isConnectable() && ch.finishConnect()) {
                                 logger.fine("Connected to " + peer);
@@ -70,21 +69,16 @@ public class NetworkWriter {
                                         peer);
                                 register.registerRead(peer);
                             } else if (key.isWritable()) {
-                                try {
-                                    writer.writeNext(peer);
-                                    if (!ch.isOpen() || writer.isEmpty(peer)) {
-                                        ch.register(selector, 0, peer);
-                                    }
-                                } catch (IOException e) {
-                                    logger.log(Level.WARNING,
-                                            e.getLocalizedMessage(), e);
-                                    key.cancel();
-                                    writer.disconnect(peer);
+                                writer.writeNext(peer);
+                                if (!ch.isOpen() || writer.isEmpty(peer)) {
+                                    ch.register(selector, 0, peer);
                                 }
                             }
                         } catch (IOException ioe) {
                             logger.log(Level.WARNING, ioe.getLocalizedMessage(),
                                     ioe);
+                            key.cancel();
+                            writer.disconnect(peer);
                         }
                     }
                 }

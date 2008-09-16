@@ -99,8 +99,8 @@ public class NetworkReader {
                 while (i.hasNext()) {
                     SelectionKey key = i.next();
                     i.remove();
+                    Peer peer = null;
                     if (key.isValid()) {
-                        Peer peer;
                         try {
                             if (key.isAcceptable()) {
                                 SocketChannel chan = serverCh.accept();
@@ -111,18 +111,16 @@ public class NetworkReader {
                                 logger.fine("Accepted connection from " + peer);
                             } else if (key.isReadable()) {
                                 peer = (Peer) key.attachment();
-                                try {
-                                    processor.readMessage(peer);
-                                } catch (EOFException e) {
-                                    logger.log(Level.WARNING,
-                                            e.getLocalizedMessage(), e);
-                                    key.cancel();
-                                    processor.disconnect(peer);
-                                }
+                                processor.readMessage(peer);
                             }
                         } catch (IOException ioe) {
-                            logger.log(Level.WARNING, ioe.getLocalizedMessage(),
-                                    ioe);
+                            logger.log(Level.WARNING, peer == null ?
+                                ioe.getLocalizedMessage() : peer.toString(),
+                                ioe);
+                            key.cancel();
+                            if (peer != null) {
+                                processor.disconnect(peer);
+                            }
                         }
                     }
                 }
