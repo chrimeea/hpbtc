@@ -241,8 +241,10 @@ public class MessageReaderImpl implements MessageReader {
                     t.getChunkSize());
             if (t.savePiece(begin, index, message.getPiece())) {
                 for (Peer p : t.getConnectedPeers()) {
-                    SimpleMessage msg = new HaveMessage(index, p);
-                    writer.postMessage(msg);
+                    if (!p.getPieces().get(index)) {
+                        SimpleMessage msg = new HaveMessage(index, p);
+                        writer.postMessage(msg);
+                    }
                     if (t.getOtherPieces(p).isEmpty()) {
                         SimpleMessage smessage = new SimpleMessage(
                                 SimpleMessage.TYPE_NOT_INTERESTED, p);
@@ -291,16 +293,18 @@ public class MessageReaderImpl implements MessageReader {
 
     private void decideNextPiece(final Torrent t, final Peer peer)
             throws IOException {
-        BlockMessage bm = t.decideNextPiece(peer);
-        if (bm == null) {
-            SimpleMessage smessage = new SimpleMessage(
-                    SimpleMessage.TYPE_NOT_INTERESTED, peer);
-            writer.postMessage(smessage);
-            peer.setClientInterested(false);
-        } else {
-            writer.postMessage(bm);
-            peer.addRequest(bm.getIndex(), bm.getBegin(), t.getChunkSize(),
-                    t.computeChunksInPiece(bm.getIndex()));
+        for (int i = peer.countTotalRequests(); i < 2; i++) {
+            BlockMessage bm = t.decideNextPiece(peer);
+            if (bm == null) {
+                SimpleMessage smessage = new SimpleMessage(
+                        SimpleMessage.TYPE_NOT_INTERESTED, peer);
+                writer.postMessage(smessage);
+                peer.setClientInterested(false);
+            } else {
+                writer.postMessage(bm);
+                peer.addRequest(bm.getIndex(), bm.getBegin(), t.getChunkSize(),
+                        t.computeChunksInPiece(bm.getIndex()));
+            }
         }
     }
 }
