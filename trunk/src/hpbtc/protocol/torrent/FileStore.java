@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import util.IOUtil;
 import util.TorrentUtil;
 
@@ -21,6 +23,7 @@ import util.TorrentUtil;
  */
 public class FileStore {
 
+    private static Logger logger = Logger.getLogger(FileStore.class.getName());
     private int chunkSize = 16384;
     private int nrPieces;
     private BitSet[] pieces;
@@ -35,10 +38,14 @@ public class FileStore {
         return nrPieces;
     }
 
+    public BitSet getChunksIndex(final int index) {
+        return pieces[index];
+    }
+    
     public int getPieceLength() {
         return pieceLength;
     }
-
+    
     public BitSet getCompletePieces() {
         return completePieces;
     }
@@ -47,6 +54,17 @@ public class FileStore {
         return chunkSize;
     }
 
+    private int jumpToNextFile(final int index) {
+        long m = (index + 1) * pieceLength;
+        long x = 0;
+        Iterator<BTFile> i = files.iterator();
+        while (x < m && i.hasNext()) {
+            BTFile f = i.next();
+            x += f.getLength();
+        }
+        return TorrentUtil.computePieceIndexFromPosition(x, pieceLength);
+    }
+    
     private void init(final int pieceLength, final byte[] pieceHash)
             throws IOException, NoSuchAlgorithmException {
         completePieces = new BitSet(nrPieces);
@@ -57,14 +75,20 @@ public class FileStore {
             pieces[i] = new BitSet(chunkSize);
         }
         this.pieceHash = pieceHash;
-        for (int i = 0; i < nrPieces; i++) {
+        int k = 0;
+        for (int i = 0; i < nrPieces;) {
             try {
                 if (isHashCorrect(i)) {
                     pieces[i].set(0, chunkSize);
+                    k++;
                 }
+                i++;
             } catch (IOException e) {
+                logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                i = jumpToNextFile(i);
             }
         }
+        logger.info("Restored " + k + " pieces");
     }
 
     public long getFileLength() {
@@ -132,18 +156,27 @@ public class FileStore {
         return completePieces.get(index);
     }
 
+    public int computeChunksInPiece(int index) {
+        return index == nrPieces - 1 ? TorrentUtil.computeChunksInLastPiece(
+                fileLength, nrPieces, chunkSize) :
+            TorrentUtil.computeChunksInNotLastPiece(pieceLength, chunkSize);
+    }
+    
     public boolean savePiece(final int begin, final int index,
             final ByteBuffer piece) throws IOException, NoSuchAlgorithmException {
         pieces[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
                 TorrentUtil.computeEndIndex(begin, piece.remaining(), chunkSize));
         saveFileChunk(getFileList(begin, index, piece.remaining()), offset,
                 piece);
-        if (pieces[index].cardinality() == chunkSize && !isHashCorrect(index)) {
-            pieces[index].clear();
-            return false;
+        if (pieces[index].cardinality() == computeChunksInPiece(index)) {
+            if (isHashCorrect(index)) {
+                return true;
+            } else {
+                pieces[index].clear();
+                return false;                
+            }
         } else {
-            completePieces.set(index);
-            return true;
+            return false;
         }
     }
 

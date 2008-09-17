@@ -9,6 +9,7 @@ import java.nio.channels.SocketChannel;
 import java.util.BitSet;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import util.IOUtil;
 import util.TorrentUtil;
 
@@ -35,12 +36,14 @@ public class Peer {
     private ByteBuffer data;
     private boolean expectBody;
     private Map<Integer, BitSet> requests = new Hashtable<Integer, BitSet>();
+    private AtomicInteger totalRequests;
 
     public Peer(final InetSocketAddress address, final byte[] infoHash,
             final byte[] id) {
         this.address = address;
         this.id = id;
         this.infoHash = infoHash;
+        this.totalRequests = new AtomicInteger();
     }
 
     public Peer(final SocketChannel chn) {
@@ -48,16 +51,14 @@ public class Peer {
         this.address = IOUtil.getAddress(chn);
     }
 
-    public int countRequests(final int index) {
-        BitSet bs = requests.get(index);
-        return bs == null ? 0 : bs.cardinality();
+    public int countTotalRequests() {
+        return totalRequests.get();
     }
     
-    public int getFirstFreeBegin(final int index) {
-        BitSet bs = requests.get(index);
-        return bs == null ? 0 : bs.nextClearBit(0);
+    public BitSet getRequests(final int index) {
+        return requests.get(index);
     }
-    
+
     public void addRequest(final int index, final int begin,
             final int chunkSize, final int chunks) {
         BitSet bs = requests.get(index);
@@ -66,6 +67,7 @@ public class Peer {
             requests.put(index, bs);
         }
         bs.set(TorrentUtil.computeBeginIndex(begin, chunkSize));
+        totalRequests.getAndIncrement();
     }
 
     public void removeRequest(final int index, final int begin,
@@ -76,6 +78,7 @@ public class Peer {
             if (bs.isEmpty()) {
                 requests.remove(index);
             }
+            totalRequests.getAndDecrement();
         }
     }
 

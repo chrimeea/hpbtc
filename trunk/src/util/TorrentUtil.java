@@ -52,6 +52,15 @@ public class TorrentUtil {
         return nrPieces;
     }
     
+    public static int computePieceIndexFromPosition(final long position,
+            final int pieceLength) {
+        int n = (int) (position / pieceLength);
+        if (position % pieceLength > 0) {
+            n++;
+        }
+        return n;
+    }
+    
     public static int computeBeginIndex(final int begin, final int chunkSize) {
         return begin / chunkSize;
     }
