@@ -1,6 +1,5 @@
 package hpbtc.processor;
 
-import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
@@ -8,11 +7,12 @@ import hpbtc.protocol.torrent.Tracker;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import util.TorrentUtil;
 
 /**
@@ -26,14 +26,15 @@ public class State {
     private Map<byte[], Torrent> torrents;
     private Map<byte[], Tracker> trackers;
     private Map<Peer, Queue<SimpleMessage>> messagesToSend;
+    private Map<byte[], AtomicIntegerArray> availability;
     
-    public State()
-            throws UnsupportedEncodingException {
+    public State() throws UnsupportedEncodingException {
         messagesToSend = new Hashtable<Peer, Queue<SimpleMessage>>();
         this.peerId = TorrentUtil.generateId();
         protocol = TorrentUtil.getSupportedProtocol();
         trackers = new Hashtable<byte[], Tracker>();
         torrents = new Hashtable<byte[], Torrent>();
+        availability = new Hashtable<byte[], AtomicIntegerArray>();
     }
 
     public byte[] getProtocol() {
@@ -65,12 +66,37 @@ public class State {
         byte[] infoHash = torrent.getInfoHash();
         torrents.put(infoHash, torrent);
         trackers.put(infoHash, tracker);
+        availability.put(infoHash, new AtomicIntegerArray(torrent.getNrPieces()));
+    }
+    
+    public void updateAvailability(final Peer peer) {
+        AtomicIntegerArray a = availability.get(peer.getInfoHash());
+        BitSet bs = peer.getPieces();
+        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+            a.getAndIncrement(i);
+        }
+    }
+    
+    public void updateAvailability(final Peer peer, int index) {
+        AtomicIntegerArray a = availability.get(peer.getInfoHash());
+        a.getAndIncrement(index);
+    }
+    
+    public int getAvailability(final Peer peer, int index) {
+        AtomicIntegerArray a = availability.get(peer.getInfoHash());
+        return a.get(index);
     }
     
     public void disconnect(final Peer peer)
             throws IOException {
-        torrents.get(peer.getInfoHash()).removePeer(peer);
+        byte[] infoHash = peer.getInfoHash();
+        torrents.get(infoHash).removePeer(peer);
         messagesToSend.remove(peer);
+        AtomicIntegerArray a = availability.get(infoHash);
+        BitSet bs = peer.getPieces();
+        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+            a.getAndDecrement(i);
+        }
         peer.disconnect();
     }
     
