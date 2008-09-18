@@ -13,6 +13,7 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
+import java.util.Timer;
 import org.junit.Test;
 import util.IOUtil;
 
@@ -25,7 +26,8 @@ public class NetworkTest {
     @Test
     public void testNetworkIncomingConnection() throws IOException,
             UnsupportedEncodingException {
-        Register r = new Register();
+        Register r = new Register(new Timer());
+        r.openWriteSelector();
         final NetworkReader c = new NetworkReader(new MessageReader() {
 
             public void readMessage(Peer peer) throws IOException,
@@ -46,7 +48,7 @@ public class NetworkTest {
 
             public void disconnect(Peer arg0) throws IOException {
                 throw new UnsupportedOperationException("Not supported yet.");
-            }            
+            }
         }, r);
         int port = c.connect();
         SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.
@@ -57,7 +59,7 @@ public class NetworkTest {
 
     @Test
     public void testNetworkConnect() throws IOException {
-        Register r = new Register();
+        Register r = new Register(new Timer());
         r.openReadSelector();
         ServerSocket ch = new ServerSocket(0);
         NetworkWriter c = new NetworkWriter(new MessageWriter() {
@@ -79,11 +81,11 @@ public class NetworkTest {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
-            public boolean isEmpty(Peer arg0) {
-                return true;
+            public void disconnect(Peer arg0) throws IOException {
+                throw new UnsupportedOperationException("Not supported yet.");
             }
 
-            public void disconnect(Peer arg0) throws IOException {
+            public void connect(Peer arg0) {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
         }, r);
@@ -93,7 +95,7 @@ public class NetworkTest {
         Peer peer = new Peer(a, null, "X".getBytes("ISO-8859-1"));
         r.registerWrite(peer);
         Socket s = ch.accept();
-        byte[] b = new byte[15];
+        byte[] b = new byte[11];
         int i = s.getInputStream().read(b);
         c.disconnect();
         ch.close();

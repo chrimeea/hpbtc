@@ -8,6 +8,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Queue;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,28 +25,46 @@ public class Register {
     private Queue<RegisterOp> registeredWrite;
     private Selector reader;
     private Selector writer;
+    private Timer timer;
 
-    public Register() {
+    public Register(Timer timer) {
         registeredRead = new ConcurrentLinkedQueue<RegisterOp>();
         registeredWrite = new ConcurrentLinkedQueue<RegisterOp>();
+        this.timer = timer;
     }
 
     Selector openReadSelector() throws IOException {
         reader = Selector.open();
         return reader;
     }
-    
+
     Selector openWriteSelector() throws IOException {
         writer = Selector.open();
         return writer;
     }
-    
+
+    public void disconnect(final Peer peer) {
+        SelectableChannel channel = (SelectableChannel) peer.getChannel();
+        SelectionKey key = channel.keyFor(reader);
+        if (key != null) {
+            key.cancel();
+        }
+        key = channel.keyFor(writer);
+        if (key != null) {
+            key.cancel();
+        }
+    }
+
     public void registerRead(final Peer peer) throws IOException {
         registerNow(peer, SelectionKey.OP_READ, reader, registeredRead);
     }
 
     public void registerWrite(final Peer peer) throws IOException {
         registerNow(peer, SelectionKey.OP_WRITE, writer, registeredWrite);
+    }
+
+    public void clearWrite(final Peer peer) throws IOException {
+        registerNow(peer, 0, writer, registeredWrite);
     }
 
     private void registerNow(final Peer peer, final int op,
@@ -95,6 +115,28 @@ public class Register {
             }
             ro = registered.poll();
         }
+    }
+
+    public void keepAlive(final Peer peer) {
+        peer.cancelKeepAlive();
+        TimerTask tt = new TimerTask() {
+
+            @Override
+            public void run() {
+                disconnect(peer);
+                logger.info("Disconnect " + peer);
+            }
+        };
+        timer.schedule(tt, 120000);
+        peer.setKeepAlive(tt);        
+    }
+    
+    public void connect(final Peer peer, boolean write) throws IOException {
+        registerRead(peer);
+        if (write) {
+            registerWrite(peer);
+        }
+        keepAlive(peer);
     }
 
     private class RegisterOp {

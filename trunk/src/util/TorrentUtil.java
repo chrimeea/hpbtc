@@ -11,15 +11,15 @@ import java.util.Random;
  * @author Cristian Mocanu
  */
 public class TorrentUtil {
-    
+
     public static int computeChunksInLastPiece(final long fileLength,
             final int nrPieces, final int chunkSize) {
         return computeChunksInNotLastPiece(computeLastPieceSize(fileLength,
                 nrPieces, chunkSize), chunkSize);
     }
-    
-     public static int computeChunksInNotLastPiece(final int pieceLength,
-             final int chunkSize) {
+
+    public static int computeChunksInNotLastPiece(final int pieceLength,
+            final int chunkSize) {
         int c = pieceLength / chunkSize;
         int r = pieceLength % chunkSize;
         return r == 0 ? c : c + 1;
@@ -29,21 +29,21 @@ public class TorrentUtil {
             final int nrPieces, final int chunkSize) {
         return (int) (fileLength - (nrPieces - 1) * chunkSize);
     }
-     
+
     public static int computeRemainingPiece(final int index, final int begin,
             final int chunkSize, final long fileLength, final int nrPieces,
             final int pieceLength) {
         long i = index == nrPieces - 1 ? fileLength : (index + 1) * pieceLength;
         return (int) (i - index * pieceLength - begin);
     }
-    
+
     public static int computeChunkSize(final int index, final int begin,
             final int chunkSize, final long fileLength, final int nrPieces,
             final int pieceLength) {
         return Math.min(chunkSize, computeRemainingPiece(index, begin,
                 chunkSize, fileLength, nrPieces, pieceLength));
     }
-    
+
     public static int computeNrPieces(long fileLength, int pieceLength) {
         int nrPieces = (int) (fileLength / pieceLength);
         if (fileLength % pieceLength > 0) {
@@ -51,7 +51,7 @@ public class TorrentUtil {
         }
         return nrPieces;
     }
-    
+
     public static int computePieceIndexFromPosition(final long position,
             final int pieceLength) {
         int n = (int) (position / pieceLength);
@@ -60,7 +60,7 @@ public class TorrentUtil {
         }
         return n;
     }
-    
+
     public static int computeBeginIndex(final int begin, final int chunkSize) {
         return begin / chunkSize;
     }
@@ -80,7 +80,7 @@ public class TorrentUtil {
         MessageDigest md = MessageDigest.getInstance("SHA1");
         return md.digest(info);
     }
-    
+
     public static byte[] generateId() throws UnsupportedEncodingException {
         byte[] pid = new byte[20];
         ByteBuffer bb = ByteBuffer.wrap(pid);
@@ -88,5 +88,14 @@ public class TorrentUtil {
         Random r = new Random();
         pid[19] = (byte) (r.nextInt(256) - 128);
         return pid;
+    }
+
+    public static byte[] getSupportedProtocol() throws
+            UnsupportedEncodingException {
+        byte[] protocol = new byte[20];
+        ByteBuffer pr = ByteBuffer.wrap(protocol);
+        pr.put((byte) 19);
+        pr.put("BitTorrent protocol".getBytes("US-ASCII"));
+        return protocol;
     }
 }
