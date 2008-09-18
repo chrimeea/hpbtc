@@ -2,7 +2,6 @@ package hpbtc.protocol.torrent;
 
 import hpbtc.bencoding.BencodingReader;
 import hpbtc.bencoding.BencodingWriter;
-import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -185,7 +184,7 @@ public class Torrent {
         }
     }
     
-    private BitSet getChunksSavedAndRequested(Peer peer, int index) {
+    public BitSet getChunksSavedAndRequested(Peer peer, int index) {
         BitSet saved = (BitSet) fileStore.getChunksIndex(index).clone();
         BitSet req = peer.getRequests(index);
         if (req != null) {
@@ -194,42 +193,6 @@ public class Torrent {
         return saved;
     }
     
-    public BlockMessage decideNextPiece(final Peer peer) {
-        BitSet peerPieces = (BitSet) peer.getPieces().clone();
-        peerPieces.andNot(getCompletePieces());
-        int max = 0;
-        int index = -1;
-        int beginIndex = 0;
-        int n = getNrPieces();
-        BitSet rest = (BitSet) peerPieces.clone();
-        for (int i = peerPieces.nextSetBit(0); i >= 0;
-        i = peerPieces.nextSetBit(i + 1)) {
-            BitSet sar = getChunksSavedAndRequested(peer, i);
-            int card = sar.cardinality();
-            int ch = sar.nextClearBit(0);
-            if (ch < computeChunksInPiece(i)) {
-                if (card > max) {
-                    max = card;
-                    index = i;
-                    beginIndex = ch;
-                }
-            } else {
-                rest.clear(i);
-            }
-        }
-        if (index < 0) {
-            int r = random.nextInt(rest.cardinality());
-            index = rest.nextSetBit(0);
-            for (; index < r; index = peerPieces.nextSetBit(index + 1)) {
-            }
-        }
-        int cs = getChunkSize();
-        int begin = TorrentUtil.computeBeginPosition(beginIndex, cs);
-        return new BlockMessage(begin, index,
-                TorrentUtil.computeChunkSize(index, begin, cs, getFileLength(),
-                n, getPieceLength()), SimpleMessage.TYPE_REQUEST, peer);
-    }
-
     public void removePeer(final Peer peer) {
         peers.remove(peer);
     }
