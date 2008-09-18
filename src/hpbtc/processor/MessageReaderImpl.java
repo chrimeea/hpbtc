@@ -176,6 +176,7 @@ public class MessageReaderImpl implements MessageReader {
         if (validator.validateBitfieldMessage(message)) {
             Peer peer = message.getDestination();
             peer.setPieces(message.getBitfield());
+            state.updateAvailability(peer);
             Torrent t = state.getTorrent(peer);
             if (!t.getOtherPieces(peer).isEmpty()) {
                 SimpleMessage smessage = new SimpleMessage(
@@ -209,6 +210,7 @@ public class MessageReaderImpl implements MessageReader {
             Peer peer = message.getDestination();
             int index = message.getIndex();
             peer.setPiece(index);
+            state.updateAvailability(peer, index);
             Torrent t = state.getTorrent(peer);
             if (!peer.isClientInterested() && !t.isPieceComplete(index)) {
                 SimpleMessage m = new SimpleMessage(
