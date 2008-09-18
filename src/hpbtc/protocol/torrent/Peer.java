@@ -9,6 +9,7 @@ import java.nio.channels.SocketChannel;
 import java.util.BitSet;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import util.IOUtil;
 import util.TorrentUtil;
@@ -37,6 +38,7 @@ public class Peer {
     private boolean expectBody;
     private Map<Integer, BitSet> requests = new Hashtable<Integer, BitSet>();
     private AtomicInteger totalRequests;
+    private TimerTask keepAlive;
 
     public Peer(final InetSocketAddress address, final byte[] infoHash,
             final byte[] id) {
@@ -51,6 +53,16 @@ public class Peer {
         this.address = IOUtil.getAddress(chn);
     }
 
+    public void cancelKeepAlive() {
+        if (keepAlive != null) {
+            keepAlive.cancel();
+        }
+    }
+    
+    public void setKeepAlive(TimerTask keepAlive) {
+        this.keepAlive = keepAlive;
+    }
+    
     public int countTotalRequests() {
         return totalRequests.get();
     }
@@ -233,6 +245,7 @@ public class Peer {
             channel.close();
         }
         requests.clear();
+        cancelKeepAlive();
     }
 
     void resetCounters() {

@@ -55,10 +55,10 @@ public class FileStore {
     }
 
     private int jumpToNextFile(final int index) {
-        long m = (index + 1) * pieceLength;
+        long m = index * pieceLength;
         long x = 0;
         Iterator<BTFile> i = files.iterator();
-        while (x < m && i.hasNext()) {
+        while (x <= m && i.hasNext()) {
             BTFile f = i.next();
             x += f.getLength();
         }

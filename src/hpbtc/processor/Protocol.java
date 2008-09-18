@@ -12,17 +12,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
-import java.util.BitSet;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import util.TorrentUtil;
 
 /**
  *
@@ -31,9 +26,6 @@ import util.TorrentUtil;
 public class Protocol {
 
     private static Logger logger = Logger.getLogger(Protocol.class.getName());
-    private Map<byte[], Torrent> torrents;
-    private Map<byte[], Tracker> trackers;
-    private byte[] peerId;
     private Timer slowTimer;
     private Timer fastTimer;
     private MessageWriter writer;
@@ -41,27 +33,22 @@ public class Protocol {
     private int port;
     private NetworkReader netReader;
     private NetworkWriter netWriter;
-    private byte[] protocol;
+    private State state;
 
     public Protocol() throws UnsupportedEncodingException {
-        this.peerId = TorrentUtil.generateId();
-        torrents = new Hashtable<byte[], Torrent>();
         slowTimer = new Timer(true);
         fastTimer = new Timer(true);
-        trackers = new Hashtable<byte[], Tracker>();
-        protocol = getSupportedProtocol();
+        state = new State();
     }
 
     public void download(final File fileName, final String rootFolder)
             throws IOException, NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
         final Torrent ti = new Torrent(fis, rootFolder);
-        byte[] infoHash = ti.getInfoHash();
         fis.close();
-        torrents.put(infoHash, ti);
-        final Tracker tracker = new Tracker(ti.getInfoHash(), peerId, port,
-                ti.getTrackers(), ti.getByteEncoding());
-        trackers.put(ti.getInfoHash(), tracker);
+        final Tracker tracker = new Tracker(ti.getInfoHash(), state.getPeerId(),
+                port, ti.getTrackers(), ti.getByteEncoding());
+        state.addTorrent(ti, tracker);
         ti.addFreshPeers(tracker.beginTracker(ti.getFileLength()));
         long d = tracker.getInterval() * 1000;
         slowTimer.schedule(new TimerTask() {
@@ -107,7 +94,7 @@ public class Protocol {
         for (Peer peer : freshPeers) {
             try {
                 SimpleMessage m = new HandshakeMessage(peer.getInfoHash(),
-                        peerId, getSupportedProtocol(), peer);
+                        state.getPeerId(), state.getProtocol(), peer);
                 writer.postMessage(m);
                 peer.setHandshakeSent();
             } catch (Exception e) {
@@ -122,22 +109,12 @@ public class Protocol {
     }
 
     public void startProtocol() throws IOException {
-        Register register = new Register();
-        writer = new MessageWriterImpl(torrents, register);
+        Register register = new Register(fastTimer);
+        writer = new MessageWriterImpl(state, register);
         netWriter = new NetworkWriter(writer, register);
-        processor = new MessageReaderImpl(torrents, peerId, writer,
-                trackers, protocol);
+        processor = new MessageReaderImpl(state, register, writer);
         netReader = new NetworkReader(processor, register);
         port = netReader.connect();
         netWriter.connect();
-    }
-
-    private static byte[] getSupportedProtocol() throws
-            UnsupportedEncodingException {
-        byte[] protocol = new byte[20];
-        ByteBuffer pr = ByteBuffer.wrap(protocol);
-        pr.put((byte) 19);
-        pr.put("BitTorrent protocol".getBytes("US-ASCII"));
-        return protocol;
     }
 }

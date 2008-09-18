@@ -6,7 +6,6 @@ package hpbtc.protocol.network;
 
 import hpbtc.processor.MessageReader;
 import hpbtc.protocol.torrent.Peer;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -106,8 +105,7 @@ public class NetworkReader {
                                 SocketChannel chan = serverCh.accept();
                                 chan.configureBlocking(false);
                                 peer = new Peer(chan);
-                                chan.register(selector, SelectionKey.OP_READ,
-                                        peer);
+                                register.connect(peer, true);
                                 logger.fine("Accepted connection from " + peer);
                             } else if (key.isReadable()) {
                                 peer = (Peer) key.attachment();
@@ -115,11 +113,11 @@ public class NetworkReader {
                             }
                         } catch (IOException ioe) {
                             logger.log(Level.WARNING, peer == null ?
-                                ioe.getLocalizedMessage() : peer.toString(),
-                                ioe);
-                            key.cancel();
+                                ioe.getLocalizedMessage() : peer.toString(), ioe);
                             if (peer != null) {
                                 processor.disconnect(peer);
+                            } else {
+                                key.cancel();
                             }
                         }
                     }

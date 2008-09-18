@@ -134,7 +134,7 @@ public class Torrent {
                 return p2.countDownloaded() - p1.countDownloaded();
             }
         };
-        if (++optimisticCounter == 3) {
+        if (++optimisticCounter == 3 && !prs.isEmpty()) {
             Peer optimisticPeer = prs.remove(random.nextInt(prs.size()));
             Collections.sort(prs, comp);
             prs.add(0, optimisticPeer);
