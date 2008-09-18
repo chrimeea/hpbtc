@@ -195,26 +195,31 @@ public class Torrent {
     }
     
     public BlockMessage decideNextPiece(final Peer peer) {
-        BitSet peerPieces = peer.getPieces();
-        BitSet completePieces = getCompletePieces();
+        BitSet peerPieces = (BitSet) peer.getPieces().clone();
+        peerPieces.andNot(getCompletePieces());
         int max = 0;
         int index = -1;
         int beginIndex = 0;
         int n = getNrPieces();
-        for (int i = 0; i < n; i++) {
+        BitSet rest = (BitSet) peerPieces.clone();
+        for (int i = peerPieces.nextSetBit(0); i >= 0;
+        i = peerPieces.nextSetBit(i + 1)) {
             BitSet sar = getChunksSavedAndRequested(peer, i);
             int card = sar.cardinality();
-            int ch = getChunksSavedAndRequested(peer, i).nextClearBit(0);
-            if (peerPieces.get(i) && !completePieces.get(i) && card > max &&
-                    ch >= 0) {
-                max = card;
-                index = i;
-                beginIndex = ch;
+            int ch = sar.nextClearBit(0);
+            if (ch < computeChunksInPiece(i)) {
+                if (card > max) {
+                    max = card;
+                    index = i;
+                    beginIndex = ch;
+                }
+            } else {
+                rest.clear(i);
             }
         }
         if (index < 0) {
-            int r = random.nextInt(peerPieces.cardinality());
-            index = peerPieces.nextSetBit(0);
+            int r = random.nextInt(rest.cardinality());
+            index = rest.nextSetBit(0);
             for (; index < r; index = peerPieces.nextSetBit(index + 1)) {
             }
         }

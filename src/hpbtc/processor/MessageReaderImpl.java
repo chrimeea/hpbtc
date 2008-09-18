@@ -36,12 +36,12 @@ public class MessageReaderImpl implements MessageReader {
         this.state = state;
         validator = new MessageValidator(state);
     }
-    
+
     public void disconnect(final Peer peer) throws IOException {
         state.disconnect(peer);
         register.disconnect(peer);
     }
-    
+
     private void checkPeerId(final Peer peer) throws IOException {
         if (peer.download()) {
             peer.setId(peer.getData().array());
@@ -152,7 +152,8 @@ public class MessageReaderImpl implements MessageReader {
             }
             Torrent t = state.getTorrent(peer);
             if (!peer.isHandshakeSent()) {
-                HandshakeMessage reply = new HandshakeMessage(infoHash, state.getPeerId(),
+                HandshakeMessage reply = new HandshakeMessage(infoHash, state.
+                        getPeerId(),
                         state.getProtocol(), peer);
                 writer.postMessage(reply);
             } else {
@@ -250,10 +251,10 @@ public class MessageReaderImpl implements MessageReader {
                         p.setClientInterested(false);
                     }
                 }
-            }
-            if (t.isTorrentComplete()) {
-                state.getTracker(t).endTracker(t.getUploaded(),
-                        t.getDownloaded());
+                if (t.isTorrentComplete()) {
+                    state.getTracker(t).endTracker(t.getUploaded(),
+                            t.getDownloaded());
+                }
             }
         } else {
             logger.warning("Invalid message: " + message);
