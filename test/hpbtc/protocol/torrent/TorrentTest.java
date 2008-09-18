@@ -103,29 +103,4 @@ public class TorrentTest {
         dest.rewind();
         assert piece.equals(dest);
     }
-        
-    @Test
-    public void testDecideChoking() throws IOException,
-            NoSuchAlgorithmException {
-        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes(byteEncoding));
-        Torrent info = new Torrent(b, ".");
-        b.close();
-        ChannelStub cs = new ChannelStub(0, false);
-        InetAddress ia = InetAddress.getLocalHost();
-        Peer peer = new Peer(new InetSocketAddress(ia, 9001), null, null);
-        peer.setChannel(cs);peer.setHandshakeReceived();info.addPeer(peer);
-        peer = new Peer(new InetSocketAddress(ia, 9002), null, null);
-        peer.setChannel(cs);peer.setHandshakeReceived();info.addPeer(peer);
-        peer = new Peer(new InetSocketAddress(ia, 9003), null, null);
-        peer.setChannel(cs);peer.setHandshakeReceived();info.addPeer(peer);
-        peer = new Peer(new InetSocketAddress(ia, 9004), null, null);
-        peer.setChannel(cs);peer.setHandshakeReceived();info.addPeer(peer);
-        peer = new Peer(new InetSocketAddress(ia, 9005), null, null);
-        peer.setChannel(cs);peer.setHandshakeReceived();info.addPeer(peer);
-        List<SimpleMessage> m = info.decideChoking();
-        assert m.size() == 5;
-        for (SimpleMessage sm: m) {
-            assert sm.getMessageType() == SimpleMessage.TYPE_UNCHOKE;
-        }
-    }
 }

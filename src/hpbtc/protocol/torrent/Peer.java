@@ -248,7 +248,7 @@ public class Peer {
         cancelKeepAlive();
     }
 
-    void resetCounters() {
+    public void resetCounters() {
         uploaded = 0;
         downloaded = 0;
     }
