@@ -23,18 +23,14 @@ public class State {
 
     private byte[] protocol;
     private byte[] peerId;
-    private Map<byte[], Torrent> torrents;
-    private Map<byte[], Tracker> trackers;
+    private Map<byte[], StateData> data;
     private Map<Peer, Queue<SimpleMessage>> messagesToSend;
-    private Map<byte[], AtomicIntegerArray> availability;
     
     public State() throws UnsupportedEncodingException {
         messagesToSend = new Hashtable<Peer, Queue<SimpleMessage>>();
         this.peerId = TorrentUtil.generateId();
         protocol = TorrentUtil.getSupportedProtocol();
-        trackers = new Hashtable<byte[], Tracker>();
-        torrents = new Hashtable<byte[], Torrent>();
-        availability = new Hashtable<byte[], AtomicIntegerArray>();
+        data = new Hashtable<byte[], StateData>();
     }
 
     public byte[] getProtocol() {
@@ -46,7 +42,7 @@ public class State {
     }
 
     public byte[] findInfoHash(final byte[] infoHash) {
-        for (byte[] b: torrents.keySet()) {
+        for (byte[] b: data.keySet()) {
             if (Arrays.equals(infoHash, b)) {
                 return b;
             }
@@ -55,22 +51,21 @@ public class State {
     }
     
     public Torrent getTorrent(final Peer peer) {
-        return torrents.get(peer.getInfoHash());
+        return data.get(peer.getInfoHash()).getTorrent();
     }
     
     public Tracker getTracker(final Torrent torrent) {
-        return trackers.get(torrent.getInfoHash());
+        return data.get(torrent.getInfoHash()).getTracker();
     }
     
     public void addTorrent(final Torrent torrent, final Tracker tracker) {
         byte[] infoHash = torrent.getInfoHash();
-        torrents.put(infoHash, torrent);
-        trackers.put(infoHash, tracker);
-        availability.put(infoHash, new AtomicIntegerArray(torrent.getNrPieces()));
+        data.put(infoHash, new StateData(torrent, tracker,
+                new AtomicIntegerArray(torrent.getNrPieces())));
     }
     
     public void updateAvailability(final Peer peer) {
-        AtomicIntegerArray a = availability.get(peer.getInfoHash());
+        AtomicIntegerArray a = data.get(peer.getInfoHash()).getAvailability();
         BitSet bs = peer.getPieces();
         for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
             a.getAndIncrement(i);
@@ -78,21 +73,21 @@ public class State {
     }
     
     public void updateAvailability(final Peer peer, int index) {
-        AtomicIntegerArray a = availability.get(peer.getInfoHash());
+        AtomicIntegerArray a = data.get(peer.getInfoHash()).getAvailability();
         a.getAndIncrement(index);
     }
     
     public int getAvailability(final Peer peer, int index) {
-        AtomicIntegerArray a = availability.get(peer.getInfoHash());
+        AtomicIntegerArray a = data.get(peer.getInfoHash()).getAvailability();
         return a.get(index);
     }
     
     public void disconnect(final Peer peer)
             throws IOException {
         byte[] infoHash = peer.getInfoHash();
-        torrents.get(infoHash).removePeer(peer);
+        data.get(infoHash).getTorrent().removePeer(peer);
         messagesToSend.remove(peer);
-        AtomicIntegerArray a = availability.get(infoHash);
+        AtomicIntegerArray a = data.get(infoHash).getAvailability();
         BitSet bs = peer.getPieces();
         for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
             a.getAndDecrement(i);
@@ -120,5 +115,63 @@ public class State {
     
     public SimpleMessage getMessageToSend(final Peer peer) {
         return messagesToSend.get(peer).poll();
+    }
+    
+    public int increaseOptimisticCounter(final Torrent torrent) {
+        return data.get(torrent.getInfoHash()).increaseOptimisticCounter();
+    }
+    
+    public void resetOptimisticCounter(final Torrent torrent) {
+        data.get(torrent.getInfoHash()).setOptimisticCounter(0);
+    }
+    
+    private class StateData {
+        private Torrent torrent;
+        private Tracker tracker;
+        private AtomicIntegerArray availability;
+        private int optimisticCounter;
+
+        public StateData(final Torrent torrent, final Tracker tracker,
+                final AtomicIntegerArray availability) {
+            this.torrent = torrent;
+            this.tracker = tracker;
+            this.availability = availability;
+        }
+        
+        public int increaseOptimisticCounter() {
+            return ++optimisticCounter;
+        }
+        
+        public void setOptimisticCounter(int optimisticCounter) {
+            this.optimisticCounter = optimisticCounter;
+        }
+        
+        public void setAvailability(final AtomicIntegerArray availability) {
+            this.availability = availability;
+        }
+
+        public void setTorrent(final Torrent torrent) {
+            this.torrent = torrent;
+        }
+
+        public void setTracker(final Tracker tracker) {
+            this.tracker = tracker;
+        }
+
+        public int getOptimisticCounter() {
+            return optimisticCounter;
+        }
+        
+        public AtomicIntegerArray getAvailability() {
+            return availability;
+        }
+
+        public Torrent getTorrent() {
+            return torrent;
+        }
+
+        public Tracker getTracker() {
+            return tracker;
+        }
     }
 }

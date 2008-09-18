@@ -13,7 +13,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -34,11 +39,13 @@ public class Protocol {
     private NetworkReader netReader;
     private NetworkWriter netWriter;
     private State state;
+    private Random random;
 
     public Protocol() throws UnsupportedEncodingException {
         slowTimer = new Timer(true);
         fastTimer = new Timer(true);
         state = new State();
+        random = new Random();
     }
 
     public void download(final File fileName, final String rootFolder)
@@ -68,10 +75,10 @@ public class Protocol {
             }
         }, d, d);
         fastTimer.schedule(new TimerTask() {
-
+            
             @Override
             public void run() {
-                List<SimpleMessage> result = ti.decideChoking();
+                List<SimpleMessage> result = decideChoking(ti);
                 for (SimpleMessage sm : result) {
                     Peer p = sm.getDestination();
                     try {
@@ -116,5 +123,49 @@ public class Protocol {
         netReader = new NetworkReader(processor, register);
         port = netReader.connect();
         netWriter.connect();
+    }
+    
+    private List<SimpleMessage> decideChoking(final Torrent torrent) {
+        List<Peer> prs = new ArrayList<Peer>(torrent.getConnectedPeers());
+        Comparator<Peer> comp = torrent.isTorrentComplete() ? new Comparator<Peer>() {
+
+            public int compare(Peer p1, Peer p2) {
+                return p2.countUploaded() - p1.countUploaded();
+            }
+        }
+                : new Comparator<Peer>() {
+
+            public int compare(Peer p1, Peer p2) {
+                return p2.countDownloaded() - p1.countDownloaded();
+            }
+        };
+        if (state.increaseOptimisticCounter(torrent) == 3 && !prs.isEmpty()) {
+            Peer optimisticPeer = prs.remove(random.nextInt(prs.size()));
+            Collections.sort(prs, comp);
+            prs.add(0, optimisticPeer);
+            state.resetOptimisticCounter(torrent);
+        } else {
+            Collections.sort(prs, comp);
+        }
+        int k = 0;
+        List<SimpleMessage> result = new LinkedList<SimpleMessage>();
+        for (Peer p : prs) {
+            if (k < 4) {
+                if (p.isClientChoking()) {
+                    SimpleMessage mUnchoke = new SimpleMessage(
+                            SimpleMessage.TYPE_UNCHOKE, p);
+                    result.add(mUnchoke);
+                }
+                if (p.isPeerInterested()) {
+                    k++;
+                }
+            } else if (!p.isClientChoking()) {
+                SimpleMessage mChoke = new SimpleMessage(
+                        SimpleMessage.TYPE_CHOKE, p);
+                result.add(mChoke);
+            }
+            p.resetCounters();
+        }
+        return result;
     }
 }

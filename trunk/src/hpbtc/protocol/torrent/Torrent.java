@@ -2,7 +2,6 @@ package hpbtc.protocol.torrent;
 
 import hpbtc.bencoding.BencodingReader;
 import hpbtc.bencoding.BencodingWriter;
-import hpbtc.protocol.message.SimpleMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,14 +10,11 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import util.TorrentUtil;
@@ -39,14 +35,11 @@ public class Torrent {
     private FileStore fileStore;
     private Set<Peer> peers;
     private Set<Peer> freshPeers;
-    private Random random;
     private long uploaded;
     private long downloaded;
-    private int optimisticCounter;
 
     public Torrent(final InputStream is, final String rootFolder)
             throws IOException, NoSuchAlgorithmException {
-        random = new Random();
         BencodingReader parser = new BencodingReader(is);
         Map<byte[], Object> meta = parser.readNextDictionary();
         Map<byte[], Object> info = (Map) meta.get("info".getBytes(byteEncoding));
@@ -117,50 +110,6 @@ public class Torrent {
         freshPeers = null;
         p.removeAll(peers);
         return p;
-    }
-
-    public List<SimpleMessage> decideChoking() {
-        List<Peer> prs = new ArrayList<Peer>(peers);
-        Comparator<Peer> comp = isTorrentComplete() ? new Comparator<Peer>() {
-
-            public int compare(Peer p1, Peer p2) {
-                return p2.countUploaded() - p1.countUploaded();
-            }
-        }
-                : new Comparator<Peer>() {
-
-            public int compare(Peer p1, Peer p2) {
-                return p2.countDownloaded() - p1.countDownloaded();
-            }
-        };
-        if (++optimisticCounter == 3 && !prs.isEmpty()) {
-            Peer optimisticPeer = prs.remove(random.nextInt(prs.size()));
-            Collections.sort(prs, comp);
-            prs.add(0, optimisticPeer);
-            optimisticCounter = 0;
-        } else {
-            Collections.sort(prs, comp);
-        }
-        int k = 0;
-        List<SimpleMessage> result = new LinkedList<SimpleMessage>();
-        for (Peer p : prs) {
-            if (k < 4) {
-                if (p.isClientChoking()) {
-                    SimpleMessage mUnchoke = new SimpleMessage(
-                            SimpleMessage.TYPE_UNCHOKE, p);
-                    result.add(mUnchoke);
-                }
-                if (p.isPeerInterested()) {
-                    k++;
-                }
-            } else if (!p.isClientChoking()) {
-                SimpleMessage mChoke = new SimpleMessage(
-                        SimpleMessage.TYPE_CHOKE, p);
-                result.add(mChoke);
-            }
-            p.resetCounters();
-        }
-        return result;
     }
 
     public int getChunkSize() {
