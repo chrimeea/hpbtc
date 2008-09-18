@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.BitSet;
 import java.util.logging.Logger;
+import util.TorrentUtil;
 
 /**
  *
@@ -262,7 +263,7 @@ public class MessageReaderImpl implements MessageReader {
             logger.warning("Invalid message: " + message);
         }
         if (!peer.isPeerChoking() && peer.isClientInterested()) {
-            decideNextPiece(t, peer);
+            decideNextPieces(t, peer);
         }
     }
 
@@ -292,20 +293,64 @@ public class MessageReaderImpl implements MessageReader {
 
     }
 
-    private void decideNextPiece(final Torrent t, final Peer peer)
+    private void decideNextPieces(final Torrent t, final Peer peer)
             throws IOException {
         for (int i = peer.countTotalRequests(); i < 2; i++) {
-            BlockMessage bm = t.decideNextPiece(peer);
-            if (bm == null) {
+            BlockMessage bm = decideNextPiece(t, peer);
+            if (bm != null) {
+                writer.postMessage(bm);
+                peer.addRequest(bm.getIndex(), bm.getBegin(), t.getChunkSize(),
+                        t.computeChunksInPiece(bm.getIndex()));
+            } else {
                 SimpleMessage smessage = new SimpleMessage(
                         SimpleMessage.TYPE_NOT_INTERESTED, peer);
                 writer.postMessage(smessage);
                 peer.setClientInterested(false);
-            } else {
-                writer.postMessage(bm);
-                peer.addRequest(bm.getIndex(), bm.getBegin(), t.getChunkSize(),
-                        t.computeChunksInPiece(bm.getIndex()));
+                break;
             }
         }
+    }
+    
+    private BlockMessage decideNextPiece(final Torrent torrent, final Peer peer) {
+        BitSet peerPieces = (BitSet) peer.getPieces().clone();
+        peerPieces.andNot(torrent.getCompletePieces());
+        int max = 0;
+        int index = -1;
+        int beginIndex = 0;
+        int n = torrent.getNrPieces();
+        BitSet rest = (BitSet) peerPieces.clone();
+        for (int i = peerPieces.nextSetBit(0); i >= 0;
+        i = peerPieces.nextSetBit(i + 1)) {
+            BitSet sar = torrent.getChunksSavedAndRequested(peer, i);
+            int card = sar.cardinality();
+            int ch = sar.nextClearBit(0);
+            if (ch < torrent.computeChunksInPiece(i)) {
+                if (card > max) {
+                    max = card;
+                    index = i;
+                    beginIndex = ch;
+                }
+            } else {
+                rest.clear(i);
+            }
+        }
+        if (index < 0) {
+            index = rest.nextSetBit(0);
+            int min = state.getAvailability(peer, index);
+            for (int i = rest.nextSetBit(index + 1); i >= 0;
+            i = rest.nextSetBit(i + 1)) {
+                int a = state.getAvailability(peer, i);
+                if (a < min) {
+                    min = a;
+                    index = i;
+                }
+            }
+        }
+        int cs = torrent.getChunkSize();
+        int begin = TorrentUtil.computeBeginPosition(beginIndex, cs);
+        return new BlockMessage(begin, index,
+                TorrentUtil.computeChunkSize(index, begin, cs,
+                torrent.getFileLength(), n, torrent.getPieceLength()),
+                SimpleMessage.TYPE_REQUEST, peer);
     }
 }
