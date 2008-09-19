@@ -1,8 +1,7 @@
 package hpbtc.processor;
 
-import hpbtc.protocol.message.KeepAliveMessage;
+import hpbtc.protocol.message.LengthPrefixMessage;
 import hpbtc.protocol.message.PieceMessage;
-import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Register;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
@@ -43,7 +42,7 @@ public class MessageWriterImpl implements MessageWriter {
             @Override
             public void run() {
                 try {
-                    postMessage(new KeepAliveMessage(peer));
+                    postMessage(new LengthPrefixMessage(0, peer));
                 } catch (IOException e) {
                     logger.log(Level.WARNING, e.getLocalizedMessage(), e);
                 }
@@ -56,7 +55,7 @@ public class MessageWriterImpl implements MessageWriter {
     public void writeNext(final Peer peer) throws IOException {
         keepAliveWrite(peer);
         if (currentWrite == null || currentWrite.remaining() == 0) {
-            SimpleMessage sm = null;
+            LengthPrefixMessage sm = null;
             sm = peer.getMessageToSend();
             currentWrite = sm.send();
             currentWrite.rewind();
@@ -70,12 +69,12 @@ public class MessageWriterImpl implements MessageWriter {
     
     public void cancelPieceMessage(final int begin, final int index,
             final int length, final Peer peer) {
-        Iterable<SimpleMessage> q = peer.listMessagesToSend();
+        Iterable<LengthPrefixMessage> q = peer.listMessagesToSend();
         if (q != null) {
-            Iterator<SimpleMessage> i = q.iterator();
+            Iterator<LengthPrefixMessage> i = q.iterator();
             while (i.hasNext()) {
-                SimpleMessage m = i.next();
-                if (m.getMessageType() == SimpleMessage.TYPE_PIECE) {
+                LengthPrefixMessage m = i.next();
+                if (m instanceof PieceMessage) {
                     PieceMessage pm = (PieceMessage) m;
                     if (pm.getIndex() == index && pm.getBegin() == begin &&
                             pm.getLength() == length) {
@@ -91,12 +90,12 @@ public class MessageWriterImpl implements MessageWriter {
     }
     
     public void cancelPieceMessage(final Peer peer) {
-        Iterable<SimpleMessage> q = peer.listMessagesToSend();
+        Iterable<LengthPrefixMessage> q = peer.listMessagesToSend();
         if (q != null) {
-            Iterator<SimpleMessage> i = q.iterator();
+            Iterator<LengthPrefixMessage> i = q.iterator();
             while (i.hasNext()) {
-                SimpleMessage m = i.next();
-                if (m.getMessageType() == SimpleMessage.TYPE_PIECE) {
+                LengthPrefixMessage m = i.next();
+                if (m instanceof PieceMessage) {
                     i.remove();
                     PieceMessage pm = (PieceMessage) m;
                     Peer p = pm.getDestination();
@@ -108,7 +107,7 @@ public class MessageWriterImpl implements MessageWriter {
         }
     }
     
-    public void postMessage(final SimpleMessage message) throws IOException {
+    public void postMessage(final LengthPrefixMessage message) throws IOException {
         message.getDestination().addMessageToSend(message);
         register.registerWrite(message.getDestination());
     }

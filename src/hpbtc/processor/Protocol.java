@@ -1,6 +1,7 @@
 package hpbtc.processor;
 
 import hpbtc.protocol.message.HandshakeMessage;
+import hpbtc.protocol.message.LengthPrefixMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.NetworkReader;
 import hpbtc.protocol.network.NetworkWriter;
@@ -65,7 +66,7 @@ public class Protocol {
 
             @Override
             public void run() {
-                contactFreshPeers(ti.getFreshPeers());
+                contactFreshPeers(ti);
             }
         }, 0, d);
         fastTimer.schedule(new TimerTask() {
@@ -98,10 +99,12 @@ public class Protocol {
         }, 10000, 10000);
     }
 
-    private void contactFreshPeers(final Iterable<Peer> freshPeers) {
+    private void contactFreshPeers(final Torrent torrent) {
+        Iterable<Peer> freshPeers = torrent.getFreshPeers();
         for (Peer peer : freshPeers) {
             try {
-                SimpleMessage m = new HandshakeMessage(peerId, protocol, peer);
+                LengthPrefixMessage m = new HandshakeMessage(peerId, protocol,
+                        peer, torrent.getInfoHash());
                 writer.postMessage(m);
                 peer.setHandshakeSent();
             } catch (Exception e) {

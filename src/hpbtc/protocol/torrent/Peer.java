@@ -1,5 +1,6 @@
 package hpbtc.protocol.torrent;
 
+import hpbtc.protocol.message.LengthPrefixMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import java.io.EOFException;
 import java.io.IOException;
@@ -42,14 +43,14 @@ public class Peer {
     private AtomicInteger totalRequests;
     private TimerTask keepAliveRead;
     private TimerTask keepAliveWrite;
-    private Queue<SimpleMessage> messagesToSend;
+    private Queue<LengthPrefixMessage> messagesToSend;
     private Torrent torrent;
 
     public Peer(final InetSocketAddress address, final byte[] id) {
         this.address = address;
         this.id = id;
         this.totalRequests = new AtomicInteger();
-        messagesToSend = new ConcurrentLinkedQueue<SimpleMessage>();
+        messagesToSend = new ConcurrentLinkedQueue<LengthPrefixMessage>();
     }
 
     public Peer(final SocketChannel chn) {
@@ -263,21 +264,22 @@ public class Peer {
         torrent.removePeer(this);
         this.torrent = null;
         cancelKeepAliveRead();
+        cancelKeepAliveWrite();
     }
 
     public boolean isMessagesToSendEmpty() {
         return messagesToSend.isEmpty();
     }
     
-    public SimpleMessage getMessageToSend() {
+    public LengthPrefixMessage getMessageToSend() {
         return messagesToSend.poll();
     }
     
-    public void addMessageToSend(final SimpleMessage message) {
+    public void addMessageToSend(final LengthPrefixMessage message) {
         messagesToSend.add(message);
     }
     
-    public Iterable<SimpleMessage> listMessagesToSend() {
+    public Iterable<LengthPrefixMessage> listMessagesToSend() {
         return messagesToSend;
     }
     

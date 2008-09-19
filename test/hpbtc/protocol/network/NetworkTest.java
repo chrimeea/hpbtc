@@ -1,8 +1,8 @@
 package hpbtc.protocol.network;
 
 import hpbtc.processor.MessageReader;
+import hpbtc.protocol.message.LengthPrefixMessage;
 import hpbtc.processor.MessageWriter;
-import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -68,7 +68,7 @@ public class NetworkTest {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
             
-            public void postMessage(SimpleMessage arg0) throws IOException {
+            public void postMessage(LengthPrefixMessage arg0) throws IOException {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 

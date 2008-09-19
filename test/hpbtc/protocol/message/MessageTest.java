@@ -103,7 +103,8 @@ public class MessageTest {
     public void testWriteHandshake() throws UnsupportedEncodingException {
         HandshakeMessage m = new HandshakeMessage(
                 "ABCDEFGHIJKLMNOPQRST".getBytes(byteEncoding),
-                getSupportedProtocol(), null);
+                getSupportedProtocol(), null,
+                "01234567890123456789".getBytes(byteEncoding));
         ByteBuffer bb = m.send();
         bb.rewind();
         assert bb.get() == 19;

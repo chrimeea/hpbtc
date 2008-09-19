@@ -3,15 +3,14 @@ package hpbtc.protocol.message;
 import hpbtc.protocol.torrent.Peer;
 import java.nio.ByteBuffer;
 
-public class HandshakeMessage extends SimpleMessage {
+public class HandshakeMessage extends LengthPrefixMessage {
 
     private byte[] infoHash;
     private byte[] protocol;
     private byte[] peerId;
 
     public HandshakeMessage(final ByteBuffer message, final Peer destination) {
-        this.disc = SimpleMessage.TYPE_HANDSHAKE;
-        this.destination = destination;
+        super(48, destination);
         message.limit(20);
         protocol = new byte[20];
         message.get(protocol);
@@ -22,12 +21,11 @@ public class HandshakeMessage extends SimpleMessage {
     }
 
     public HandshakeMessage(final byte[] peerId, final byte[] protocol,
-            final Peer destination) {
-        this.disc = SimpleMessage.TYPE_HANDSHAKE;
+            final Peer destination, byte[] infoHash) {
+        super(68, destination);
         this.protocol = protocol;
-        this.infoHash = destination.getTorrent().getInfoHash();
+        this.infoHash = infoHash;
         this.peerId = peerId;
-        this.destination = destination;
     }
 
     public byte[] getPeerId() {

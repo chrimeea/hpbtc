@@ -166,7 +166,7 @@ public class MessageReaderImpl implements MessageReader {
             }
             if (!peer.isHandshakeSent()) {
                 HandshakeMessage reply = new HandshakeMessage(peerId, protocol,
-                        peer);
+                        peer, t.getInfoHash());
                 writer.postMessage(reply);
             } else {
                 t.addPeer(peer);
