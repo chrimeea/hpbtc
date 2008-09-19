@@ -1,6 +1,6 @@
 package hpbtc.processor;
 
-import hpbtc.protocol.message.SimpleMessage;
+import hpbtc.protocol.message.LengthPrefixMessage;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 
@@ -14,7 +14,7 @@ public interface MessageWriter {
     
     void disconnect(Peer peer) throws IOException;
     
-    void postMessage(SimpleMessage message) throws IOException;
+    void postMessage(LengthPrefixMessage message) throws IOException;
     
     void cancelPieceMessage(Peer peer);
     

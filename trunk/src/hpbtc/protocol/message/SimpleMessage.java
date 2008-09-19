@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
  * @author Cristian Mocanu
  *
  */
-public class SimpleMessage {
+public class SimpleMessage extends LengthPrefixMessage {
     
     public static final byte TYPE_BITFIELD = 5;
     public static final byte TYPE_CANCEL = 8;
@@ -22,15 +22,8 @@ public class SimpleMessage {
     public static final byte TYPE_PIECE = 7;
     public static final byte TYPE_REQUEST = 6;
     public static final byte TYPE_UNCHOKE = 1;
-    public static final byte TYPE_HANDSHAKE = -1;
-    public static final byte TYPE_KEEPALIVE = -2;
-    
-    protected int messageLength;
+
     protected byte disc;
-    protected Peer destination;
-    
-    public SimpleMessage() {
-    }
     
     public void setDestination(final Peer destination) {
         this.destination = destination;
@@ -42,32 +35,26 @@ public class SimpleMessage {
     
     public SimpleMessage(final int len, final byte disc,
             final Peer destination) {
-        messageLength = len + 1;
+        super(len + 1, destination);
         this.disc = disc;
-        this.destination = destination;
     }
     
     public byte getMessageType() {
         return disc;
     }
     
-    public Peer getDestination() {
-        return destination;
-    }
-    
-    public int getMessageLength() {
-        return messageLength;
-    }
-    
+    @Override
     public ByteBuffer send() {
+        ByteBuffer prefix = super.send();
+        prefix.rewind();
         ByteBuffer bb = ByteBuffer.allocate(messageLength + 4);
-        bb.putInt(messageLength);
+        bb.put(prefix);
         bb.put(disc);
         return bb;
     }
 
     @Override
     public String toString() {
-        return "Type: " + disc + ", Peer: " + destination;
+        return super.toString() + ", Type: " + disc;
     }
 }
