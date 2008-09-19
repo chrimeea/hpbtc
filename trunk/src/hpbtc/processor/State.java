@@ -1,6 +1,5 @@
 package hpbtc.processor;
 
-import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import hpbtc.protocol.torrent.Tracker;
@@ -10,8 +9,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import util.TorrentUtil;
 
@@ -24,10 +21,8 @@ public class State {
     private byte[] protocol;
     private byte[] peerId;
     private Map<byte[], StateData> data;
-    private Map<Peer, Queue<SimpleMessage>> messagesToSend;
     
     public State() throws UnsupportedEncodingException {
-        messagesToSend = new Hashtable<Peer, Queue<SimpleMessage>>();
         this.peerId = TorrentUtil.generateId();
         protocol = TorrentUtil.getSupportedProtocol();
         data = new Hashtable<byte[], StateData>();
@@ -86,7 +81,6 @@ public class State {
             throws IOException {
         byte[] infoHash = peer.getInfoHash();
         data.get(infoHash).getTorrent().removePeer(peer);
-        messagesToSend.remove(peer);
         AtomicIntegerArray a = data.get(infoHash).getAvailability();
         BitSet bs = peer.getPieces();
         for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
@@ -94,29 +88,7 @@ public class State {
         }
         peer.disconnect();
     }
-    
-    public Iterable<SimpleMessage> listMessagesToSend(final Peer peer) {
-        return messagesToSend.get(peer);
-    }
-    
-    public void addMessageToSend(final SimpleMessage message) {
-        Peer peer = message.getDestination();
-        Queue<SimpleMessage> q = messagesToSend.get(peer);
-        if (q == null) {
-            q = new ConcurrentLinkedQueue<SimpleMessage>();
-            messagesToSend.put(peer, q);
-        }
-        q.add(message);
-    }
-    
-    public boolean isMessagesToSendEmpty(final Peer peer) {
-        return messagesToSend.get(peer).isEmpty();
-    }
-    
-    public SimpleMessage getMessageToSend(final Peer peer) {
-        return messagesToSend.get(peer).poll();
-    }
-    
+                
     public int increaseOptimisticCounter(final Torrent torrent) {
         return data.get(torrent.getInfoHash()).increaseOptimisticCounter();
     }
