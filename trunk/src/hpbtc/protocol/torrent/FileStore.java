@@ -134,7 +134,7 @@ public class FileStore {
             final ByteBuffer dest) throws IOException {
         Iterator<File> i = files.iterator();
         IOUtil.readFromFile(i.next(), begin, dest);
-        for (int j = 0; j < files.size() - 1; j++) {
+        while (i.hasNext()) {
             IOUtil.readFromFile(i.next(), 0, dest);
         }
     }
@@ -182,7 +182,7 @@ public class FileStore {
 
     private List<File> getFileList(final int begin, final int index,
             final int length) {
-        long o = index * chunkSize + begin;
+        long o = index * pieceLength + begin;
         Iterator<BTFile> i = files.iterator();
         BTFile f;
         do {
@@ -205,6 +205,7 @@ public class FileStore {
             final int length) throws IOException {
         ByteBuffer bb = ByteBuffer.allocate(length);
         loadFileChunk(getFileList(begin, index, length), offset, bb);
+        bb.rewind();
         return bb;
     }
 
@@ -213,7 +214,7 @@ public class FileStore {
         MessageDigest md = MessageDigest.getInstance("SHA1");
         md.update(loadPiece(0, index, pieceLength));
         int i = index * 20;
-        return Arrays.equals(md.digest(), Arrays.copyOfRange(pieceHash, i, i +
-                20));
+        return Arrays.equals(md.digest(), Arrays.copyOfRange(pieceHash, i,
+                i + 20));
     }
 }
