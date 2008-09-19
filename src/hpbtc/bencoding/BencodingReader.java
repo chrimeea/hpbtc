@@ -73,9 +73,11 @@ public class BencodingReader {
         if (n > 0) {
             byte[] dst = new byte[n];
             int s = 0;
-            while (s < n) {
-                s += is.read(dst, s, n - s);
-            }
+            int r;
+            do {
+                r = is.read(dst, s, n - s);
+                s += r;
+            } while (r > 0 && s < n);
             return dst;
         }
         return null;

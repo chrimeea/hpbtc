@@ -33,7 +33,6 @@ import util.TorrentUtil;
 public class Protocol {
 
     private static Logger logger = Logger.getLogger(Protocol.class.getName());
-    private Timer slowTimer;
     private Timer fastTimer;
     private MessageWriter writer;
     private MessageReader processor;
@@ -46,7 +45,6 @@ public class Protocol {
     private byte[] protocol;
 
     public Protocol() throws UnsupportedEncodingException {
-        slowTimer = new Timer(true);
         fastTimer = new Timer(true);
         random = new Random();
         torrents = new Vector<Torrent>();
@@ -62,22 +60,17 @@ public class Protocol {
         torrents.add(ti);
         ti.beginTracker();
         long d = ti.getTracker().getInterval() * 1000;
-        slowTimer.schedule(new TimerTask() {
-
-            @Override
-            public void run() {
-                contactFreshPeers(ti);
-            }
-        }, 0L, d);
+        contactFreshPeers(ti);
         fastTimer.schedule(new TimerTask() {
 
             @Override
             public void run() {
                 ti.updateTracker();
+                contactFreshPeers(ti);
             }
         }, d, d);
         fastTimer.schedule(new TimerTask() {
-            
+
             @Override
             public void run() {
                 List<SimpleMessage> result = decideChoking(ti);
@@ -128,7 +121,7 @@ public class Protocol {
         port = netReader.connect();
         netWriter.connect();
     }
-    
+
     private List<SimpleMessage> decideChoking(final Torrent torrent) {
         List<Peer> prs = new ArrayList<Peer>(torrent.getConnectedPeers());
         Comparator<Peer> comp = torrent.isTorrentComplete() ? new Comparator<Peer>() {
@@ -143,7 +136,8 @@ public class Protocol {
                 return p2.countDownloaded() - p1.countDownloaded();
             }
         };
-        if (torrent.increaseOptimisticCounter() == 3 && !prs.isEmpty()) {
+        if (torrent.increaseOptimisticCounter() == 3 &&
+                !prs.isEmpty()) {
             Peer optimisticPeer = prs.remove(random.nextInt(prs.size()));
             Collections.sort(prs, comp);
             prs.add(0, optimisticPeer);
