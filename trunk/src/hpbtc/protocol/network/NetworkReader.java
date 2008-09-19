@@ -105,7 +105,7 @@ public class NetworkReader {
                                 SocketChannel chan = serverCh.accept();
                                 chan.configureBlocking(false);
                                 peer = new Peer(chan);
-                                register.connect(peer, true);
+                                register.connect(peer, false);
                                 logger.fine("Accepted connection from " + peer);
                             } else if (key.isReadable()) {
                                 peer = (Peer) key.attachment();
