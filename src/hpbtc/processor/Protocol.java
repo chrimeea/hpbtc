@@ -68,7 +68,7 @@ public class Protocol {
             public void run() {
                 contactFreshPeers(ti);
             }
-        }, 0, d);
+        }, 0L, d);
         fastTimer.schedule(new TimerTask() {
 
             @Override
@@ -96,7 +96,7 @@ public class Protocol {
                     }
                 }
             }
-        }, 10000, 10000);
+        }, 10000L, 10000L);
     }
 
     private void contactFreshPeers(final Torrent torrent) {

@@ -64,6 +64,7 @@ public class Tracker {
                 try {
                     Set<Peer> peers = connectToTracker(event, tracker, uploaded,
                             downloaded, bytesLeft, compact);
+                    logger.info("Received " + peers.size() + " peers");
                     i.remove();
                     ul.addFirst(tracker);
                     return peers;
