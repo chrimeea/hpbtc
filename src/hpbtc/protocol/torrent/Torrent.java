@@ -11,12 +11,12 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 import util.TorrentUtil;
 
 /**
@@ -37,8 +37,12 @@ public class Torrent {
     private Set<Peer> freshPeers;
     private long uploaded;
     private long downloaded;
+    private Tracker tracker;
+    private AtomicIntegerArray availability;
+    private int optimisticCounter;
 
-    public Torrent(final InputStream is, final String rootFolder)
+    public Torrent(final InputStream is, final String rootFolder,
+            final byte[] peerId, final int port)
             throws IOException, NoSuchAlgorithmException {
         BencodingReader parser = new BencodingReader(is);
         Map<byte[], Object> meta = parser.readNextDictionary();
@@ -90,7 +94,50 @@ public class Torrent {
                     fileName, fileLength);
         }
         peers = new CopyOnWriteArraySet<Peer>();
-        freshPeers = new HashSet<Peer>();
+        freshPeers = new CopyOnWriteArraySet<Peer>();
+        this.tracker = new Tracker(infoHash, peerId, port, trackers,
+                byteEncoding);
+        this.availability = new AtomicIntegerArray(getNrPieces());
+    }
+
+    public int increaseOptimisticCounter() {
+        return ++optimisticCounter;
+    }
+
+    public void setOptimisticCounter(int optimisticCounter) {
+        this.optimisticCounter = optimisticCounter;
+    }
+
+    public void removeAvailability(BitSet bs) {
+        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+            availability.getAndDecrement(i);
+        }
+    }
+
+    public void updateAvailability(BitSet bs) {
+        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+            availability.getAndIncrement(i);
+        }
+    }
+
+    public Tracker getTracker() {
+        return tracker;
+    }
+
+    public void endTracker() {
+        tracker.endTracker(uploaded, downloaded);
+    }
+    
+    public void updateAvailability(int index) {
+        availability.getAndIncrement(index);
+    }
+
+    public int getAvailability(int index) {
+        return availability.get(index);
+    }
+
+    public int getOptimisticCounter() {
+        return optimisticCounter;
     }
 
     public String getByteEncoding() {
@@ -101,11 +148,24 @@ public class Torrent {
         return peers;
     }
 
-    public synchronized void addFreshPeers(Set<Peer> otherPeers) {
-        freshPeers.addAll(otherPeers);
+    public void beginTracker() {
+        Set<Peer> pr = tracker.beginTracker(getFileLength());
+        for (Peer p : pr) {
+            p.setTorrent(this);
+        }
+        freshPeers.addAll(pr);
     }
 
-    public synchronized Set<Peer> getFreshPeers() {
+    public void updateTracker() {
+        Set<Peer> pr = tracker.updateTracker(null, uploaded,
+                downloaded, getFileLength() - downloaded, true);
+        for (Peer p : pr) {
+            p.setTorrent(this);
+        }
+        freshPeers.addAll(pr);
+    }
+
+    public Set<Peer> getFreshPeers() {
         Set<Peer> p = freshPeers;
         freshPeers = null;
         p.removeAll(peers);
@@ -132,7 +192,7 @@ public class Torrent {
             return c;
         }
     }
-    
+
     public BitSet getChunksSavedAndRequested(Peer peer, int index) {
         BitSet saved = (BitSet) fileStore.getChunksIndex(index).clone();
         BitSet req = peer.getRequests(index);
@@ -141,7 +201,7 @@ public class Torrent {
         }
         return saved;
     }
-    
+
     public void removePeer(final Peer peer) {
         peers.remove(peer);
     }

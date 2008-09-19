@@ -21,11 +21,11 @@ public class HandshakeMessage extends SimpleMessage {
         message.get(infoHash);
     }
 
-    public HandshakeMessage(final byte[] infoHash, final byte[] peerId,
-            final byte[] protocol, final Peer destination) {
+    public HandshakeMessage(final byte[] peerId, final byte[] protocol,
+            final Peer destination) {
         this.disc = SimpleMessage.TYPE_HANDSHAKE;
         this.protocol = protocol;
-        this.infoHash = infoHash;
+        this.infoHash = destination.getTorrent().getInfoHash();
         this.peerId = peerId;
         this.destination = destination;
     }

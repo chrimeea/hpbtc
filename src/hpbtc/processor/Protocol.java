@@ -7,7 +7,6 @@ import hpbtc.protocol.network.NetworkWriter;
 import hpbtc.protocol.network.Register;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
-import hpbtc.protocol.torrent.Tracker;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -21,8 +20,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import util.TorrentUtil;
 
 /**
  *
@@ -38,26 +39,28 @@ public class Protocol {
     private int port;
     private NetworkReader netReader;
     private NetworkWriter netWriter;
-    private State state;
     private Random random;
+    private List<Torrent> torrents;
+    private byte[] peerId;
+    private byte[] protocol;
 
     public Protocol() throws UnsupportedEncodingException {
         slowTimer = new Timer(true);
         fastTimer = new Timer(true);
-        state = new State();
         random = new Random();
+        torrents = new Vector<Torrent>();
+        this.peerId = TorrentUtil.generateId();
+        protocol = TorrentUtil.getSupportedProtocol();
     }
 
     public void download(final File fileName, final String rootFolder)
             throws IOException, NoSuchAlgorithmException {
         FileInputStream fis = new FileInputStream(fileName);
-        final Torrent ti = new Torrent(fis, rootFolder);
+        final Torrent ti = new Torrent(fis, rootFolder, peerId, port);
         fis.close();
-        final Tracker tracker = new Tracker(ti.getInfoHash(), state.getPeerId(),
-                port, ti.getTrackers(), ti.getByteEncoding());
-        state.addTorrent(ti, tracker);
-        ti.addFreshPeers(tracker.beginTracker(ti.getFileLength()));
-        long d = tracker.getInterval() * 1000;
+        torrents.add(ti);
+        ti.beginTracker();
+        long d = ti.getTracker().getInterval() * 1000;
         slowTimer.schedule(new TimerTask() {
 
             @Override
@@ -69,9 +72,7 @@ public class Protocol {
 
             @Override
             public void run() {
-                ti.addFreshPeers(tracker.updateTracker(null, ti.getUploaded(),
-                        ti.getDownloaded(),
-                        ti.getFileLength() - ti.getDownloaded(), true));
+                ti.updateTracker();
             }
         }, d, d);
         fastTimer.schedule(new TimerTask() {
@@ -100,8 +101,7 @@ public class Protocol {
     private void contactFreshPeers(final Iterable<Peer> freshPeers) {
         for (Peer peer : freshPeers) {
             try {
-                SimpleMessage m = new HandshakeMessage(peer.getInfoHash(),
-                        state.getPeerId(), state.getProtocol(), peer);
+                SimpleMessage m = new HandshakeMessage(peerId, protocol, peer);
                 writer.postMessage(m);
                 peer.setHandshakeSent();
             } catch (Exception e) {
@@ -117,9 +117,10 @@ public class Protocol {
 
     public void startProtocol() throws IOException {
         Register register = new Register(fastTimer);
-        writer = new MessageWriterImpl(state, register);
+        writer = new MessageWriterImpl(register);
         netWriter = new NetworkWriter(writer, register);
-        processor = new MessageReaderImpl(state, register, writer);
+        processor = new MessageReaderImpl(register, protocol, writer, torrents,
+                peerId);
         netReader = new NetworkReader(processor, register);
         port = netReader.connect();
         netWriter.connect();
@@ -139,11 +140,11 @@ public class Protocol {
                 return p2.countDownloaded() - p1.countDownloaded();
             }
         };
-        if (state.increaseOptimisticCounter(torrent) == 3 && !prs.isEmpty()) {
+        if (torrent.increaseOptimisticCounter() == 3 && !prs.isEmpty()) {
             Peer optimisticPeer = prs.remove(random.nextInt(prs.size()));
             Collections.sort(prs, comp);
             prs.add(0, optimisticPeer);
-            state.resetOptimisticCounter(torrent);
+            torrent.setOptimisticCounter(0);
         } else {
             Collections.sort(prs, comp);
         }

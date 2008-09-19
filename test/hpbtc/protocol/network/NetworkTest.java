@@ -92,7 +92,7 @@ public class NetworkTest {
         c.connect();
         InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(),
                 ch.getLocalPort());
-        Peer peer = new Peer(a, null, "X".getBytes("ISO-8859-1"));
+        Peer peer = new Peer(a, null);
         r.registerWrite(peer);
         Socket s = ch.accept();
         byte[] b = new byte[11];

@@ -141,9 +141,8 @@ public class Tracker {
                         byteEncoding));
             }
             Object o = response.get("peers".getBytes(byteEncoding));
-            return compact ? TrackerUtil.doCompactPeer((byte[]) o, infoHash) : TrackerUtil.
-                    doLoosePeer((List<Map<byte[], Object>>) o, infoHash,
-                    byteEncoding);
+            return compact ? TrackerUtil.doCompactPeer((byte[]) o) : TrackerUtil.
+                    doLoosePeer((List<Map<byte[], Object>>) o, byteEncoding);
         }
         return new HashSet<Peer>();
     }
