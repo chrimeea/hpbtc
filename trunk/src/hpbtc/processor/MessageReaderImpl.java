@@ -58,7 +58,7 @@ public class MessageReaderImpl implements MessageReader {
 
     public void readMessage(final Peer peer) throws IOException,
             NoSuchAlgorithmException {
-        register.keepAlive(peer);
+        register.keepAliveRead(peer);
         if (peer.isHandshakeReceived()) {
             if (peer.getId() == null) {
                 checkPeerId(peer);

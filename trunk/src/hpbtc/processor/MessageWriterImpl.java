@@ -1,5 +1,6 @@
 package hpbtc.processor;
 
+import hpbtc.protocol.message.KeepAliveMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Register;
@@ -8,6 +9,9 @@ import hpbtc.protocol.torrent.Torrent;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -20,9 +24,11 @@ public class MessageWriterImpl implements MessageWriter {
             getName());
     private ByteBuffer currentWrite;
     private Register register;
+    private Timer timer;
 
-    public MessageWriterImpl(final Register register) {
+    public MessageWriterImpl(final Register register, final Timer timer) {
         this.register = register;
+        this.timer = timer;
     }
 
     public void disconnect(final Peer peer) throws IOException {
@@ -30,7 +36,25 @@ public class MessageWriterImpl implements MessageWriter {
         peer.disconnect();
     }
     
+    private void keepAliveWrite(final Peer peer) {
+        peer.cancelKeepAliveWrite();
+        TimerTask tt = new TimerTask() {
+
+            @Override
+            public void run() {
+                try {
+                    postMessage(new KeepAliveMessage(peer));
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                }
+            }
+        };
+        timer.schedule(tt, 60000);
+        peer.setKeepAliveWrite(tt);        
+    }
+    
     public void writeNext(final Peer peer) throws IOException {
+        keepAliveWrite(peer);
         if (currentWrite == null || currentWrite.remaining() == 0) {
             SimpleMessage sm = null;
             sm = peer.getMessageToSend();
