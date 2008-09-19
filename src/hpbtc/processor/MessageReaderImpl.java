@@ -154,8 +154,8 @@ public class MessageReaderImpl implements MessageReader {
         if (validator.validateHandshakeMessage(message)) {
             peer.setHandshakeReceived();
             byte[] infoHash = message.getInfoHash();
-            Torrent t = null;
-            if (peer.getTorrent() == null) {
+            Torrent t = peer.getTorrent();
+            if (t == null) {
                 for (Torrent tor: torrents) {
                     if (tor.getInfoHash() == infoHash) {
                         peer.setTorrent(tor);
