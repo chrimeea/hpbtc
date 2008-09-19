@@ -48,7 +48,7 @@ public class MessageWriterImpl implements MessageWriter {
                 }
             }
         };
-        timer.schedule(tt, 60000);
+        timer.schedule(tt, 90000);
         peer.setKeepAliveWrite(tt);        
     }
     

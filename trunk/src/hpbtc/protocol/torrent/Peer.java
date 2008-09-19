@@ -1,7 +1,6 @@
 package hpbtc.protocol.torrent;
 
 import hpbtc.protocol.message.LengthPrefixMessage;
-import hpbtc.protocol.message.SimpleMessage;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
