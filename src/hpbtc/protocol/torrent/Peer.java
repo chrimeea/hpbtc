@@ -1,5 +1,6 @@
 package hpbtc.protocol.torrent;
 
+import hpbtc.protocol.message.SimpleMessage;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -9,7 +10,9 @@ import java.nio.channels.SocketChannel;
 import java.util.BitSet;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Queue;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import util.IOUtil;
 import util.TorrentUtil;
@@ -39,6 +42,7 @@ public class Peer {
     private Map<Integer, BitSet> requests = new Hashtable<Integer, BitSet>();
     private AtomicInteger totalRequests;
     private TimerTask keepAlive;
+    private Queue<SimpleMessage> messagesToSend;
 
     public Peer(final InetSocketAddress address, final byte[] infoHash,
             final byte[] id) {
@@ -46,6 +50,7 @@ public class Peer {
         this.id = id;
         this.infoHash = infoHash;
         this.totalRequests = new AtomicInteger();
+        messagesToSend = new ConcurrentLinkedQueue<SimpleMessage>();
     }
 
     public Peer(final SocketChannel chn) {
@@ -245,9 +250,26 @@ public class Peer {
             channel.close();
         }
         requests.clear();
+        messagesToSend.clear();
         cancelKeepAlive();
     }
 
+    public boolean isMessagesToSendEmpty() {
+        return messagesToSend.isEmpty();
+    }
+    
+    public SimpleMessage getMessageToSend() {
+        return messagesToSend.poll();
+    }
+    
+    public void addMessageToSend(final SimpleMessage message) {
+        messagesToSend.add(message);
+    }
+    
+    public Iterable<SimpleMessage> listMessagesToSend() {
+        return messagesToSend;
+    }
+    
     public void resetCounters() {
         uploaded = 0;
         downloaded = 0;

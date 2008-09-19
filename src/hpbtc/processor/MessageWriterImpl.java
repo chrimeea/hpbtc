@@ -35,20 +35,20 @@ public class MessageWriterImpl implements MessageWriter {
     public void writeNext(final Peer peer) throws IOException {
         if (currentWrite == null || currentWrite.remaining() == 0) {
             SimpleMessage sm = null;
-            sm = state.getMessageToSend(peer);
+            sm = peer.getMessageToSend();
             currentWrite = sm.send();
             currentWrite.rewind();
             logger.fine("Sending: " + sm);
         }
         peer.upload(currentWrite);
-        if (currentWrite.remaining() > 0 || state.isMessagesToSendEmpty(peer)) {
+        if (currentWrite.remaining() > 0 || peer.isMessagesToSendEmpty()) {
             register.clearWrite(peer);
         }
     }
     
     public void cancelPieceMessage(final int begin, final int index,
             final int length, final Peer peer) {
-        Iterable<SimpleMessage> q = state.listMessagesToSend(peer);
+        Iterable<SimpleMessage> q = peer.listMessagesToSend();
         if (q != null) {
             Iterator<SimpleMessage> i = q.iterator();
             while (i.hasNext()) {
@@ -69,7 +69,7 @@ public class MessageWriterImpl implements MessageWriter {
     }
     
     public void cancelPieceMessage(final Peer peer) {
-        Iterable<SimpleMessage> q = state.listMessagesToSend(peer);
+        Iterable<SimpleMessage> q = peer.listMessagesToSend();
         if (q != null) {
             Iterator<SimpleMessage> i = q.iterator();
             while (i.hasNext()) {
@@ -87,7 +87,7 @@ public class MessageWriterImpl implements MessageWriter {
     }
     
     public void postMessage(final SimpleMessage message) throws IOException {
-        state.addMessageToSend(message);
+        message.getDestination().addMessageToSend(message);
         register.registerWrite(message.getDestination());
     }
 }
