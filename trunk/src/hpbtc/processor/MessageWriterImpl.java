@@ -19,17 +19,15 @@ public class MessageWriterImpl implements MessageWriter {
     private static Logger logger = Logger.getLogger(MessageWriterImpl.class.
             getName());
     private ByteBuffer currentWrite;
-    private State state;
     private Register register;
 
-    public MessageWriterImpl(final State state, final Register register) {
-        this.state = state;
+    public MessageWriterImpl(final Register register) {
         this.register = register;
     }
 
     public void disconnect(final Peer peer) throws IOException {
-        state.disconnect(peer);
         register.disconnect(peer);
+        peer.disconnect();
     }
     
     public void writeNext(final Peer peer) throws IOException {
@@ -59,7 +57,7 @@ public class MessageWriterImpl implements MessageWriter {
                             pm.getLength() == length) {
                         i.remove();
                         Peer p = pm.getDestination();
-                        Torrent t = state.getTorrent(p);
+                        Torrent t = p.getTorrent();
                         p.removeRequest(pm.getIndex(), pm.getBegin(),
                                 t.getChunkSize());
                     }
@@ -78,7 +76,7 @@ public class MessageWriterImpl implements MessageWriter {
                     i.remove();
                     PieceMessage pm = (PieceMessage) m;
                     Peer p = pm.getDestination();
-                    Torrent t = state.getTorrent(p);
+                    Torrent t = p.getTorrent();
                     peer.removeRequest(pm.getIndex(), pm.getBegin(),
                             t.getChunkSize());
                 }

@@ -9,6 +9,7 @@ import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -16,24 +17,28 @@ import java.util.Arrays;
  */
 public class MessageValidator {
 
-    private State state;
+    private List<Torrent> torrents;
+    private byte[] protocol;
 
-    public MessageValidator(final State state) {
-        this.state = state;
+    public MessageValidator(final List<Torrent> torrents, byte[] protocol) {
+        this.torrents = torrents;
+        this.protocol = protocol;
     }
 
     public boolean validateHandshakeMessage(final HandshakeMessage message)
             throws UnsupportedEncodingException {
         if (message.getDestination().isHandshakeReceived() || !Arrays.equals(
-                message.getProtocol(), state.getProtocol())) {
+                message.getProtocol(), protocol)) {
             return false;
         }
-        byte[] n = state.findInfoHash(message.getInfoHash());
-        if (n != null) {
-            message.setInfoHash(n);
+        for (Torrent t: torrents) {
+            byte[] ih = t.getInfoHash();
+            if (Arrays.equals(ih, message.getInfoHash())) {
+            message.setInfoHash(ih);
             return true;
+            }
         }
-        return false;
+        return false;        
     }
 
     public boolean validateBitfieldMessage(final BitfieldMessage message) {
@@ -41,7 +46,7 @@ public class MessageValidator {
         if (peer.isMessagesReceived()) {
             return false;
         } else {
-            long nrPieces = state.getTorrent(peer).getNrPieces();
+            long nrPieces = peer.getTorrent().getNrPieces();
             if (message.getBitfield().length() > nrPieces ||
                     message.getMessageLength() != 1 + Math.ceil(nrPieces / 8.0)) {
                 return false;
@@ -52,27 +57,27 @@ public class MessageValidator {
 
     public boolean validateCancelMessage(final BlockMessage message) {
         Peer peer = message.getDestination();
-        Torrent t = state.getTorrent(peer);
+        Torrent t = peer.getTorrent();
         return message.getIndex() < t.getNrPieces() && message.getBegin() < t.
                 getPieceLength();
     }
 
     public boolean validateHaveMessage(final HaveMessage message) {
         Peer peer = message.getDestination();
-        Torrent t = state.getTorrent(peer);
+        Torrent t = peer.getTorrent();
         return message.getIndex() < t.getNrPieces();
     }
 
     public boolean validatePieceMessage(final PieceMessage message) {
         Peer peer = message.getDestination();
-        Torrent t = state.getTorrent(peer);
+        Torrent t = peer.getTorrent();
         return message.getIndex() < t.getNrPieces() && message.getBegin() < t.
                 getPieceLength();
     }
 
     public boolean validateRequestMessage(final BlockMessage message) {
         Peer peer = message.getDestination();
-        Torrent t = state.getTorrent(peer);
+        Torrent t = peer.getTorrent();
         return message.getIndex() < t.getNrPieces() && message.getBegin() <
                 t.getPieceLength() && message.getLength() <= t.getChunkSize()
                 && t.isPieceComplete(message.getIndex());

@@ -4,7 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import org.junit.Test;
-import hpbtc.processor.Protocol;
 import java.util.Arrays;
 
 /**
@@ -103,7 +102,6 @@ public class MessageTest {
     @Test
     public void testWriteHandshake() throws UnsupportedEncodingException {
         HandshakeMessage m = new HandshakeMessage(
-                "01234567890123456789".getBytes(byteEncoding),
                 "ABCDEFGHIJKLMNOPQRST".getBytes(byteEncoding),
                 getSupportedProtocol(), null);
         ByteBuffer bb = m.send();

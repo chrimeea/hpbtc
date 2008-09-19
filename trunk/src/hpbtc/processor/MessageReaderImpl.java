@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.BitSet;
+import java.util.List;
 import java.util.logging.Logger;
 import util.TorrentUtil;
 
@@ -26,21 +27,26 @@ public class MessageReaderImpl implements MessageReader {
     private static Logger logger = Logger.getLogger(MessageReaderImpl.class.
             getName());
     private MessageValidator validator;
-    private State state;
     private Register register;
     private MessageWriter writer;
+    private List<Torrent> torrents;
+    private byte[] peerId;
+    private byte[] protocol;
 
-    public MessageReaderImpl(final State state, final Register register,
-            final MessageWriter writer) {
+    public MessageReaderImpl(final Register register, final byte[] protocol,
+            final MessageWriter writer, final List<Torrent> torrents,
+            final byte[] peerId) {
+        this.peerId = peerId;
         this.writer = writer;
         this.register = register;
-        this.state = state;
-        validator = new MessageValidator(state);
+        this.torrents = torrents;
+        this.protocol = protocol;
+        validator = new MessageValidator(torrents, protocol);
     }
 
     public void disconnect(final Peer peer) throws IOException {
-        state.disconnect(peer);
         register.disconnect(peer);
+        peer.disconnect();
     }
 
     private void checkPeerId(final Peer peer) throws IOException {
@@ -148,14 +154,19 @@ public class MessageReaderImpl implements MessageReader {
         if (validator.validateHandshakeMessage(message)) {
             peer.setHandshakeReceived();
             byte[] infoHash = message.getInfoHash();
-            if (peer.getInfoHash() == null) {
-                peer.setInfoHash(infoHash);
+            Torrent t = null;
+            if (peer.getTorrent() == null) {
+                for (Torrent tor: torrents) {
+                    if (tor.getInfoHash() == infoHash) {
+                        peer.setTorrent(tor);
+                        t = tor;
+                        break;
+                    }
+                }
             }
-            Torrent t = state.getTorrent(peer);
             if (!peer.isHandshakeSent()) {
-                HandshakeMessage reply = new HandshakeMessage(infoHash, state.
-                        getPeerId(),
-                        state.getProtocol(), peer);
+                HandshakeMessage reply = new HandshakeMessage(peerId, protocol,
+                        peer);
                 writer.postMessage(reply);
             } else {
                 t.addPeer(peer);
@@ -177,8 +188,8 @@ public class MessageReaderImpl implements MessageReader {
         if (validator.validateBitfieldMessage(message)) {
             Peer peer = message.getDestination();
             peer.setPieces(message.getBitfield());
-            state.updateAvailability(peer);
-            Torrent t = state.getTorrent(peer);
+            Torrent t = peer.getTorrent();
+            peer.getTorrent().updateAvailability(peer.getPieces());
             if (!t.getOtherPieces(peer).isEmpty()) {
                 SimpleMessage smessage = new SimpleMessage(
                         SimpleMessage.TYPE_INTERESTED, peer);
@@ -211,8 +222,8 @@ public class MessageReaderImpl implements MessageReader {
             Peer peer = message.getDestination();
             int index = message.getIndex();
             peer.setPiece(index);
-            state.updateAvailability(peer, index);
-            Torrent t = state.getTorrent(peer);
+            Torrent t = peer.getTorrent();
+            t.updateAvailability(index);
             if (!peer.isClientInterested() && !t.isPieceComplete(index)) {
                 SimpleMessage m = new SimpleMessage(
                         SimpleMessage.TYPE_INTERESTED, peer);
@@ -235,7 +246,7 @@ public class MessageReaderImpl implements MessageReader {
     private void processPiece(final PieceMessage message)
             throws NoSuchAlgorithmException, IOException {
         Peer peer = message.getDestination();
-        Torrent t = state.getTorrent(peer);
+        Torrent t = peer.getTorrent();
         int index = message.getIndex();
         int begin = message.getBegin();
         if (validator.validatePieceMessage(message)) {
@@ -255,15 +266,14 @@ public class MessageReaderImpl implements MessageReader {
                     }
                 }
                 if (t.isTorrentComplete()) {
-                    state.getTracker(t).endTracker(t.getUploaded(),
-                            t.getDownloaded());
+                    t.endTracker();
                 }
             }
         } else {
             logger.warning("Invalid message: " + message);
         }
         if (!peer.isPeerChoking() && peer.isClientInterested()) {
-            decideNextPieces(t, peer);
+            decideNextPieces(peer);
         }
     }
 
@@ -272,7 +282,7 @@ public class MessageReaderImpl implements MessageReader {
         Peer peer = message.getDestination();
         if (validator.validateRequestMessage(message) &&
                 !peer.isClientChoking() && peer.isPeerInterested()) {
-            Torrent t = state.getTorrent(peer);
+            Torrent t = peer.getTorrent();
             ByteBuffer piece = t.loadPiece(message.getBegin(),
                     message.getIndex(),
                     message.getLength());
@@ -288,19 +298,19 @@ public class MessageReaderImpl implements MessageReader {
         Peer peer = message.getDestination();
         peer.setPeerChoking(false);
         if (peer.isClientInterested()) {
-            decideNextPiece(state.getTorrent(peer), peer);
+            decideNextPieces(peer);
         }
 
     }
 
-    private void decideNextPieces(final Torrent t, final Peer peer)
+    private void decideNextPieces(final Peer peer)
             throws IOException {
         for (int i = peer.countTotalRequests(); i < 2; i++) {
-            BlockMessage bm = decideNextPiece(t, peer);
+            BlockMessage bm = decideNextPiece(peer);
             if (bm != null) {
                 writer.postMessage(bm);
-                peer.addRequest(bm.getIndex(), bm.getBegin(), t.getChunkSize(),
-                        t.computeChunksInPiece(bm.getIndex()));
+                Torrent t = peer.getTorrent();
+                peer.addRequest(bm.getIndex(), bm.getBegin());
             } else {
                 SimpleMessage smessage = new SimpleMessage(
                         SimpleMessage.TYPE_NOT_INTERESTED, peer);
@@ -311,7 +321,8 @@ public class MessageReaderImpl implements MessageReader {
         }
     }
     
-    private BlockMessage decideNextPiece(final Torrent torrent, final Peer peer) {
+    private BlockMessage decideNextPiece(final Peer peer) {
+        Torrent torrent = peer.getTorrent();
         BitSet peerPieces = (BitSet) peer.getPieces().clone();
         peerPieces.andNot(torrent.getCompletePieces());
         int max = 0;
@@ -336,10 +347,10 @@ public class MessageReaderImpl implements MessageReader {
         }
         if (index < 0) {
             index = rest.nextSetBit(0);
-            int min = state.getAvailability(peer, index);
+            int min = torrent.getAvailability(index);
             for (int i = rest.nextSetBit(index + 1); i >= 0;
             i = rest.nextSetBit(i + 1)) {
-                int a = state.getAvailability(peer, i);
+                int a = torrent.getAvailability(i);
                 if (a < min) {
                     min = a;
                     index = i;

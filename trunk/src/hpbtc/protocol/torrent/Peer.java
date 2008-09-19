@@ -31,7 +31,6 @@ public class Peer {
     private boolean peerInterested;
     private boolean clientInterested;
     private boolean clientChoking = true;
-    private byte[] infoHash;
     private InetSocketAddress address;
     private boolean handshakeReceived;
     private boolean handshakeSent;
@@ -43,12 +42,11 @@ public class Peer {
     private AtomicInteger totalRequests;
     private TimerTask keepAlive;
     private Queue<SimpleMessage> messagesToSend;
+    private Torrent torrent;
 
-    public Peer(final InetSocketAddress address, final byte[] infoHash,
-            final byte[] id) {
+    public Peer(final InetSocketAddress address, final byte[] id) {
         this.address = address;
         this.id = id;
-        this.infoHash = infoHash;
         this.totalRequests = new AtomicInteger();
         messagesToSend = new ConcurrentLinkedQueue<SimpleMessage>();
     }
@@ -58,6 +56,14 @@ public class Peer {
         this.address = IOUtil.getAddress(chn);
     }
 
+    public void setTorrent(final Torrent torrent) {
+        this.torrent = torrent;
+    }
+    
+    public Torrent getTorrent() {
+        return torrent;
+    }
+    
     public void cancelKeepAlive() {
         if (keepAlive != null) {
             keepAlive.cancel();
@@ -76,14 +82,13 @@ public class Peer {
         return requests.get(index);
     }
 
-    public void addRequest(final int index, final int begin,
-            final int chunkSize, final int chunks) {
+    public void addRequest(final int index, final int begin) {
         BitSet bs = requests.get(index);
         if (bs == null) {
-            bs = new BitSet(chunks);
+            bs = new BitSet(torrent.computeChunksInPiece(index));
             requests.put(index, bs);
         }
-        bs.set(TorrentUtil.computeBeginIndex(begin, chunkSize));
+        bs.set(TorrentUtil.computeBeginIndex(begin, torrent.getChunkSize()));
         totalRequests.getAndIncrement();
     }
 
@@ -200,14 +205,6 @@ public class Peer {
         this.id = id;
     }
 
-    public void setInfoHash(final byte[] infoHash) {
-        this.infoHash = infoHash;
-    }
-
-    public byte[] getInfoHash() {
-        return infoHash;
-    }
-
     public void setPeerInterested(final boolean interested) {
         peerInterested = interested;
     }
@@ -251,6 +248,9 @@ public class Peer {
         }
         requests.clear();
         messagesToSend.clear();
+        torrent.removeAvailability(pieces);
+        torrent.removePeer(this);
+        this.torrent = null;
         cancelKeepAlive();
     }
 
