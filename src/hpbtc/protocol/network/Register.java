@@ -117,8 +117,8 @@ public class Register {
         }
     }
 
-    public void keepAlive(final Peer peer) {
-        peer.cancelKeepAlive();
+    public void keepAliveRead(final Peer peer) {
+        peer.cancelKeepAliveRead();
         TimerTask tt = new TimerTask() {
 
             @Override
@@ -128,7 +128,7 @@ public class Register {
             }
         };
         timer.schedule(tt, 120000);
-        peer.setKeepAlive(tt);        
+        peer.setKeepAliveRead(tt);        
     }
     
     public void connect(final Peer peer, boolean write) throws IOException {
@@ -136,7 +136,7 @@ public class Register {
         if (write) {
             registerWrite(peer);
         }
-        keepAlive(peer);
+        keepAliveRead(peer);
     }
 
     private class RegisterOp {

@@ -40,7 +40,8 @@ public class Peer {
     private boolean expectBody;
     private Map<Integer, BitSet> requests = new Hashtable<Integer, BitSet>();
     private AtomicInteger totalRequests;
-    private TimerTask keepAlive;
+    private TimerTask keepAliveRead;
+    private TimerTask keepAliveWrite;
     private Queue<SimpleMessage> messagesToSend;
     private Torrent torrent;
 
@@ -64,14 +65,24 @@ public class Peer {
         return torrent;
     }
     
-    public void cancelKeepAlive() {
-        if (keepAlive != null) {
-            keepAlive.cancel();
+    public void cancelKeepAliveWrite() {
+        if (keepAliveWrite != null) {
+            keepAliveWrite.cancel();
+        }        
+    }
+    
+    public void setKeepAliveWrite(TimerTask keepAlive) {
+        this.keepAliveWrite = keepAlive;
+    }
+    
+    public void cancelKeepAliveRead() {
+        if (keepAliveRead != null) {
+            keepAliveRead.cancel();
         }
     }
     
-    public void setKeepAlive(TimerTask keepAlive) {
-        this.keepAlive = keepAlive;
+    public void setKeepAliveRead(TimerTask keepAlive) {
+        this.keepAliveRead = keepAlive;
     }
     
     public int countTotalRequests() {
@@ -251,7 +262,7 @@ public class Peer {
         torrent.removeAvailability(pieces);
         torrent.removePeer(this);
         this.torrent = null;
-        cancelKeepAlive();
+        cancelKeepAliveRead();
     }
 
     public boolean isMessagesToSendEmpty() {
