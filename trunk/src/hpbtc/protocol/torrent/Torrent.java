@@ -106,14 +106,14 @@ public class Torrent {
     public void setTrackerTask(TimerTask trackerTask) {
         this.trackerTask = trackerTask;
     }
-    
+
     public boolean cancelTrackerTask() {
         if (trackerTask != null) {
             return trackerTask.cancel();
         }
         return true;
     }
-    
+
     public int increaseOptimisticCounter() {
         return ++optimisticCounter;
     }
@@ -158,10 +158,8 @@ public class Torrent {
 
     public void beginTracker() {
         Set<Peer> pr = tracker.beginTracker(getFileLength());
-        if (pr != null) {
-            for (Peer p : pr) {
-                p.setTorrent(this);
-            }
+        for (Peer p : pr) {
+            p.setTorrent(this);
         }
         freshPeers = pr;
     }
@@ -169,10 +167,8 @@ public class Torrent {
     public void updateTracker() {
         Set<Peer> pr = tracker.updateTracker(null, uploaded,
                 downloaded, getFileLength() - downloaded, true);
-        if (pr != null) {
-            for (Peer p : pr) {
-                p.setTorrent(this);
-            }
+        for (Peer p : pr) {
+            p.setTorrent(this);
         }
         freshPeers = pr;
     }
@@ -217,7 +213,7 @@ public class Torrent {
     public int getRemainingPeers() {
         return remainingPeers;
     }
-    
+
     public void removePeer(final Peer peer) {
         if (peers.remove(peer)) {
             BitSet bs = peer.getPieces();

@@ -76,7 +76,7 @@ public class Tracker {
             }
         }
         logger.warning("Could not connect to any tracker");
-        return null;
+        return new HashSet<Peer>(0);
     }
 
     public long getLastTrackerContact() {
