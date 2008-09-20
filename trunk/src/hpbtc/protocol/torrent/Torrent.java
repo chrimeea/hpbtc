@@ -153,7 +153,7 @@ public class Torrent {
         for (Peer p : pr) {
             p.setTorrent(this);
         }
-        freshPeers.addAll(pr);
+        freshPeers = pr;
     }
 
     public void updateTracker() {
@@ -162,12 +162,11 @@ public class Torrent {
         for (Peer p : pr) {
             p.setTorrent(this);
         }
-        freshPeers.addAll(pr);
+        freshPeers = pr;
     }
 
     public Set<Peer> getFreshPeers() {
         Set<Peer> p = freshPeers;
-        freshPeers = null;
         p.removeAll(peers);
         return p;
     }
