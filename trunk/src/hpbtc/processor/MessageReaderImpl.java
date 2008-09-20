@@ -155,7 +155,7 @@ public class MessageReaderImpl implements MessageReader {
             byte[] infoHash = message.getInfoHash();
             Torrent t = peer.getTorrent();
             if (t == null) {
-                for (Torrent tor: torrents) {
+                for (Torrent tor : torrents) {
                     if (tor.getInfoHash() == infoHash) {
                         peer.setTorrent(tor);
                         t = tor;
@@ -318,7 +318,7 @@ public class MessageReaderImpl implements MessageReader {
             }
         }
     }
-    
+
     private BlockMessage decideNextPiece(final Peer peer) {
         Torrent torrent = peer.getTorrent();
         BitSet peerPieces = (BitSet) peer.getPieces().clone();
@@ -329,7 +329,7 @@ public class MessageReaderImpl implements MessageReader {
         int n = torrent.getNrPieces();
         BitSet rest = (BitSet) peerPieces.clone();
         for (int i = peerPieces.nextSetBit(0); i >= 0;
-        i = peerPieces.nextSetBit(i + 1)) {
+                i = peerPieces.nextSetBit(i + 1)) {
             BitSet sar = torrent.getChunksSavedAndRequested(peer, i);
             int card = sar.cardinality();
             int ch = sar.nextClearBit(0);
@@ -345,14 +345,18 @@ public class MessageReaderImpl implements MessageReader {
         }
         if (index < 0) {
             index = rest.nextSetBit(0);
-            int min = torrent.getAvailability(index);
-            for (int i = rest.nextSetBit(index + 1); i >= 0;
-            i = rest.nextSetBit(i + 1)) {
-                int a = torrent.getAvailability(i);
-                if (a < min) {
-                    min = a;
-                    index = i;
+            if (index >= 0) {
+                int min = torrent.getAvailability(index);
+                for (int i = rest.nextSetBit(index + 1); i >= 0;
+                        i = rest.nextSetBit(i + 1)) {
+                    int a = torrent.getAvailability(i);
+                    if (a < min) {
+                        min = a;
+                        index = i;
+                    }
                 }
+            } else {
+                return null;
             }
         }
         int cs = torrent.getChunkSize();
