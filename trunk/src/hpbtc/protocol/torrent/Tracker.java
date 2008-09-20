@@ -75,6 +75,7 @@ public class Tracker {
                 }
             }
         }
+        logger.warning("Could not connect to any tracker");
         return null;
     }
 

@@ -158,8 +158,10 @@ public class Torrent {
 
     public void beginTracker() {
         Set<Peer> pr = tracker.beginTracker(getFileLength());
-        for (Peer p : pr) {
-            p.setTorrent(this);
+        if (pr != null) {
+            for (Peer p : pr) {
+                p.setTorrent(this);
+            }
         }
         freshPeers = pr;
     }
@@ -167,8 +169,10 @@ public class Torrent {
     public void updateTracker() {
         Set<Peer> pr = tracker.updateTracker(null, uploaded,
                 downloaded, getFileLength() - downloaded, true);
-        for (Peer p : pr) {
-            p.setTorrent(this);
+        if (pr != null) {
+            for (Peer p : pr) {
+                p.setTorrent(this);
+            }
         }
         freshPeers = pr;
     }
