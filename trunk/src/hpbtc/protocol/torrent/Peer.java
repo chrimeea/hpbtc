@@ -263,7 +263,6 @@ public class Peer {
         }
         requests.clear();
         messagesToSend.clear();
-        torrent.removeAvailability(pieces);
         torrent.removePeer(this);
         this.torrent = null;
         cancelKeepAliveRead();

@@ -2,6 +2,7 @@ package hpbtc.processor;
 
 import hpbtc.protocol.message.LengthPrefixMessage;
 import hpbtc.protocol.torrent.Peer;
+import hpbtc.protocol.torrent.Torrent;
 import java.io.IOException;
 
 /**
@@ -19,4 +20,6 @@ public interface MessageWriter {
     void cancelPieceMessage(Peer peer);
     
     void cancelPieceMessage(int begin, int index, int length, Peer peer);
+    
+    void download(Torrent torrent);
 }

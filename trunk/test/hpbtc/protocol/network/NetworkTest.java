@@ -4,6 +4,7 @@ import hpbtc.processor.MessageReader;
 import hpbtc.protocol.message.LengthPrefixMessage;
 import hpbtc.processor.MessageWriter;
 import hpbtc.protocol.torrent.Peer;
+import hpbtc.protocol.torrent.Torrent;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
@@ -86,6 +87,10 @@ public class NetworkTest {
             }
 
             public void connect(Peer arg0) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            public void download(Torrent arg0) {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
         }, r);
