@@ -64,8 +64,8 @@ public class NetworkWriter {
                         try {
                             SocketChannel ch = (SocketChannel) key.channel();
                             if (key.isConnectable() && ch.finishConnect()) {
+                                writer.connect(peer);
                                 logger.fine("Connected to " + peer);
-                                register.connect(peer, true);
                             } else if (key.isWritable()) {
                                 writer.writeNext(peer);
                             }

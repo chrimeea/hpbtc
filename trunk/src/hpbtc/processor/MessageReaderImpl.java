@@ -57,7 +57,7 @@ public class MessageReaderImpl implements MessageReader {
 
     public void readMessage(final Peer peer) throws IOException,
             NoSuchAlgorithmException {
-        register.keepAliveRead(peer);
+        writer.keepAliveRead(peer);
         if (peer.isHandshakeReceived()) {
             if (peer.getId() == null) {
                 checkPeerId(peer);
@@ -304,11 +304,10 @@ public class MessageReaderImpl implements MessageReader {
 
     private void decideNextPieces(final Peer peer)
             throws IOException {
-        for (int i = peer.countTotalRequests(); i < 2; i++) {
+        for (int i = peer.countTotalRequests(); i < 3; i++) {
             BlockMessage bm = decideNextPiece(peer);
             if (bm != null) {
                 writer.postMessage(bm);
-                Torrent t = peer.getTorrent();
                 peer.addRequest(bm.getIndex(), bm.getBegin());
             } else {
                 SimpleMessage smessage = new SimpleMessage(
@@ -362,5 +361,10 @@ public class MessageReaderImpl implements MessageReader {
                 TorrentUtil.computeChunkSize(index, begin, cs,
                 torrent.getFileLength(), n, torrent.getPieceLength()),
                 SimpleMessage.TYPE_REQUEST, peer);
+    }
+
+    public void connect(final Peer peer) throws IOException {
+        register.registerRead(peer);
+        writer.keepAliveRead(peer);
     }
 }

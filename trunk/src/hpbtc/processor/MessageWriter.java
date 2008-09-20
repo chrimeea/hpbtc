@@ -22,4 +22,8 @@ public interface MessageWriter {
     void cancelPieceMessage(int begin, int index, int length, Peer peer);
     
     void download(Torrent torrent);
+    
+    void connect(Peer peer) throws IOException;
+    
+    void keepAliveRead(Peer peer);
 }

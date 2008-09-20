@@ -14,4 +14,6 @@ public interface MessageReader {
             throws IOException, NoSuchAlgorithmException;
     
     void disconnect(Peer peer) throws IOException;
+    
+    void connect(Peer peer) throws IOException;
 }
