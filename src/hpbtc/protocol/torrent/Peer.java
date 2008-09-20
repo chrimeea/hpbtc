@@ -65,19 +65,23 @@ public class Peer {
         return torrent;
     }
     
-    public void cancelKeepAliveWrite() {
+    public boolean cancelKeepAliveWrite() {
         if (keepAliveWrite != null) {
-            keepAliveWrite.cancel();
-        }        
+            return keepAliveWrite.cancel();
+        } else {
+            return true;
+        }
     }
     
     public void setKeepAliveWrite(TimerTask keepAlive) {
         this.keepAliveWrite = keepAlive;
     }
     
-    public void cancelKeepAliveRead() {
+    public boolean cancelKeepAliveRead() {
         if (keepAliveRead != null) {
-            keepAliveRead.cancel();
+            return keepAliveRead.cancel();
+        } else {
+            return true;
         }
     }
     

@@ -118,19 +118,20 @@ public class Register {
     }
 
     public void keepAliveRead(final Peer peer) {
-        peer.cancelKeepAliveRead();
-        TimerTask tt = new TimerTask() {
+        if (peer.cancelKeepAliveRead()) {
+            TimerTask tt = new TimerTask() {
 
-            @Override
-            public void run() {
-                disconnect(peer);
-                logger.info("Disconnect " + peer);
-            }
-        };
-        timer.schedule(tt, 120000);
-        peer.setKeepAliveRead(tt);        
+                @Override
+                public void run() {
+                    disconnect(peer);
+                    logger.info("Disconnect " + peer);
+                }
+            };
+            timer.schedule(tt, 120000);
+            peer.setKeepAliveRead(tt);
+        }
     }
-    
+
     public void connect(final Peer peer, boolean write) throws IOException {
         registerRead(peer);
         if (write) {
