@@ -15,6 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import util.TorrentUtil;
@@ -40,6 +41,8 @@ public class Torrent {
     private Tracker tracker;
     private AtomicIntegerArray availability;
     private int optimisticCounter;
+    private int remainingPeers;
+    private TimerTask trackerTask;
 
     public Torrent(final InputStream is, final String rootFolder,
             final byte[] peerId, final int port)
@@ -100,18 +103,23 @@ public class Torrent {
         this.availability = new AtomicIntegerArray(getNrPieces());
     }
 
+    public void setTrackerTask(TimerTask trackerTask) {
+        this.trackerTask = trackerTask;
+    }
+    
+    public boolean cancelTrackerTask() {
+        if (trackerTask != null) {
+            return trackerTask.cancel();
+        }
+        return true;
+    }
+    
     public int increaseOptimisticCounter() {
         return ++optimisticCounter;
     }
 
     public void setOptimisticCounter(int optimisticCounter) {
         this.optimisticCounter = optimisticCounter;
-    }
-
-    public void removeAvailability(BitSet bs) {
-        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-            availability.getAndDecrement(i);
-        }
     }
 
     public void updateAvailability(BitSet bs) {
@@ -127,7 +135,7 @@ public class Torrent {
     public void endTracker() {
         tracker.endTracker(uploaded, downloaded);
     }
-    
+
     public void updateAvailability(int index) {
         availability.getAndIncrement(index);
     }
@@ -168,6 +176,7 @@ public class Torrent {
     public Set<Peer> getFreshPeers() {
         Set<Peer> p = freshPeers;
         p.removeAll(peers);
+        remainingPeers += p.size();
         return p;
     }
 
@@ -201,12 +210,24 @@ public class Torrent {
         return saved;
     }
 
+    public int getRemainingPeers() {
+        return remainingPeers;
+    }
+    
     public void removePeer(final Peer peer) {
-        peers.remove(peer);
+        if (peers.remove(peer)) {
+            BitSet bs = peer.getPieces();
+            for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+                availability.getAndDecrement(i);
+            }
+            remainingPeers--;
+        }
     }
 
     public void addPeer(final Peer peer) {
-        peers.add(peer);
+        if (peers.add(peer)) {
+            remainingPeers++;
+        }
     }
 
     public long getUploaded() {

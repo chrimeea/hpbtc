@@ -45,8 +45,7 @@ public class MessageReaderImpl implements MessageReader {
     }
 
     public void disconnect(final Peer peer) throws IOException {
-        register.disconnect(peer);
-        peer.disconnect();
+        writer.disconnect(peer);
     }
 
     private void checkPeerId(final Peer peer) throws IOException {

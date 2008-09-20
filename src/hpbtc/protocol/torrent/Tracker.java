@@ -37,6 +37,7 @@ public class Tracker {
     private byte[] pid;
     private int port;
     private List<LinkedList<byte[]>> trackers;
+    private long lastTrackerContact;
 
     public Tracker(final byte[] infoHash, final byte[] pid, final int port,
             final List<LinkedList<byte[]>> trackers, String byteEncoding) {
@@ -64,9 +65,10 @@ public class Tracker {
                 try {
                     Set<Peer> peers = connectToTracker(event, tracker, uploaded,
                             downloaded, bytesLeft, compact);
-                    logger.info("Received " + peers.size() + " peers");
+                    lastTrackerContact = System.currentTimeMillis();
                     i.remove();
                     ul.addFirst(tracker);
+                    logger.info("Received " + peers.size() + " peers");
                     return peers;
                 } catch (IOException e) {
                     logger.log(Level.WARNING, e.getLocalizedMessage(), e);
@@ -76,6 +78,10 @@ public class Tracker {
         return null;
     }
 
+    public long getLastTrackerContact() {
+        return lastTrackerContact;
+    }
+    
     private Set<Peer> connectToTracker(final Event event,
             final byte[] tracker, final long uploaded, final long dloaded,
             final long bytesLeft, final boolean compact)
