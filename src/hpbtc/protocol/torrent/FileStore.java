@@ -33,7 +33,9 @@ public class FileStore {
     private long fileLength;
     private int pieceLength;
     private BitSet completePieces;
-
+    private int chunksInPiece;
+    private int chunksInLastPiece;
+    
     public int getNrPieces() {
         return nrPieces;
     }
@@ -71,15 +73,20 @@ public class FileStore {
         this.pieceLength = pieceLength;
         nrPieces = TorrentUtil.computeNrPieces(fileLength, pieceLength);
         pieces = new BitSet[nrPieces];
-        for (int i = 0; i < nrPieces; i++) {
-            pieces[i] = new BitSet(chunkSize);
+        chunksInPiece = TorrentUtil.computeChunksInNotLastPiece(pieceLength, chunkSize);
+        for (int i = 0; i < nrPieces - 1; i++) {
+            pieces[i] = new BitSet(chunksInPiece);
         }
+        chunksInLastPiece = TorrentUtil.computeChunksInLastPiece(
+                fileLength, nrPieces, chunkSize);
+        pieces[nrPieces - 1] = new BitSet(chunksInLastPiece);
         this.pieceHash = pieceHash;
         int k = 0;
         for (int i = 0; i < nrPieces;) {
             try {
                 if (isHashCorrect(i)) {
-                    pieces[i].set(0, chunkSize);
+                    pieces[i].set(0, computeChunksInPiece(i));
+                    completePieces.set(i);
                     k++;
                 }
                 i++;
@@ -157,9 +164,7 @@ public class FileStore {
     }
 
     public int computeChunksInPiece(int index) {
-        return index == nrPieces - 1 ? TorrentUtil.computeChunksInLastPiece(
-                fileLength, nrPieces, chunkSize) :
-            TorrentUtil.computeChunksInNotLastPiece(pieceLength, chunkSize);
+        return index == nrPieces - 1 ? chunksInLastPiece : chunksInPiece;
     }
     
     public boolean savePiece(final int begin, final int index,
