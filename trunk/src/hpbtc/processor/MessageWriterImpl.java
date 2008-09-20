@@ -57,7 +57,7 @@ public class MessageWriterImpl implements MessageWriter {
                         System.currentTimeMillis() +
                         tracker.getLastTrackerContact();
                 torrent.setTrackerTask(scheduleTrackerTask(torrent,
-                        delay < 0 ? 0 : delay));
+                        delay < 0L ? 0L : delay));
             }
         }
     }

@@ -220,8 +220,8 @@ public class Torrent {
             for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
                 availability.getAndDecrement(i);
             }
-            remainingPeers--;
         }
+        remainingPeers--;
     }
 
     public void addPeer(final Peer peer) {
