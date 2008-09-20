@@ -52,7 +52,7 @@ public class Protocol {
     }
 
     public void startProtocol() throws IOException {
-        Register register = new Register(fastTimer);
+        Register register = new Register();
         writer = new MessageWriterImpl(register, fastTimer, peerId, protocol);
         netWriter = new NetworkWriter(writer, register);
         processor = new MessageReaderImpl(register, protocol, writer, torrents,

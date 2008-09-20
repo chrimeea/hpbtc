@@ -8,8 +8,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,12 +23,10 @@ public class Register {
     private Queue<RegisterOp> registeredWrite;
     private Selector reader;
     private Selector writer;
-    private Timer timer;
 
-    public Register(Timer timer) {
+    public Register() {
         registeredRead = new ConcurrentLinkedQueue<RegisterOp>();
         registeredWrite = new ConcurrentLinkedQueue<RegisterOp>();
-        this.timer = timer;
     }
 
     Selector openReadSelector() throws IOException {
@@ -115,29 +111,6 @@ public class Register {
             }
             ro = registered.poll();
         }
-    }
-
-    public void keepAliveRead(final Peer peer) {
-        if (peer.cancelKeepAliveRead()) {
-            TimerTask tt = new TimerTask() {
-
-                @Override
-                public void run() {
-                    disconnect(peer);
-                    logger.info("Disconnect " + peer);
-                }
-            };
-            timer.schedule(tt, 120000);
-            peer.setKeepAliveRead(tt);
-        }
-    }
-
-    public void connect(final Peer peer, boolean write) throws IOException {
-        registerRead(peer);
-        if (write) {
-            registerWrite(peer);
-        }
-        keepAliveRead(peer);
     }
 
     private class RegisterOp {

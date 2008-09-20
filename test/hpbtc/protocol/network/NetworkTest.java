@@ -27,7 +27,7 @@ public class NetworkTest {
     @Test
     public void testNetworkIncomingConnection() throws IOException,
             UnsupportedEncodingException {
-        Register r = new Register(new Timer());
+        Register r = new Register();
         r.openWriteSelector();
         final NetworkReader c = new NetworkReader(new MessageReader() {
 
@@ -50,6 +50,9 @@ public class NetworkTest {
             public void disconnect(Peer arg0) throws IOException {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
+
+            public void connect(Peer arg0) throws IOException {
+            }
         }, r);
         int port = c.connect();
         SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.
@@ -60,7 +63,7 @@ public class NetworkTest {
 
     @Test
     public void testNetworkConnect() throws IOException {
-        Register r = new Register(new Timer());
+        Register r = new Register();
         r.openReadSelector();
         ServerSocket ch = new ServerSocket(0);
         NetworkWriter c = new NetworkWriter(new MessageWriter() {
@@ -87,10 +90,13 @@ public class NetworkTest {
             }
 
             public void connect(Peer arg0) {
-                throw new UnsupportedOperationException("Not supported yet.");
             }
 
             public void download(Torrent arg0) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            public void keepAliveRead(Peer arg0) {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
         }, r);

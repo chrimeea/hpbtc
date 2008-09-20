@@ -239,4 +239,29 @@ public class MessageWriterImpl implements MessageWriter {
             }
         }
     }
+
+    public void connect(final Peer peer) throws IOException {
+        register.registerRead(peer);
+        register.registerWrite(peer);
+        keepAliveRead(peer);
+    }
+    
+    public void keepAliveRead(final Peer peer) {
+        if (peer.cancelKeepAliveRead()) {
+            TimerTask tt = new TimerTask() {
+
+                @Override
+                public void run() {
+                    try {
+                        disconnect(peer);
+                        logger.info("Disconnect " + peer);
+                    } catch (IOException e) {
+                        logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                    }
+                }
+            };
+            timer.schedule(tt, 120000);
+            peer.setKeepAliveRead(tt);
+        }
+    }
 }
