@@ -176,6 +176,7 @@ public class FileStore {
         if (pieces[index].cardinality() == computeChunksInPiece(index)) {
             if (isHashCorrect(index)) {
                 completePieces.set(index);
+                logger.info("Have piece " + index);
                 return true;
             } else {
                 pieces[index].clear();
