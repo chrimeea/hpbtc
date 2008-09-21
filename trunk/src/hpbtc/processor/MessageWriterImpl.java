@@ -50,8 +50,9 @@ public class MessageWriterImpl implements MessageWriter {
         register.disconnect(peer);
         Torrent torrent = peer.getTorrent();
         peer.disconnect();
-        logger.info("Disconnected " + peer);
-        if (torrent.getRemainingPeers() < 3) {
+        int rem = torrent.getRemainingPeers();
+        logger.info("Disconnected " + peer + ", Remaining: " + rem);
+        if (rem < 3) {
             if (torrent.cancelTrackerTask()) {
                 Tracker tracker = torrent.getTracker();
                 long delay = tracker.getMinInterval() * 1000 -
