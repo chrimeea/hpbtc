@@ -106,13 +106,13 @@ public class NetworkReader {
                                 chan.configureBlocking(false);
                                 peer = new Peer(chan);
                                 processor.connect(peer);
-                                logger.fine("Accepted connection from " + peer);
+                                logger.info("Accepted connection from " + peer);
                             } else if (key.isReadable()) {
                                 peer = (Peer) key.attachment();
                                 processor.readMessage(peer);
                             }
                         } catch (IOException ioe) {
-                            logger.log(Level.WARNING, peer == null ?
+                            logger.log(Level.FINE, peer == null ?
                                 ioe.getLocalizedMessage() : peer.toString(), ioe);
                             if (peer != null) {
                                 processor.disconnect(peer);

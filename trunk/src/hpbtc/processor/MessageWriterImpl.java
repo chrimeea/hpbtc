@@ -50,6 +50,7 @@ public class MessageWriterImpl implements MessageWriter {
         register.disconnect(peer);
         Torrent torrent = peer.getTorrent();
         peer.disconnect();
+        logger.info("Disconnected " + peer);
         if (torrent.getRemainingPeers() < 3) {
             if (torrent.cancelTrackerTask()) {
                 Tracker tracker = torrent.getTracker();
@@ -96,7 +97,7 @@ public class MessageWriterImpl implements MessageWriter {
                             p.setClientChoking(true);
                         }
                     } catch (IOException ex) {
-                        logger.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+                        logger.log(Level.FINE, ex.getLocalizedMessage(), ex);
                     }
                 }
             }
@@ -157,7 +158,7 @@ public class MessageWriterImpl implements MessageWriter {
                 try {
                     postMessage(new LengthPrefixMessage(0, peer));
                 } catch (IOException e) {
-                    logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                    logger.log(Level.FINE, e.getLocalizedMessage(), e);
                 }
             }
         };
@@ -235,7 +236,7 @@ public class MessageWriterImpl implements MessageWriter {
                 postMessage(m);
                 peer.setHandshakeSent();
             } catch (Exception e) {
-                logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                logger.log(Level.FINE, e.getLocalizedMessage(), e);
             }
         }
     }
@@ -254,9 +255,8 @@ public class MessageWriterImpl implements MessageWriter {
                 public void run() {
                     try {
                         disconnect(peer);
-                        logger.info("Disconnect " + peer);
                     } catch (IOException e) {
-                        logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                        logger.log(Level.FINE, e.getLocalizedMessage(), e);
                     }
                 }
             };

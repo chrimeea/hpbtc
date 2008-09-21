@@ -91,7 +91,7 @@ public class FileStore {
                 }
                 i++;
             } catch (IOException e) {
-                logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                logger.log(Level.FINER, e.getLocalizedMessage(), e);
                 i = jumpToNextFile(i);
             }
         }
