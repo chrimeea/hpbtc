@@ -306,16 +306,12 @@ public class MessageReaderImpl implements MessageReader {
 
     private void decideNextPieces(final Peer peer)
             throws IOException {
-        for (int i = peer.countTotalRequests(); i < 3; i++) {
+        for (int i = peer.countTotalRequests(); i < 10; i++) {
             BlockMessage bm = decideNextPiece(peer);
             if (bm != null) {
                 writer.postMessage(bm);
                 peer.addRequest(bm.getIndex(), bm.getBegin());
             } else {
-                SimpleMessage smessage = new SimpleMessage(
-                        SimpleMessage.TYPE_NOT_INTERESTED, peer);
-                writer.postMessage(smessage);
-                peer.setClientInterested(false);
                 break;
             }
         }
