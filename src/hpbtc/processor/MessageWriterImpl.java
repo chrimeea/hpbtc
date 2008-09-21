@@ -169,15 +169,14 @@ public class MessageWriterImpl implements MessageWriter {
     public void writeNext(final Peer peer) throws IOException {
         keepAliveWrite(peer);
         if (currentWrite == null || currentWrite.remaining() == 0) {
-            LengthPrefixMessage sm = null;
-            sm = peer.getMessageToSend();
-            currentWrite = sm.send();
-            if (currentWrite != null) {
+            LengthPrefixMessage sm = peer.getMessageToSend();
+            if (sm != null) {
+                currentWrite = sm.send();
                 currentWrite.rewind();
                 logger.fine("Sending: " + sm);
             }
         }
-        if (currentWrite != null) {
+        if (currentWrite != null && currentWrite.remaining() > 0) {
             peer.upload(currentWrite);
             if (currentWrite.remaining() > 0 || peer.isMessagesToSendEmpty()) {
                 register.clearWrite(peer);
