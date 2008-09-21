@@ -19,6 +19,7 @@ import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.logging.Logger;
 import util.TorrentUtil;
 
 /**
@@ -27,6 +28,7 @@ import util.TorrentUtil;
  */
 public class Torrent {
 
+    private static Logger logger = Logger.getLogger(Torrent.class.getName());
     private List<LinkedList<byte[]>> trackers;
     private String byteEncoding = "US-ASCII";
     private byte[] infoHash;
@@ -223,12 +225,14 @@ public class Torrent {
                 availability.getAndDecrement(i);
             }
         }
-        remainingPeers.getAndDecrement();
+        int rem = remainingPeers.decrementAndGet();
+        logger.info("Have " + rem + " peers");
     }
 
     public void addPeer(final Peer peer, boolean isIncoming) {
         if (peers.add(peer) && isIncoming) {
-            remainingPeers.getAndIncrement();
+            int rem = remainingPeers.incrementAndGet();
+            logger.info("Have " + rem + " peers");
         }
     }
 
