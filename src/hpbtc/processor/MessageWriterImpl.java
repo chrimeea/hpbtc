@@ -173,12 +173,16 @@ public class MessageWriterImpl implements MessageWriter {
             LengthPrefixMessage sm = null;
             sm = peer.getMessageToSend();
             currentWrite = sm.send();
-            currentWrite.rewind();
-            logger.fine("Sending: " + sm);
+            if (currentWrite != null) {
+                currentWrite.rewind();
+                logger.fine("Sending: " + sm);
+            }
         }
-        peer.upload(currentWrite);
-        if (currentWrite.remaining() > 0 || peer.isMessagesToSendEmpty()) {
-            register.clearWrite(peer);
+        if (currentWrite != null) {
+            peer.upload(currentWrite);
+            if (currentWrite.remaining() > 0 || peer.isMessagesToSendEmpty()) {
+                register.clearWrite(peer);
+            }
         }
     }
 

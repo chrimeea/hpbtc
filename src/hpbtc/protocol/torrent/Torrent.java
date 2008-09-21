@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import util.TorrentUtil;
 
@@ -41,7 +42,7 @@ public class Torrent {
     private Tracker tracker;
     private AtomicIntegerArray availability;
     private int optimisticCounter;
-    private int remainingPeers;
+    private AtomicInteger remainingPeers;
     private TimerTask trackerTask;
 
     public Torrent(final InputStream is, final String rootFolder,
@@ -98,9 +99,10 @@ public class Torrent {
         }
         peers = new CopyOnWriteArraySet<Peer>();
         freshPeers = new CopyOnWriteArraySet<Peer>();
-        this.tracker = new Tracker(infoHash, peerId, port, trackers,
+        tracker = new Tracker(infoHash, peerId, port, trackers,
                 byteEncoding);
-        this.availability = new AtomicIntegerArray(getNrPieces());
+        availability = new AtomicIntegerArray(getNrPieces());
+        remainingPeers = new AtomicInteger(0);
     }
 
     public void setTrackerTask(TimerTask trackerTask) {
@@ -176,7 +178,7 @@ public class Torrent {
     public Set<Peer> getFreshPeers() {
         Set<Peer> p = freshPeers;
         p.removeAll(peers);
-        remainingPeers += p.size();
+        remainingPeers.getAndAdd(p.size());
         return p;
     }
 
@@ -211,7 +213,7 @@ public class Torrent {
     }
 
     public int getRemainingPeers() {
-        return remainingPeers;
+        return remainingPeers.get();
     }
 
     public void removePeer(final Peer peer) {
@@ -221,12 +223,12 @@ public class Torrent {
                 availability.getAndDecrement(i);
             }
         }
-        remainingPeers--;
+        remainingPeers.getAndDecrement();
     }
 
-    public void addPeer(final Peer peer) {
-        if (peers.add(peer)) {
-            remainingPeers++;
+    public void addPeer(final Peer peer, boolean isIncoming) {
+        if (peers.add(peer) && isIncoming) {
+            remainingPeers.getAndIncrement();
         }
     }
 
