@@ -71,7 +71,7 @@ public class Tracker {
                     logger.info("Received " + peers.size() + " peers");
                     return peers;
                 } catch (IOException e) {
-                    logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                    logger.log(Level.FINE, e.getLocalizedMessage(), e);
                 }
             }
         }

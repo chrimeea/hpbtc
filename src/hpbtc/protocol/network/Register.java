@@ -106,7 +106,7 @@ public class Register {
                 try {
                     q.register(selector, ro.getOperation(), ro.getPeer());
                 } catch (ClosedChannelException e) {
-                    logger.log(Level.WARNING, e.getLocalizedMessage(), e);
+                    logger.log(Level.FINE, e.getLocalizedMessage(), e);
                 }
             }
             ro = registered.poll();
