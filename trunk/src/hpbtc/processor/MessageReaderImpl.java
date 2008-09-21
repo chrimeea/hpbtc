@@ -163,13 +163,15 @@ public class MessageReaderImpl implements MessageReader {
                     }
                 }
             }
+            boolean isIncoming = false;
             if (!peer.isHandshakeSent()) {
                 HandshakeMessage reply = new HandshakeMessage(peerId, protocol,
                         peer, t.getInfoHash());
                 writer.postMessage(reply);
-            } else {
-                t.addPeer(peer);
+                peer.setHandshakeSent();
+                isIncoming = true;
             }
+            t.addPeer(peer, isIncoming);
             BitSet bs = t.getCompletePieces();
             if (bs.cardinality() > 0) {
                 BitfieldMessage bmessage = new BitfieldMessage(bs,
