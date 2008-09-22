@@ -163,7 +163,8 @@ public class MessageTest {
         ByteBuffer bb = ByteBuffer.allocate(4);
         bb.putInt(99);
         bb.rewind();
-        PieceMessage m = new PieceMessage(11, 70, bb, 4, null);
+        PieceMessage m = new PieceMessage(11, 70, 4, null);
+        m.setPiece(bb);
         ByteBuffer s = m.send();
         s.rewind();
         assert s.getInt() == 13;

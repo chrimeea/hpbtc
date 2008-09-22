@@ -24,14 +24,17 @@ public class PieceMessage extends SimpleMessage {
         piece = message;
     }
 
-    public PieceMessage(final int begin, final int index, final ByteBuffer piece,
-            final int len, final Peer destination) {
+    public PieceMessage(final int begin, final int index, final int len,
+            final Peer destination) {
         super(8 + len, TYPE_PIECE, destination);
         this.begin = begin;
         this.index = index;
-        this.piece = piece;
     }
 
+    public void setPiece(ByteBuffer piece) {
+        this.piece = piece;
+    }
+    
     /* (non-Javadoc)
      * @see hpbtc.message.ProtocolMessage#send()
      */

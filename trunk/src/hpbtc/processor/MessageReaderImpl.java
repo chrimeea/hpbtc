@@ -283,12 +283,8 @@ public class MessageReaderImpl implements MessageReader {
         Peer peer = message.getDestination();
         if (validator.validateRequestMessage(message) &&
                 !peer.isClientChoking() && peer.isPeerInterested()) {
-            Torrent t = peer.getTorrent();
-            ByteBuffer piece = t.loadPiece(message.getBegin(),
-                    message.getIndex(),
-                    message.getLength());
             PieceMessage pm = new PieceMessage(message.getBegin(),
-                    message.getIndex(), piece, message.getLength(), peer);
+                    message.getIndex(), message.getLength(), peer);
             writer.postMessage(pm);
         } else {
             logger.warning("Invalid message: " + message);
@@ -306,7 +302,7 @@ public class MessageReaderImpl implements MessageReader {
 
     private void decideNextPieces(final Peer peer)
             throws IOException {
-        for (int i = peer.countTotalRequests(); i < 10; i++) {
+        for (int i = peer.countTotalRequests(); i < 5; i++) {
             BlockMessage bm = decideNextPiece(peer);
             if (bm != null) {
                 writer.postMessage(bm);
