@@ -122,4 +122,22 @@ public class TorrentTest {
         info.removePeer(p);
         assert info.getAvailability(10) == 2;
     }
+    
+    @Test
+    public void testGetOtherPieces() throws IOException,
+            NoSuchAlgorithmException{
+        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi10240e4:name11:manifest.mf12:piece lengthi256e6:pieces20:12345678901234567890ee".getBytes(byteEncoding));
+        Torrent info = new Torrent(b, ".", null, 0);
+        b.close();
+        Peer p = new Peer(InetSocketAddress.createUnresolved("localhost", 6000),
+                null);
+        BitSet bs = info.getOtherPieces(p);
+        assert bs.isEmpty();
+        p.setPiece(6);
+        p.setPiece(2);
+        bs = info.getOtherPieces(p);
+        assert bs.cardinality() == 2;
+        assert bs.get(6);
+        assert bs.get(2);
+    }
 }
