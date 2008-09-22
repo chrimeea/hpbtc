@@ -1,5 +1,6 @@
 package util;
 
+import hpbtc.bencoding.ByteStringComparator;
 import hpbtc.protocol.torrent.Peer;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
@@ -7,7 +8,6 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +20,8 @@ import org.junit.Test;
  */
 public class TrackerUtilTest {
 
+    private String byteEncoding = "US-ASCII";
+    
     @Test
     public void testDoCompactPeer() throws UnknownHostException,
             UnsupportedEncodingException {
@@ -50,21 +52,22 @@ public class TrackerUtilTest {
     @Test
     public void testDoLoosePeer() throws UnsupportedEncodingException {
         List<Map<byte[], Object>> peers = new ArrayList<Map<byte[], Object>>(2);
-        Map<byte[], Object> p = new TreeMap<byte[], Object>();
-        byte[] id1 = "11111111111111111111".getBytes("US-ASCII");
-        p.put("peer id".getBytes("US-ASCII"), id1);
-        p.put("ip".getBytes("US-ASCII"), "localhost");
-        p.put("port".getBytes("US-ASCII"), 6515);
+        Map<byte[], Object> p = new TreeMap<byte[],
+                Object>(new ByteStringComparator());
+        byte[] id1 = "11111111111111111111".getBytes(byteEncoding);
+        p.put("peer id".getBytes(byteEncoding), id1);
+        p.put("ip".getBytes(byteEncoding), "localhost".getBytes(byteEncoding));
+        p.put("port".getBytes(byteEncoding), 6515L);
         peers.add(p);
-        p = new TreeMap<byte[], Object>();
-        byte[] id2 = "22222222222222222222".getBytes("US-ASCII");
-        p.put("peer id".getBytes("US-ASCII"),
-                "22222222222222222222".getBytes("US-ASCII"));
-        p.put("ip".getBytes("US-ASCII"), "127.0.0.1");
-        p.put("port".getBytes("US-ASCII"), 6690);
+        p = new TreeMap<byte[], Object>(new ByteStringComparator());
+        byte[] id2 = "22222222222222222222".getBytes(byteEncoding);
+        p.put("peer id".getBytes(byteEncoding),
+                "22222222222222222222".getBytes(byteEncoding));
+        p.put("ip".getBytes(byteEncoding), "127.0.0.1".getBytes(byteEncoding));
+        p.put("port".getBytes(byteEncoding), 6690L);
         peers.add(p);
-        Set<Peer> prs = TrackerUtil.doLoosePeer(peers, "US-ASCII");
-        assert p.size() == 2;
+        Set<Peer> prs = TrackerUtil.doLoosePeer(peers, byteEncoding);
+        assert prs.size() == 2;
         for (Peer pr: prs) {
             InetSocketAddress a = pr.getAddress();
             if (Arrays.equals(pr.getId(), id1)) {

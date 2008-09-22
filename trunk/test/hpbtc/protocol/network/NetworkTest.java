@@ -14,7 +14,6 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
-import java.util.Timer;
 import org.junit.Test;
 import util.IOUtil;
 
