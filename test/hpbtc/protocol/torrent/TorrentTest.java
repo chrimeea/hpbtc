@@ -140,4 +140,19 @@ public class TorrentTest {
         assert bs.get(6);
         assert bs.get(2);
     }
+    
+    @Test
+    public void testGetChunksSavedAndRequested() throws IOException,
+        NoSuchAlgorithmException{
+        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi10240e4:name11:manifest.mf12:piece lengthi256e6:pieces20:12345678901234567890ee".getBytes(byteEncoding));
+        Torrent info = new Torrent(b, ".", null, 0);
+        b.close();
+        Peer p = new Peer(InetSocketAddress.createUnresolved("localhost", 6000),
+                null);
+        p.setTorrent(info);
+        p.addRequest(10, info.getChunkSize() + 1);
+        BitSet bs = info.getChunksSavedAndRequested(p, 10);
+        assert bs.cardinality() == 1;
+        assert bs.get(1);
+    }
 }
