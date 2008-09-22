@@ -111,11 +111,14 @@ public class Peer {
             final int chunkSize) {
         BitSet bs = requests.get(index);
         if (bs != null) {
-            bs.clear(TorrentUtil.computeBeginIndex(begin, chunkSize));
-            if (bs.isEmpty()) {
-                requests.remove(index);
+            int i = TorrentUtil.computeBeginIndex(begin, chunkSize);
+            if (bs.get(i)) {
+                bs.clear(i);
+                if (bs.isEmpty()) {
+                    requests.remove(index);
+                }
+                totalRequests.getAndDecrement();
             }
-            totalRequests.getAndDecrement();
         }
     }
 
