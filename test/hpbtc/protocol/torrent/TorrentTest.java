@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
@@ -12,6 +13,7 @@ import java.util.List;
 import org.junit.Test;
 import util.IOUtil;
 import java.util.Arrays;
+import java.util.BitSet;
 
 /**
  *
@@ -96,5 +98,28 @@ public class TorrentTest {
         f.delete();
         dest.rewind();
         assert piece.equals(dest);
+    }
+    
+    @Test
+    public void testUpdateAvailability() throws IOException,
+            NoSuchAlgorithmException {
+        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi10240e4:name11:manifest.mf12:piece lengthi256e6:pieces20:12345678901234567890ee".getBytes(byteEncoding));
+        Torrent info = new Torrent(b, ".", null, 0);
+        b.close();
+        BitSet bs = new BitSet();
+        bs.set(10);
+        assert info.getAvailability(10) == 0;
+        info.updateAvailability(bs);
+        assert info.getAvailability(10) == 1;
+        info.updateAvailability(bs);
+        assert info.getAvailability(10) == 2;
+        Peer p = new Peer(InetSocketAddress.createUnresolved("localhost", 6000),
+                null);
+        p.setPiece(10);
+        info.addPeer(p, false);
+        info.updateAvailability(10);
+        assert info.getAvailability(10) == 3;
+        info.removePeer(p);
+        assert info.getAvailability(10) == 2;
     }
 }
