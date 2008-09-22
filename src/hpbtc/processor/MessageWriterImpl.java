@@ -171,6 +171,11 @@ public class MessageWriterImpl implements MessageWriter {
         if (currentWrite == null || currentWrite.remaining() == 0) {
             LengthPrefixMessage sm = peer.getMessageToSend();
             if (sm != null) {
+                if (sm instanceof PieceMessage) {
+                    PieceMessage pm = (PieceMessage) sm;
+                    pm.setPiece(peer.getTorrent().loadPiece(pm.getBegin(),
+                            pm.getIndex(), pm.getLength()));
+                }
                 currentWrite = sm.send();
                 currentWrite.rewind();
                 logger.fine("Sending: " + sm);
