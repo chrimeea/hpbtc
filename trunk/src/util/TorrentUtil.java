@@ -13,9 +13,9 @@ import java.util.Random;
 public class TorrentUtil {
 
     public static int computeChunksInLastPiece(final long fileLength,
-            final int nrPieces, final int chunkSize) {
-        return computeChunksInNotLastPiece(computeLastPieceSize(fileLength,
-                nrPieces, chunkSize), chunkSize);
+            final int pieceLength, final int chunkSize) {
+        return computeChunksInNotLastPiece(computeRemainingLastPiece(0,
+                fileLength, pieceLength), chunkSize);
     }
 
     public static int computeChunksInNotLastPiece(final int pieceLength,
@@ -25,23 +25,20 @@ public class TorrentUtil {
         return r == 0 ? c : c + 1;
     }
 
-    public static int computeLastPieceSize(final long fileLength,
-            final int nrPieces, final int chunkSize) {
-        return (int) (fileLength - (nrPieces - 1) * chunkSize);
-    }
-
-    public static int computeRemainingPiece(final int index, final int begin,
-            final int chunkSize, final long fileLength, final int nrPieces,
-            final int pieceLength) {
-        long i = index == nrPieces - 1 ? fileLength : (index + 1) * pieceLength;
-        return (int) (i - index * pieceLength - begin);
+    public static int computeRemainingLastPiece(final int begin,
+            final long fileLength, final int pieceLength) {
+        return (int) (fileLength -
+                (computeNrPieces(fileLength, pieceLength) - 1) * pieceLength -
+                begin);
     }
 
     public static int computeChunkSize(final int index, final int begin,
-            final int chunkSize, final long fileLength, final int nrPieces,
-            final int pieceLength) {
-        return Math.min(chunkSize, computeRemainingPiece(index, begin,
-                chunkSize, fileLength, nrPieces, pieceLength));
+            final int chunkSize, final long fileLength, final int pieceLength) {
+        if (index == computeNrPieces(fileLength, pieceLength) - 1) {
+            return chunkSize;
+        }
+        return Math.min(chunkSize, computeRemainingLastPiece(begin, fileLength,
+                pieceLength));
     }
 
     public static int computeNrPieces(long fileLength, int pieceLength) {
@@ -52,7 +49,7 @@ public class TorrentUtil {
         return nrPieces;
     }
 
-    public static int computePieceIndexFromPosition(final long position,
+    public static int computeNextPieceIndexFromPosition(final long position,
             final int pieceLength) {
         int n = (int) (position / pieceLength);
         if (position % pieceLength > 0) {
@@ -77,8 +74,7 @@ public class TorrentUtil {
 
     public static byte[] computeInfoHash(final byte[] info)
             throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("SHA1");
-        return md.digest(info);
+        return MessageDigest.getInstance("SHA1").digest(info);
     }
 
     public static byte[] generateId() throws UnsupportedEncodingException {

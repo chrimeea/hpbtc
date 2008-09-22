@@ -64,7 +64,7 @@ public class FileStore {
             BTFile f = i.next();
             x += f.getLength();
         }
-        return TorrentUtil.computePieceIndexFromPosition(x, pieceLength);
+        return TorrentUtil.computeNextPieceIndexFromPosition(x, pieceLength);
     }
     
     private void init(final int pieceLength, final byte[] pieceHash)
@@ -78,7 +78,7 @@ public class FileStore {
             pieces[i] = new BitSet(chunksInPiece);
         }
         chunksInLastPiece = TorrentUtil.computeChunksInLastPiece(
-                fileLength, nrPieces, chunkSize);
+                fileLength, pieceLength, chunkSize);
         pieces[nrPieces - 1] = new BitSet(chunksInLastPiece);
         this.pieceHash = pieceHash;
         int k = 0;

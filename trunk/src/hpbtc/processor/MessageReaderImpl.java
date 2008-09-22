@@ -357,7 +357,7 @@ public class MessageReaderImpl implements MessageReader {
         int begin = TorrentUtil.computeBeginPosition(beginIndex, cs);
         return new BlockMessage(begin, index,
                 TorrentUtil.computeChunkSize(index, begin, cs,
-                torrent.getFileLength(), n, torrent.getPieceLength()),
+                torrent.getFileLength(), torrent.getPieceLength()),
                 SimpleMessage.TYPE_REQUEST, peer);
     }
 
