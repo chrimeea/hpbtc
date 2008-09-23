@@ -40,7 +40,7 @@ public class Register {
     }
 
     public void disconnect(final Peer peer) {
-        SelectableChannel channel = (SelectableChannel) peer.getChannel();
+        SelectableChannel channel = peer.getChannel();
         SelectionKey key = channel.keyFor(reader);
         if (key != null) {
             key.cancel();
@@ -66,7 +66,7 @@ public class Register {
     private void registerNow(final Peer peer, final int op,
             final Selector selector, final Queue<RegisterOp> registered)
             throws IOException {
-        SocketChannel ch = (SocketChannel) peer.getChannel();
+        SocketChannel ch = peer.getChannel();
         if (ch != null) {
             if (ch.isOpen()) {
                 SelectionKey sk = ch.keyFor(selector);
@@ -101,7 +101,7 @@ public class Register {
             final Queue<RegisterOp> registered) {
         RegisterOp ro = registered.poll();
         while (ro != null) {
-            SelectableChannel q = (SelectableChannel) ro.getPeer().getChannel();
+            SelectableChannel q = ro.getPeer().getChannel();
             if (q.isOpen()) {
                 try {
                     q.register(selector, ro.getOperation(), ro.getPeer());
