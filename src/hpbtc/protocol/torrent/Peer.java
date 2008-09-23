@@ -5,7 +5,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.ByteChannel;
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
 import java.util.Hashtable;
@@ -23,7 +22,7 @@ import util.TorrentUtil;
  */
 public class Peer {
 
-    private ByteChannel channel;
+    private SocketChannel channel;
     private byte[] id;
     private boolean messagesReceived;
     private BitSet pieces = new BitSet();
@@ -211,11 +210,11 @@ public class Peer {
         return handshakeReceived;
     }
 
-    public ByteChannel getChannel() {
+    public SocketChannel getChannel() {
         return channel;
     }
 
-    public void setChannel(final ByteChannel channel) {
+    public void setChannel(final SocketChannel channel) {
         this.channel = channel;
     }
 

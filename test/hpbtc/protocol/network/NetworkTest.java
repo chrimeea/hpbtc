@@ -35,7 +35,7 @@ public class NetworkTest {
                 peer.setNextDataExpectation(11);
                 assert peer.download();
                 ByteBuffer bb = peer.getData();
-                SocketChannel ch = (SocketChannel) peer.getChannel();
+                SocketChannel ch = peer.getChannel();
                 Socket s = ch.socket();
                 InetSocketAddress a = IOUtil.getAddress(ch);
                 InetAddress remoteAddress = s.getLocalAddress();
