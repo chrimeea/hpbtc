@@ -3,8 +3,14 @@ package hpbtc.protocol.torrent;
 import hpbtc.protocol.message.LengthPrefixMessage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import org.junit.Test;
@@ -72,5 +78,44 @@ public class PeerTest {
         LengthPrefixMessage l = i.next();
         assert m.equals(l);
         assert !i.hasNext();
+    }
+    
+    @Test
+    public void testUploadDownload() throws IOException {
+        InetSocketAddress a = new InetSocketAddress(
+                InetAddress.getByName("127.0.0.1"), 6001);
+        Peer p = new Peer(a, null);
+        final ServerSocket ss = new ServerSocket(6001);
+        final byte[] b = "test".getBytes("US-ASCII");
+        final byte[] x = "response".getBytes("US-ASCII");
+        new Thread() {
+
+            @Override
+            public void run() {
+                try {
+                    Socket socket = ss.accept();
+                    byte[] r = new byte[4];
+                    socket.getInputStream().read(r);
+                    assert Arrays.equals(b, r);
+                    socket.getOutputStream().write(x);
+                    socket.close();
+                } catch (IOException ex) {
+                    assert false;
+                }
+            }
+        }.start();
+        SocketChannel s = SocketChannel.open(a);
+        p.setChannel(s);
+        assert p.countUploaded() == 0;
+        int i = p.upload(ByteBuffer.wrap(b));
+        assert i == 4;
+        assert p.countUploaded() == 4;
+        p.setNextDataExpectation(8);
+        assert p.countDownloaded() == 0;
+        assert p.download();
+        assert p.countDownloaded() == 8;
+        assert Arrays.equals(p.getData().array(), x);
+        s.close();
+        ss.close();
     }
 }
