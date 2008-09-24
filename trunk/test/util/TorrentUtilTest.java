@@ -46,13 +46,6 @@ public class TorrentUtilTest {
     }
     
     @Test
-    public void testComputeInfoHash() throws NoSuchAlgorithmException {
-        byte[] b = new byte[20];
-        assert Arrays.equals(TorrentUtil.computeInfoHash(b),
-                MessageDigest.getInstance("SHA1").digest(b));
-    }
-    
-    @Test
     public void testComputeNextPieceIndexFromPosition() {
         assert TorrentUtil.computeNextPieceIndexFromPosition(101, 10) == 11;
     }
