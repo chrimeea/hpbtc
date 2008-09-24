@@ -230,7 +230,6 @@ public class FileStore {
         byte[] dig = md.digest();
         md.reset();
         int i = index * 20;
-        return Arrays.equals(dig, Arrays.copyOfRange(pieceHash, i,
-                i + 20));
+        return Arrays.equals(dig, Arrays.copyOfRange(pieceHash, i, i + 20));
     }
 }

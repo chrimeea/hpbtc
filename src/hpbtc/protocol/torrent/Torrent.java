@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -20,7 +21,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.logging.Logger;
-import util.TorrentUtil;
 
 /**
  *
@@ -56,7 +56,7 @@ public class Torrent {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         BencodingWriter w = new BencodingWriter(os);
         w.write(info);
-        infoHash = TorrentUtil.computeInfoHash(os.toByteArray());
+        infoHash = MessageDigest.getInstance("SHA1").digest(os.toByteArray());
         os.close();
         if (meta.containsKey("announce-list".getBytes(byteEncoding))) {
             trackers = (List<LinkedList<byte[]>>) meta.get("announce-list".

@@ -11,7 +11,7 @@ import java.util.Random;
  * @author Cristian Mocanu
  */
 public class TorrentUtil {
-
+    
     public static int computeChunksInLastPiece(final long fileLength,
             final int pieceLength, final int chunkSize) {
         return computeChunksInNotLastPiece(computeRemainingLastPiece(0,
@@ -75,11 +75,6 @@ public class TorrentUtil {
     public static int computeBeginPosition(final int begin,
             final int chunkSize) {
         return begin * chunkSize;
-    }
-
-    public static byte[] computeInfoHash(final byte[] info)
-            throws NoSuchAlgorithmException {
-        return MessageDigest.getInstance("SHA1").digest(info);
     }
 
     public static byte[] generateId() throws UnsupportedEncodingException {
