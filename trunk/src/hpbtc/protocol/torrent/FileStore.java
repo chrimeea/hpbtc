@@ -35,6 +35,7 @@ public class FileStore {
     private BitSet completePieces;
     private int chunksInPiece;
     private int chunksInLastPiece;
+    private MessageDigest md;
     
     public int getNrPieces() {
         return nrPieces;
@@ -69,6 +70,7 @@ public class FileStore {
     
     private void init(final int pieceLength, final byte[] pieceHash)
             throws IOException, NoSuchAlgorithmException {
+        md = MessageDigest.getInstance("SHA1");
         completePieces = new BitSet(nrPieces);
         this.pieceLength = pieceLength;
         nrPieces = TorrentUtil.computeNrPieces(fileLength, pieceLength);
@@ -85,7 +87,7 @@ public class FileStore {
         int k = 0;
         for (int i = 0; i < nrPieces;) {
             try {
-                if (isHashCorrect(i)) {
+                if (isHashCorrect(i, computePieceLength(i))) {
                     pieces[i].set(0, computeChunksInPiece(i));
                     completePieces.set(i);
                     k++;
@@ -168,6 +170,11 @@ public class FileStore {
         return index == nrPieces - 1 ? chunksInLastPiece : chunksInPiece;
     }
     
+    private int computePieceLength(int index) {
+        return index == nrPieces - 1 ? TorrentUtil.computeRemainingLastPiece(
+                0, fileLength, pieceLength): pieceLength;
+    }
+    
     public boolean savePiece(final int begin, final int index,
             final ByteBuffer piece) throws IOException, NoSuchAlgorithmException {
         pieces[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
@@ -175,7 +182,7 @@ public class FileStore {
         saveFileChunk(getFileList(begin, index, piece.remaining()), offset,
                 piece);
         if (pieces[index].cardinality() == computeChunksInPiece(index)) {
-            if (isHashCorrect(index)) {
+            if (isHashCorrect(index, computePieceLength(index))) {
                 completePieces.set(index);
                 logger.info("Have piece " + index);
                 return true;
@@ -217,12 +224,13 @@ public class FileStore {
         return bb;
     }
 
-    private boolean isHashCorrect(final int index)
+    private boolean isHashCorrect(final int index, final int pLength)
             throws NoSuchAlgorithmException, IOException {
-        MessageDigest md = MessageDigest.getInstance("SHA1");
-        md.update(loadPiece(0, index, pieceLength));
+        md.update(loadPiece(0, index, pLength));
+        byte[] dig = md.digest();
+        md.reset();
         int i = index * 20;
-        return Arrays.equals(md.digest(), Arrays.copyOfRange(pieceHash, i,
+        return Arrays.equals(dig, Arrays.copyOfRange(pieceHash, i,
                 i + 20));
     }
 }
