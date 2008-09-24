@@ -228,7 +228,6 @@ public class FileStore {
             throws NoSuchAlgorithmException, IOException {
         md.update(loadPiece(0, index, pLength));
         byte[] dig = md.digest();
-        md.reset();
         int i = index * 20;
         return Arrays.equals(dig, Arrays.copyOfRange(pieceHash, i, i + 20));
     }
