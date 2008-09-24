@@ -73,7 +73,8 @@ public class FileStore {
         this.pieceLength = pieceLength;
         nrPieces = TorrentUtil.computeNrPieces(fileLength, pieceLength);
         pieces = new BitSet[nrPieces];
-        chunksInPiece = TorrentUtil.computeChunksInNotLastPiece(pieceLength, chunkSize);
+        chunksInPiece = TorrentUtil.computeChunksInNotLastPiece(pieceLength,
+                chunkSize);
         for (int i = 0; i < nrPieces - 1; i++) {
             pieces[i] = new BitSet(chunksInPiece);
         }
