@@ -17,10 +17,6 @@ import org.junit.Test;
  * @author Cristian Mocanu <chrimeea@yahoo.com>
  */
 public class FileStoreTest {
-
-    @Test
-    public void testInit() {
-    }
     
     @Test
     public void testComputeChunksInPiece() throws IOException,
@@ -40,13 +36,19 @@ public class FileStoreTest {
         md.update(b1);
         md.update(b2);
         File f = File.createTempFile("HPBTC", null);
-        FileStore fs = new FileStore(20481, md.digest(),
+        byte[] dig = md.digest();
+        FileStore fs = new FileStore(20481, dig,
                 f.getParentFile().getPath(), f.getName(), 20481);
         assert !fs.savePiece(0, 0, ByteBuffer.wrap(b1));
         assert Arrays.equals(fs.loadPiece(0, 0, 16384).array(), b1);
         assert fs.savePiece(16384, 0, ByteBuffer.wrap(b2));
         assert Arrays.equals(fs.loadPiece(16384, 0, 4097).array(), b2);
         assert fs.isPieceComplete(0);
+        assert fs.isTorrentComplete();
+        fs = new FileStore(20481, dig,
+                f.getParentFile().getPath(), f.getName(), 20481);
+        assert fs.isPieceComplete(0);
+        assert fs.isTorrentComplete();
         f.delete();
     }
 }
