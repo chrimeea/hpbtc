@@ -64,7 +64,12 @@ public class TorrentUtil {
 
     public static int computeEndIndex(final int begin, final int length,
             final int chunkSize) {
-        return 1 + (begin + length) / chunkSize;
+        int i = begin + length;
+        int n = i / chunkSize;
+        if (i % chunkSize > 0) {
+            n++;
+        }
+        return n;
     }
 
     public static int computeBeginPosition(final int begin,
