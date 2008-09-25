@@ -18,7 +18,7 @@ import util.TorrentUtil;
  *
  * @author Cristian Mocanu
  */
-public class Protocol {
+public class Client {
 
     private Timer fastTimer;
     private MessageWriter writer;
@@ -30,7 +30,7 @@ public class Protocol {
     private byte[] peerId;
     private byte[] protocol;
 
-    public Protocol() throws UnsupportedEncodingException {
+    public Client() throws UnsupportedEncodingException {
         fastTimer = new Timer(true);
         torrents = new Vector<Torrent>();
         this.peerId = TorrentUtil.generateId();
