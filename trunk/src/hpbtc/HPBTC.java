@@ -4,7 +4,7 @@
  */
 package hpbtc;
 
-import hpbtc.processor.Protocol;
+import hpbtc.processor.Client;
 import java.io.File;
 import java.util.logging.Logger;
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class HPBTC {
         if (args.length < 2) {
             logger.severe("Mandatory parameter missing");
         } else {
-            final Protocol protocol = new Protocol();
+            final Client protocol = new Client();
             protocol.startProtocol();
             String d = args[0];
             for (int i = 1; i < args.length; i++) {
