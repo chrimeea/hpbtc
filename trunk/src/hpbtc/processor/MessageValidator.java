@@ -62,21 +62,18 @@ public class MessageValidator {
     }
 
     public boolean validateHaveMessage(final HaveMessage message) {
-        Peer peer = message.getDestination();
-        Torrent t = peer.getTorrent();
+        Torrent t = message.getDestination().getTorrent();
         return message.getIndex() < t.getNrPieces();
     }
 
     public boolean validatePieceMessage(final PieceMessage message) {
-        Peer peer = message.getDestination();
-        Torrent t = peer.getTorrent();
+        Torrent t = message.getDestination().getTorrent();
         return message.getIndex() < t.getNrPieces() && message.getBegin() < t.
                 getPieceLength();
     }
 
     public boolean validateRequestMessage(final BlockMessage message) {
-        Peer peer = message.getDestination();
-        Torrent t = peer.getTorrent();
+        Torrent t = message.getDestination().getTorrent();
         return message.getIndex() < t.getNrPieces() && message.getBegin() <
                 t.getPieceLength() && message.getLength() <= t.getChunkSize()
                 && t.isPieceComplete(message.getIndex());
