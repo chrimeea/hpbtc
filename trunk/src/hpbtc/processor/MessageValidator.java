@@ -20,7 +20,7 @@ public class MessageValidator {
     private List<Torrent> torrents;
     private byte[] protocol;
 
-    public MessageValidator(final List<Torrent> torrents, byte[] protocol) {
+    public MessageValidator(final List<Torrent> torrents, final byte[] protocol) {
         this.torrents = torrents;
         this.protocol = protocol;
     }
