@@ -8,6 +8,7 @@ import hpbtc.protocol.message.BitfieldMessage;
 import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.HaveMessage;
+import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
@@ -67,9 +68,7 @@ public class MessageValidatorTest {
         b.close();
         peer.setTorrent(info);
         BitSet bs = new BitSet(info.getNrPieces());
-        List<Torrent> t = new ArrayList<Torrent>(1);
-        t.add(info);
-        MessageValidator v = new MessageValidator(t, protocol);
+        MessageValidator v = new MessageValidator(null, protocol);
         BitfieldMessage bm = new BitfieldMessage(bs, info.getNrPieces(), peer);
         assert v.validateBitfieldMessage(bm);
         bm = new BitfieldMessage(bs, info.getNrPieces() - 1, peer);
@@ -85,9 +84,7 @@ public class MessageValidatorTest {
         Torrent info = new Torrent(b, ".", null, 0);
         b.close();
         peer.setTorrent(info);
-        List<Torrent> t = new ArrayList<Torrent>(1);
-        t.add(info);
-        MessageValidator v = new MessageValidator(t, protocol);
+        MessageValidator v = new MessageValidator(null, protocol);
         BlockMessage bm = new BlockMessage(0, 0, info.getPieceLength(),
                 SimpleMessage.TYPE_CANCEL, peer);
         assert v.validateCancelMessage(bm);
@@ -105,9 +102,7 @@ public class MessageValidatorTest {
         Torrent info = new Torrent(b, ".", null, 0);
         b.close();
         peer.setTorrent(info);
-        List<Torrent> t = new ArrayList<Torrent>(1);
-        t.add(info);
-        MessageValidator v = new MessageValidator(t, protocol);
+        MessageValidator v = new MessageValidator(null, protocol);
         HaveMessage hm = new HaveMessage(0, peer);
         assert v.validateHaveMessage(hm);
         hm = new HaveMessage(info.getNrPieces(), peer);
@@ -115,7 +110,20 @@ public class MessageValidatorTest {
     }
     
     @Test
-    public void testValidatePieceMessage() {
+    public void testValidatePieceMessage() throws
+            UnsupportedEncodingException, IOException, NoSuchAlgorithmException {
+        Peer peer = new Peer(InetSocketAddress.createUnresolved("localhost",
+                6000), null);
+        ByteArrayInputStream b = new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".getBytes(encoding));
+        Torrent info = new Torrent(b, ".", null, 0);
+        b.close();
+        peer.setTorrent(info);
+        MessageValidator v = new MessageValidator(null, protocol);
+        int l = info.getPieceLength();
+        PieceMessage pm = new PieceMessage(0, 0, l, peer);
+        assert v.validatePieceMessage(pm);
+        pm = new PieceMessage(l, 0, l, peer);
+        assert !v.validatePieceMessage(pm);
     }
     
     @Test
