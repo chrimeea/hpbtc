@@ -56,8 +56,7 @@ public class MessageValidator {
     }
 
     public boolean validateCancelMessage(final BlockMessage message) {
-        Peer peer = message.getDestination();
-        Torrent t = peer.getTorrent();
+        Torrent t = message.getDestination().getTorrent();
         return message.getIndex() < t.getNrPieces() && message.getBegin() < t.
                 getPieceLength();
     }
