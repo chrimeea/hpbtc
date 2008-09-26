@@ -38,17 +38,16 @@ public class Peer {
     private ByteBuffer data;
     private boolean expectBody;
     private Map<Integer, BitSet> requests = new Hashtable<Integer, BitSet>();
-    private AtomicInteger totalRequests;
+    private AtomicInteger totalRequests = new AtomicInteger();
     private TimerTask keepAliveRead;
     private TimerTask keepAliveWrite;
-    private Queue<LengthPrefixMessage> messagesToSend;
+    private Queue<LengthPrefixMessage> messagesToSend =
+            new ConcurrentLinkedQueue<LengthPrefixMessage>();
     private Torrent torrent;
 
     public Peer(final InetSocketAddress address, final byte[] id) {
         this.address = address;
         this.id = id;
-        this.totalRequests = new AtomicInteger();
-        messagesToSend = new ConcurrentLinkedQueue<LengthPrefixMessage>();
     }
 
     public Peer(final SocketChannel chn) {
@@ -265,7 +264,9 @@ public class Peer {
         }
         requests.clear();
         messagesToSend.clear();
-        torrent.removePeer(this);
+        if (torrent != null) {
+            torrent.removePeer(this);
+        }
         this.torrent = null;
         cancelKeepAliveRead();
         cancelKeepAliveWrite();

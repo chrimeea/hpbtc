@@ -23,6 +23,8 @@ import util.IOUtil;
  */
 public class NetworkTest {
 
+    private String encoding = "US-ASCII";
+    
     @Test
     public void testNetworkIncomingConnection() throws IOException,
             UnsupportedEncodingException {
@@ -56,7 +58,7 @@ public class NetworkTest {
         int port = c.connect();
         SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.
                 getLocalHost(), port));
-        ch.write(ByteBuffer.wrap("test client".getBytes("ISO-8859-1")));
+        ch.write(ByteBuffer.wrap("test client".getBytes(encoding)));
         c.disconnect();
     }
 
@@ -110,6 +112,6 @@ public class NetworkTest {
         c.disconnect();
         ch.close();
         assert i == 11;
-        assert "bit torrent".equals(new String(b, 0, i, "ISO-8859-1"));
+        assert "bit torrent".equals(new String(b, 0, i, encoding));
     }
 }

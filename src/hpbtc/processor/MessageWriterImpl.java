@@ -51,7 +51,7 @@ public class MessageWriterImpl implements MessageWriter {
         Torrent torrent = peer.getTorrent();
         peer.disconnect();
         logger.info("Disconnected " + peer);
-        if (torrent.getRemainingPeers() < 3) {
+        if (torrent != null && torrent.getRemainingPeers() < 3) {
             if (torrent.cancelTrackerTask()) {
                 Tracker tracker = torrent.getTracker();
                 long delay = tracker.getMinInterval() * 1000 -
@@ -65,7 +65,7 @@ public class MessageWriterImpl implements MessageWriter {
 
     private TimerTask scheduleTrackerTask(final Torrent torrent,
             final long delay) {
-        TimerTask tt = new TimerTask() {
+        final TimerTask tt = new TimerTask() {
 
             @Override
             public void run() {
@@ -85,7 +85,7 @@ public class MessageWriterImpl implements MessageWriter {
 
             @Override
             public void run() {
-                List<SimpleMessage> result = decideChoking(torrent);
+                final List<SimpleMessage> result = decideChoking(torrent);
                 for (SimpleMessage sm : result) {
                     Peer p = sm.getDestination();
                     try {
@@ -105,8 +105,8 @@ public class MessageWriterImpl implements MessageWriter {
     }
 
     private List<SimpleMessage> decideChoking(final Torrent torrent) {
-        List<Peer> prs = new ArrayList<Peer>(torrent.getConnectedPeers());
-        Comparator<Peer> comp = torrent.isTorrentComplete() ? new Comparator<Peer>() {
+        final List<Peer> prs = new ArrayList<Peer>(torrent.getConnectedPeers());
+        final Comparator<Peer> comp = torrent.isTorrentComplete() ? new Comparator<Peer>() {
 
             public int compare(Peer p1, Peer p2) {
                 return p2.countUploaded() - p1.countUploaded();
@@ -120,7 +120,7 @@ public class MessageWriterImpl implements MessageWriter {
         };
         if (torrent.increaseOptimisticCounter() == 3 &&
                 !prs.isEmpty()) {
-            Peer optimisticPeer = prs.remove(random.nextInt(prs.size()));
+            final Peer optimisticPeer = prs.remove(random.nextInt(prs.size()));
             Collections.sort(prs, comp);
             prs.add(0, optimisticPeer);
             torrent.setOptimisticCounter(0);
@@ -128,21 +128,17 @@ public class MessageWriterImpl implements MessageWriter {
             Collections.sort(prs, comp);
         }
         int k = 0;
-        List<SimpleMessage> result = new LinkedList<SimpleMessage>();
+       final List<SimpleMessage> result = new LinkedList<SimpleMessage>();
         for (Peer p : prs) {
             if (k < 4) {
                 if (p.isClientChoking()) {
-                    SimpleMessage mUnchoke = new SimpleMessage(
-                            SimpleMessage.TYPE_UNCHOKE, p);
-                    result.add(mUnchoke);
+                    result.add(new SimpleMessage(SimpleMessage.TYPE_UNCHOKE, p));
                 }
                 if (p.isPeerInterested()) {
                     k++;
                 }
             } else if (!p.isClientChoking()) {
-                SimpleMessage mChoke = new SimpleMessage(
-                        SimpleMessage.TYPE_CHOKE, p);
-                result.add(mChoke);
+                result.add(new SimpleMessage(SimpleMessage.TYPE_CHOKE, p));
             }
             p.resetCounters();
         }
@@ -151,7 +147,7 @@ public class MessageWriterImpl implements MessageWriter {
 
     private void keepAliveWrite(final Peer peer) {
         peer.cancelKeepAliveWrite();
-        TimerTask tt = new TimerTask() {
+        final TimerTask tt = new TimerTask() {
 
             @Override
             public void run() {
@@ -191,18 +187,18 @@ public class MessageWriterImpl implements MessageWriter {
 
     public void cancelPieceMessage(final int begin, final int index,
             final int length, final Peer peer) {
-        Iterable<LengthPrefixMessage> q = peer.listMessagesToSend();
+        final Iterable<LengthPrefixMessage> q = peer.listMessagesToSend();
         if (q != null) {
-            Iterator<LengthPrefixMessage> i = q.iterator();
+            final Iterator<LengthPrefixMessage> i = q.iterator();
             while (i.hasNext()) {
-                LengthPrefixMessage m = i.next();
+                final LengthPrefixMessage m = i.next();
                 if (m instanceof PieceMessage) {
-                    PieceMessage pm = (PieceMessage) m;
+                    final PieceMessage pm = (PieceMessage) m;
                     if (pm.getIndex() == index && pm.getBegin() == begin &&
                             pm.getLength() == length) {
                         i.remove();
-                        Peer p = pm.getDestination();
-                        Torrent t = p.getTorrent();
+                        final Peer p = pm.getDestination();
+                        final Torrent t = p.getTorrent();
                         p.removeRequest(pm.getIndex(), pm.getBegin(),
                                 t.getChunkSize());
                     }
@@ -212,16 +208,16 @@ public class MessageWriterImpl implements MessageWriter {
     }
 
     public void cancelPieceMessage(final Peer peer) {
-        Iterable<LengthPrefixMessage> q = peer.listMessagesToSend();
+        final Iterable<LengthPrefixMessage> q = peer.listMessagesToSend();
         if (q != null) {
-            Iterator<LengthPrefixMessage> i = q.iterator();
+            final Iterator<LengthPrefixMessage> i = q.iterator();
             while (i.hasNext()) {
-                LengthPrefixMessage m = i.next();
+                final LengthPrefixMessage m = i.next();
                 if (m instanceof PieceMessage) {
                     i.remove();
-                    PieceMessage pm = (PieceMessage) m;
-                    Peer p = pm.getDestination();
-                    Torrent t = p.getTorrent();
+                    final PieceMessage pm = (PieceMessage) m;
+                    final Peer p = pm.getDestination();
+                    final Torrent t = p.getTorrent();
                     peer.removeRequest(pm.getIndex(), pm.getBegin(),
                             t.getChunkSize());
                 }
@@ -229,19 +225,18 @@ public class MessageWriterImpl implements MessageWriter {
         }
     }
 
-    public void postMessage(final LengthPrefixMessage message) throws 
+    public void postMessage(final LengthPrefixMessage message) throws
             IOException {
         message.getDestination().addMessageToSend(message);
         register.registerWrite(message.getDestination());
     }
 
     private void contactFreshPeers(final Torrent torrent) {
-        Iterable<Peer> freshPeers = torrent.getFreshPeers();
+        final Iterable<Peer> freshPeers = torrent.getFreshPeers();
         for (Peer peer : freshPeers) {
             try {
-                LengthPrefixMessage m = new HandshakeMessage(peerId, protocol,
-                        peer, torrent.getInfoHash());
-                postMessage(m);
+                postMessage(new HandshakeMessage(peerId, protocol, peer,
+                        torrent.getInfoHash()));
                 peer.setHandshakeSent();
             } catch (Exception e) {
                 logger.log(Level.FINE, e.getLocalizedMessage(), e);
@@ -254,10 +249,10 @@ public class MessageWriterImpl implements MessageWriter {
         register.registerWrite(peer);
         keepAliveRead(peer);
     }
-    
+
     public void keepAliveRead(final Peer peer) {
         if (peer.cancelKeepAliveRead()) {
-            TimerTask tt = new TimerTask() {
+            final TimerTask tt = new TimerTask() {
 
                 @Override
                 public void run() {

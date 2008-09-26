@@ -50,8 +50,8 @@ public class Client {
         netReader.disconnect();
         netWriter.disconnect();
     }
-
-    public void startProtocol() throws IOException {
+    
+    public int startProtocol() throws IOException {
         Register register = new Register();
         writer = new MessageWriterImpl(register, fastTimer, peerId, protocol);
         netWriter = new NetworkWriter(writer, register);
@@ -60,6 +60,7 @@ public class Client {
         netReader = new NetworkReader(processor, register);
         port = netReader.connect();
         netWriter.connect();
+        return port;
     }
 
 }
