@@ -34,7 +34,7 @@ public class HandshakeMessage extends LengthPrefixMessage {
 
     @Override
     public ByteBuffer send() {
-        ByteBuffer bb = ByteBuffer.allocate(peerId == null ? 48 : 68);
+        final ByteBuffer bb = ByteBuffer.allocate(peerId == null ? 48 : 68);
         bb.put(protocol);
         bb.putLong(0L);
         bb.put(infoHash);

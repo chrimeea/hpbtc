@@ -45,9 +45,9 @@ public class SimpleMessage extends LengthPrefixMessage {
     
     @Override
     public ByteBuffer send() {
-        ByteBuffer prefix = super.send();
+        final ByteBuffer prefix = super.send();
         prefix.rewind();
-        ByteBuffer bb = ByteBuffer.allocate(messageLength + 4);
+        final ByteBuffer bb = ByteBuffer.allocate(messageLength + 4);
         bb.put(prefix);
         bb.put(disc);
         return bb;

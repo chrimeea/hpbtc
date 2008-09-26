@@ -31,7 +31,7 @@ public class LengthPrefixMessage {
     }
     
     public ByteBuffer send() {
-        ByteBuffer bb = ByteBuffer.allocate(4);
+        final ByteBuffer bb = ByteBuffer.allocate(4);
         bb.putInt(messageLength);
         return bb;
     }

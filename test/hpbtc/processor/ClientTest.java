@@ -23,7 +23,8 @@ public class ClientTest {
     public void testStartStop() throws UnsupportedEncodingException,
             IOException {
         Client c = new Client();
-        Socket s = new Socket(InetAddress.getLocalHost(), c.startProtocol());
+        int port = c.startProtocol();
+        Socket s = new Socket(InetAddress.getLocalHost(), port);
         HandshakeMessage hm = new HandshakeMessage(null,
                 TorrentUtil.getSupportedProtocol(), null, new byte[20]);
         s.getOutputStream().write(hm.send().array());
@@ -31,5 +32,9 @@ public class ClientTest {
         assert is.read() == -1;
         s.close();
         c.stopProtocol();
+        try {
+            new Socket(InetAddress.getLocalHost(), port);
+            assert false;
+        } catch (IOException e) {}
     }
 }

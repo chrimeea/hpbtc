@@ -58,9 +58,9 @@ public class FileStore {
     }
 
     private int jumpToNextFile(final int index) {
-        long m = index * pieceLength;
+        final long m = index * pieceLength;
         long x = 0;
-        Iterator<BTFile> i = files.iterator();
+        final Iterator<BTFile> i = files.iterator();
         while (x <= m && i.hasNext()) {
             BTFile f = i.next();
             x += f.getLength();
@@ -115,7 +115,7 @@ public class FileStore {
         files = new ArrayList<BTFile>(fls.size());
         fileLength = 0L;
         for (Map fd : fls) {
-            List<byte[]> dirs = (List<byte[]>) fd.get("path".getBytes(
+            final List<byte[]> dirs = (List<byte[]>) fd.get("path".getBytes(
                     byteEncoding));
             StringBuilder sb = new StringBuilder(rootFolder);
             sb.append(File.separator);
@@ -142,7 +142,7 @@ public class FileStore {
 
     private void loadFileChunk(final List<File> files, final long begin,
             final ByteBuffer dest) throws IOException {
-        Iterator<File> i = files.iterator();
+        final Iterator<File> i = files.iterator();
         IOUtil.readFromFile(i.next(), begin, dest);
         while (i.hasNext()) {
             IOUtil.readFromFile(i.next(), 0, dest);
@@ -151,7 +151,7 @@ public class FileStore {
 
     private void saveFileChunk(final List<File> files, final long begin,
             final ByteBuffer piece) throws IOException {
-        Iterator<File> i = files.iterator();
+        final Iterator<File> i = files.iterator();
         IOUtil.writeToFile(i.next(), begin, piece);
         for (int j = 0; j < files.size() - 1; j++) {
             IOUtil.writeToFile(i.next(), 0, piece);
@@ -198,14 +198,14 @@ public class FileStore {
     private List<File> getFileList(final int begin, final int index,
             final int length) {
         long o = index * pieceLength + begin;
-        Iterator<BTFile> i = files.iterator();
+        final Iterator<BTFile> i = files.iterator();
         BTFile f;
         do {
             f = i.next();
             o -= f.getLength();
         } while (o > 0);
         offset = o + f.getLength();
-        List<File> fls = new LinkedList<File>();
+        final List<File> fls = new LinkedList<File>();
         o += length;
         fls.add(f.getFile());
         while (o >= 0 && i.hasNext()) {
@@ -218,7 +218,7 @@ public class FileStore {
 
     public ByteBuffer loadPiece(final int begin, final int index,
             final int length) throws IOException {
-        ByteBuffer bb = ByteBuffer.allocate(length);
+        final ByteBuffer bb = ByteBuffer.allocate(length);
         loadFileChunk(getFileList(begin, index, length), offset, bb);
         bb.rewind();
         return bb;
@@ -228,7 +228,7 @@ public class FileStore {
             throws NoSuchAlgorithmException, IOException {
         md.update(loadPiece(0, index, pLength));
         byte[] dig = md.digest();
-        int i = index * 20;
+        final int i = index * 20;
         return Arrays.equals(dig, Arrays.copyOfRange(pieceHash, i, i + 20));
     }
 }

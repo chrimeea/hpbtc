@@ -40,7 +40,7 @@ public class PieceMessage extends SimpleMessage {
      */
     @Override
     public ByteBuffer send() {
-        ByteBuffer bb = super.send();
+        final ByteBuffer bb = super.send();
         bb.putInt(index);
         bb.putInt(begin);
         bb.put(piece);

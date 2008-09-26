@@ -84,7 +84,7 @@ public class BencodingReader {
     }
 
     public Long readNextInteger() throws IOException {
-        int c = is.read();
+        final int c = is.read();
         if (c != 'i') {
             throw new BencodingException("Found char: '" + (char) c +
                     "', required: 'i'");
@@ -93,7 +93,7 @@ public class BencodingReader {
     }
 
     public List<Object> readNextList() throws IOException {
-        List<Object> r = new LinkedList<Object>();
+        final List<Object> r = new LinkedList<Object>();
         int c = is.read();
         if (c != 'l') {
             throw new BencodingException("Found char: '" + (char) c +
@@ -111,7 +111,7 @@ public class BencodingReader {
     }
 
     public Map<byte[], Object> readNextDictionary() throws IOException {
-        Map<byte[], Object> r = new TreeMap<byte[], Object>(
+        final Map<byte[], Object> r = new TreeMap<byte[], Object>(
                 new ByteStringComparator());
         int c = is.read();
         if (c != 'd') {
@@ -123,7 +123,7 @@ public class BencodingReader {
         while (c != 'e') {
             is.reset();
             byte[] key = readNextString();
-            Object value = readNextElement();
+            final Object value = readNextElement();
             r.put(key, value);
             is.mark(1);
             c = is.read();
@@ -132,7 +132,7 @@ public class BencodingReader {
     }
 
     private Object readNextElement() throws IOException {
-        Object r;
+        final Object r;
         is.mark(1);
         int c = is.read();
         is.reset();

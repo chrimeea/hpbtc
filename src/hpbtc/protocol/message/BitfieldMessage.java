@@ -33,7 +33,7 @@ public class BitfieldMessage extends SimpleMessage {
      */
     @Override
     public ByteBuffer send() {
-        ByteBuffer bb = super.send();
+        final ByteBuffer bb = super.send();
         IOUtil.bitsToBytes(pieces, bb);
         return bb;
     }
