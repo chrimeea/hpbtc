@@ -1,6 +1,7 @@
 package hpbtc.protocol.torrent;
 
 import hpbtc.protocol.message.LengthPrefixMessage;
+import hpbtc.protocol.message.PieceMessage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -72,7 +73,16 @@ public class PeerTest {
         LengthPrefixMessage m = new LengthPrefixMessage(0, p);
         p.addMessageToSend(m);
         assert !p.isMessagesToSendEmpty();
+        p.cancelPieceMessage();
+        assert !p.isMessagesToSendEmpty();
         assert m.equals(p.getMessageToSend());
+        assert p.isMessagesToSendEmpty();
+        PieceMessage pm = new PieceMessage(1, 2, 3, p);
+        p.addMessageToSend(pm);
+        assert !p.isMessagesToSendEmpty();
+        p.cancelPieceMessage(0, 2, 3);
+        assert !p.isMessagesToSendEmpty();
+        p.cancelPieceMessage(1, 2, 3);
         assert p.isMessagesToSendEmpty();
     }
     
@@ -113,9 +123,5 @@ public class PeerTest {
         assert Arrays.equals(p.getData().array(), x);
         s.close();
         ss.close();
-    }
-    
-    @Test
-    public void testCancelPieceMessage() {
     }
 }
