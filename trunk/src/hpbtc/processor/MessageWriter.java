@@ -17,10 +17,6 @@ public interface MessageWriter {
     
     void postMessage(LengthPrefixMessage message) throws IOException;
     
-    void cancelPieceMessage(Peer peer);
-    
-    void cancelPieceMessage(int begin, int index, int length, Peer peer);
-    
     void download(Torrent torrent);
     
     void connect(Peer peer) throws IOException;

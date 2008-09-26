@@ -59,12 +59,12 @@ public class Tracker {
     public Set<Peer> updateTracker(final Event event, final long uploaded,
             final long downloaded, final long bytesLeft, final boolean compact) {
         for (LinkedList<byte[]> ul : trackers) {
-            Iterator<byte[]> i = ul.iterator();
+            final Iterator<byte[]> i = ul.iterator();
             while (i.hasNext()) {
                 byte[] tracker = i.next();
                 try {
-                    Set<Peer> peers = connectToTracker(event, tracker, uploaded,
-                            downloaded, bytesLeft, compact);
+                    final Set<Peer> peers = connectToTracker(event, tracker,
+                            uploaded, downloaded, bytesLeft, compact);
                     lastTrackerContact = System.currentTimeMillis();
                     i.remove();
                     ul.addFirst(tracker);
@@ -87,7 +87,8 @@ public class Tracker {
             final byte[] tracker, final long uploaded, final long dloaded,
             final long bytesLeft, final boolean compact)
             throws IOException {
-        StringBuilder req = new StringBuilder(new String(tracker, byteEncoding));
+        final StringBuilder req = new StringBuilder(new String(tracker,
+                byteEncoding));
         req.append("?info_hash=");
         req.append(URLEncoder.encode(new String(infoHash, trackerEncoding),
                 trackerEncoding));
@@ -113,14 +114,14 @@ public class Tracker {
             req.append(URLEncoder.encode(new String(trackerId, trackerEncoding),
                     trackerEncoding));
         }
-        URL track = new URL(req.toString());
-        HttpURLConnection con = (HttpURLConnection) track.openConnection();
+        final URL track = new URL(req.toString());
+        final HttpURLConnection con = (HttpURLConnection) track.openConnection();
         con.setInstanceFollowRedirects(true);
         con.setDoInput(true);
         con.setDoOutput(false);
         con.connect();
-        BencodingReader parser = new BencodingReader(con.getInputStream());
-        Map<byte[], Object> response = parser.readNextDictionary();
+        final BencodingReader parser = new BencodingReader(con.getInputStream());
+        final Map<byte[], Object> response = parser.readNextDictionary();
         con.disconnect();
         if (response.containsKey("failure reason".getBytes(byteEncoding))) {
             logger.warning(new String((byte[]) response.get("failure reason".
@@ -148,7 +149,7 @@ public class Tracker {
                 trackerId = (byte[]) response.get("tracker id".getBytes(
                         byteEncoding));
             }
-            Object o = response.get("peers".getBytes(byteEncoding));
+            final Object o = response.get("peers".getBytes(byteEncoding));
             return compact ? TrackerUtil.doCompactPeer((byte[]) o) : TrackerUtil.
                     doLoosePeer((List<Map<byte[], Object>>) o, byteEncoding);
         }

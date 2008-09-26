@@ -94,15 +94,15 @@ public class NetworkReader {
             NoSuchAlgorithmException {
         while (running) {
             if (selector.select() > 0) {
-                Iterator<SelectionKey> i = selector.selectedKeys().iterator();
+                final Iterator<SelectionKey> i = selector.selectedKeys().iterator();
                 while (i.hasNext()) {
-                    SelectionKey key = i.next();
+                    final SelectionKey key = i.next();
                     i.remove();
                     Peer peer = null;
                     if (key.isValid()) {
                         try {
                             if (key.isAcceptable()) {
-                                SocketChannel chan = serverCh.accept();
+                                final SocketChannel chan = serverCh.accept();
                                 chan.configureBlocking(false);
                                 peer = new Peer(chan);
                                 processor.connect(peer);

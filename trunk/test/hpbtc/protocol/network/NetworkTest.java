@@ -68,10 +68,6 @@ public class NetworkTest {
         r.openReadSelector();
         ServerSocket ch = new ServerSocket(0);
         NetworkWriter c = new NetworkWriter(new MessageWriter() {
-
-            public void cancelPieceMessage(Peer arg0) {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
             
             public void postMessage(LengthPrefixMessage arg0) throws IOException {
                 throw new UnsupportedOperationException("Not supported yet.");
@@ -79,11 +75,6 @@ public class NetworkTest {
 
             public void writeNext(Peer p) throws IOException {
                 p.upload(ByteBuffer.wrap("bit torrent".getBytes("ISO-8859-1")));
-            }
-
-            public void cancelPieceMessage(int arg0, int arg1, int arg2,
-                    Peer arg3) {
-                throw new UnsupportedOperationException("Not supported yet.");
             }
 
             public void disconnect(Peer arg0) throws IOException {

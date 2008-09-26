@@ -12,7 +12,6 @@ import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Iterator;
 import org.junit.Test;
 
 /**
@@ -40,13 +39,13 @@ public class PeerTest {
         assert bs.cardinality() == 1;
         assert bs.get(1);
         assert p.countTotalRequests() == 1;
-        p.removeRequest(10, 0, cs);
+        p.removeRequest(10, 0);
         bs = p.getRequests(10);
         assert bs.cardinality() == 1;
         assert bs.get(1);
         assert p.countTotalRequests() == 1;
         bs = p.getRequests(10);
-        p.removeRequest(10, cs, cs);
+        p.removeRequest(10, cs);
         assert bs.cardinality() == 0;
         assert p.countTotalRequests() == 0;
     }
@@ -73,11 +72,8 @@ public class PeerTest {
         LengthPrefixMessage m = new LengthPrefixMessage(0, p);
         p.addMessageToSend(m);
         assert !p.isMessagesToSendEmpty();
-        Iterator<LengthPrefixMessage> i = p.listMessagesToSend().iterator();
-        assert i.hasNext();
-        LengthPrefixMessage l = i.next();
-        assert m.equals(l);
-        assert !i.hasNext();
+        assert m.equals(p.getMessageToSend());
+        assert p.isMessagesToSendEmpty();
     }
     
     @Test
@@ -117,5 +113,9 @@ public class PeerTest {
         assert Arrays.equals(p.getData().array(), x);
         s.close();
         ss.close();
+    }
+    
+    @Test
+    public void testCancelPieceMessage() {
     }
 }

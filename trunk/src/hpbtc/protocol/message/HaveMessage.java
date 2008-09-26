@@ -30,7 +30,7 @@ public class HaveMessage extends SimpleMessage {
      */
     @Override
     public ByteBuffer send() {
-        ByteBuffer bb = super.send();
+        final ByteBuffer bb = super.send();
         bb.putInt(index);
         return bb;
     }

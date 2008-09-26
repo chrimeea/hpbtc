@@ -55,14 +55,14 @@ public class NetworkWriter {
             NoSuchAlgorithmException {
         while (running) {
             if (selector.select() > 0) {
-                Iterator<SelectionKey> i = selector.selectedKeys().iterator();
+                final Iterator<SelectionKey> i = selector.selectedKeys().iterator();
                 while (i.hasNext()) {
-                    SelectionKey key = i.next();
+                    final SelectionKey key = i.next();
                     i.remove();
                     if (key.isValid()) {
-                        Peer peer = (Peer) key.attachment();
+                        final Peer peer = (Peer) key.attachment();
                         try {
-                            SocketChannel ch = (SocketChannel) key.channel();
+                            final SocketChannel ch = (SocketChannel) key.channel();
                             if (key.isConnectable() && ch.finishConnect()) {
                                 writer.connect(peer);
                                 logger.info("Connected to " + peer);

@@ -13,7 +13,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -181,46 +180,6 @@ public class MessageWriterImpl implements MessageWriter {
             peer.upload(currentWrite);
             if (currentWrite.remaining() > 0 || peer.isMessagesToSendEmpty()) {
                 register.clearWrite(peer);
-            }
-        }
-    }
-
-    public void cancelPieceMessage(final int begin, final int index,
-            final int length, final Peer peer) {
-        final Iterable<LengthPrefixMessage> q = peer.listMessagesToSend();
-        if (q != null) {
-            final Iterator<LengthPrefixMessage> i = q.iterator();
-            while (i.hasNext()) {
-                final LengthPrefixMessage m = i.next();
-                if (m instanceof PieceMessage) {
-                    final PieceMessage pm = (PieceMessage) m;
-                    if (pm.getIndex() == index && pm.getBegin() == begin &&
-                            pm.getLength() == length) {
-                        i.remove();
-                        final Peer p = pm.getDestination();
-                        final Torrent t = p.getTorrent();
-                        p.removeRequest(pm.getIndex(), pm.getBegin(),
-                                t.getChunkSize());
-                    }
-                }
-            }
-        }
-    }
-
-    public void cancelPieceMessage(final Peer peer) {
-        final Iterable<LengthPrefixMessage> q = peer.listMessagesToSend();
-        if (q != null) {
-            final Iterator<LengthPrefixMessage> i = q.iterator();
-            while (i.hasNext()) {
-                final LengthPrefixMessage m = i.next();
-                if (m instanceof PieceMessage) {
-                    i.remove();
-                    final PieceMessage pm = (PieceMessage) m;
-                    final Peer p = pm.getDestination();
-                    final Torrent t = p.getTorrent();
-                    peer.removeRequest(pm.getIndex(), pm.getBegin(),
-                            t.getChunkSize());
-                }
             }
         }
     }

@@ -51,7 +51,7 @@ public class BencodingWriter {
 
     public void write(final Map<byte[], Object> m) throws IOException {
         os.write((byte) 'd');
-        Set<byte[]> s = new TreeSet<byte[]>(new ByteStringComparator());
+        final Set<byte[]> s = new TreeSet<byte[]>(new ByteStringComparator());
         s.addAll(m.keySet());
         for (byte[] key : s) {
             write(key);

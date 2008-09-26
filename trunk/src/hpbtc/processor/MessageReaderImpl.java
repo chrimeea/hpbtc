@@ -205,8 +205,8 @@ public class MessageReaderImpl implements MessageReader {
     private void processCancel(final BlockMessage message) {
         if (validator.validateCancelMessage(message)) {
             Peer peer = message.getDestination();
-            writer.cancelPieceMessage(message.getBegin(),
-                    message.getIndex(), message.getLength(), peer);
+            peer.cancelPieceMessage(message.getBegin(), message.getIndex(),
+                    message.getLength());
         } else {
             logger.warning("Invalid message: " + message);
         }
@@ -215,7 +215,7 @@ public class MessageReaderImpl implements MessageReader {
     private void processChoke(final SimpleMessage message) {
         Peer peer = message.getDestination();
         peer.setPeerChoking(true);
-        writer.cancelPieceMessage(peer);
+        peer.cancelPieceMessage();
     }
 
     private void processHave(final HaveMessage message) throws IOException {
@@ -251,8 +251,7 @@ public class MessageReaderImpl implements MessageReader {
         int index = message.getIndex();
         int begin = message.getBegin();
         if (validator.validatePieceMessage(message)) {
-            peer.removeRequest(message.getIndex(), message.getBegin(),
-                    t.getChunkSize());
+            peer.removeRequest(message.getIndex(), message.getBegin());
             if (t.savePiece(begin, index, message.getPiece())) {
                 for (Peer p : t.getConnectedPeers()) {
                     if (!p.getPieces().get(index)) {

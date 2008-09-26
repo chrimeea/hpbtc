@@ -50,11 +50,11 @@ public class Torrent {
     public Torrent(final InputStream is, final String rootFolder,
             final byte[] peerId, final int port)
             throws IOException, NoSuchAlgorithmException {
-        BencodingReader parser = new BencodingReader(is);
-        Map<byte[], Object> meta = parser.readNextDictionary();
-        Map<byte[], Object> info = (Map) meta.get("info".getBytes(byteEncoding));
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        BencodingWriter w = new BencodingWriter(os);
+        final BencodingReader parser = new BencodingReader(is);
+        final Map<byte[], Object> meta = parser.readNextDictionary();
+        final Map<byte[], Object> info = (Map) meta.get("info".getBytes(byteEncoding));
+        final ByteArrayOutputStream os = new ByteArrayOutputStream();
+        final BencodingWriter w = new BencodingWriter(os);
         w.write(info);
         infoHash = MessageDigest.getInstance("SHA1").digest(os.toByteArray());
         os.close();
@@ -84,18 +84,18 @@ public class Torrent {
             encoding = new String((byte[]) meta.get("encoding".getBytes(
                     byteEncoding)), byteEncoding);
         }
-        boolean multiple = info.containsKey("files".getBytes(byteEncoding));
-        int pieceLength = ((Long) info.get("piece length".getBytes(
+        final boolean multiple = info.containsKey("files".getBytes(byteEncoding));
+        final int pieceLength = ((Long) info.get("piece length".getBytes(
                 byteEncoding))).intValue();
-        byte[] pieceHash = (byte[]) info.get("pieces".getBytes(byteEncoding));
+        final byte[] pieceHash = (byte[]) info.get("pieces".getBytes(byteEncoding));
         if (multiple) {
-            List<Map> fls = (List<Map>) info.get("files".getBytes(byteEncoding));
+            final List<Map> fls = (List<Map>) info.get("files".getBytes(byteEncoding));
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder, fls,
                     byteEncoding);
         } else {
-            String fileName = new String((byte[]) info.get("name".getBytes(
+            final String fileName = new String((byte[]) info.get("name".getBytes(
                     byteEncoding)), byteEncoding);
-            long fileLength = (Long) info.get("length".getBytes(byteEncoding));
+            final long fileLength = (Long) info.get("length".getBytes(byteEncoding));
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder,
                     fileName, fileLength);
         }
@@ -161,7 +161,7 @@ public class Torrent {
     }
 
     public void beginTracker() {
-        Set<Peer> pr = tracker.beginTracker(getFileLength());
+        final Set<Peer> pr = tracker.beginTracker(getFileLength());
         for (Peer p : pr) {
             p.setTorrent(this);
         }
@@ -169,7 +169,7 @@ public class Torrent {
     }
 
     public void updateTracker() {
-        Set<Peer> pr = tracker.updateTracker(null, uploaded,
+        final Set<Peer> pr = tracker.updateTracker(null, uploaded,
                 downloaded, getFileLength() - downloaded, true);
         for (Peer p : pr) {
             p.setTorrent(this);
@@ -178,7 +178,7 @@ public class Torrent {
     }
 
     public Set<Peer> getFreshPeers() {
-        Set<Peer> p = freshPeers;
+        final Set<Peer> p = freshPeers;
         p.removeAll(peers);
         remainingPeers.getAndAdd(p.size());
         return p;
@@ -194,20 +194,20 @@ public class Torrent {
 
     public BitSet getOtherPieces(final Peer peer) {
         BitSet pieces = peer.getPieces();
-        BitSet bs = getCompletePieces();
+        final BitSet bs = getCompletePieces();
         if (pieces == null) {
             pieces = new BitSet(bs.size());
             return pieces;
         } else {
-            BitSet c = (BitSet) pieces.clone();
+            final BitSet c = (BitSet) pieces.clone();
             c.andNot(bs);
             return c;
         }
     }
 
     public BitSet getChunksSavedAndRequested(Peer peer, int index) {
-        BitSet saved = (BitSet) fileStore.getChunksIndex(index).clone();
-        BitSet req = peer.getRequests(index);
+        final BitSet saved = (BitSet) fileStore.getChunksIndex(index).clone();
+        final BitSet req = peer.getRequests(index);
         if (req != null) {
             saved.or(req);
         }
@@ -220,7 +220,7 @@ public class Torrent {
 
     public void removePeer(final Peer peer) {
         if (peers.remove(peer)) {
-            BitSet bs = peer.getPieces();
+            final BitSet bs = peer.getPieces();
             for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
                 availability.getAndDecrement(i);
             }

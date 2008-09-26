@@ -1,6 +1,7 @@
 package hpbtc.protocol.torrent;
 
 import hpbtc.protocol.message.LengthPrefixMessage;
+import hpbtc.protocol.message.PieceMessage;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -8,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.TimerTask;
@@ -58,11 +60,11 @@ public class Peer {
     public void setTorrent(final Torrent torrent) {
         this.torrent = torrent;
     }
-    
+
     public Torrent getTorrent() {
         return torrent;
     }
-    
+
     public boolean cancelKeepAliveWrite() {
         if (keepAliveWrite != null) {
             return keepAliveWrite.cancel();
@@ -70,11 +72,11 @@ public class Peer {
             return true;
         }
     }
-    
+
     public void setKeepAliveWrite(TimerTask keepAlive) {
         this.keepAliveWrite = keepAlive;
     }
-    
+
     public boolean cancelKeepAliveRead() {
         if (keepAliveRead != null) {
             return keepAliveRead.cancel();
@@ -82,15 +84,15 @@ public class Peer {
             return true;
         }
     }
-    
+
     public void setKeepAliveRead(TimerTask keepAlive) {
         this.keepAliveRead = keepAlive;
     }
-    
+
     public int countTotalRequests() {
         return totalRequests.get();
     }
-    
+
     public BitSet getRequests(final int index) {
         return requests.get(index);
     }
@@ -105,11 +107,10 @@ public class Peer {
         totalRequests.getAndIncrement();
     }
 
-    public void removeRequest(final int index, final int begin,
-            final int chunkSize) {
-        BitSet bs = requests.get(index);
+    public void removeRequest(final int index, final int begin) {
+        final BitSet bs = requests.get(index);
         if (bs != null) {
-            int i = TorrentUtil.computeBeginIndex(begin, chunkSize);
+            final int i = TorrentUtil.computeBeginIndex(begin, torrent.getChunkSize());
             if (bs.get(i)) {
                 bs.clear(i);
                 if (bs.isEmpty()) {
@@ -145,7 +146,7 @@ public class Peer {
     }
 
     public int upload(final ByteBuffer bb) throws IOException {
-        int i = IOUtil.writeToChannel(channel, bb);
+        final int i = IOUtil.writeToChannel(channel, bb);
         uploaded += i;
         return i;
     }
@@ -157,7 +158,7 @@ public class Peer {
     }
 
     public boolean download() throws IOException {
-        int i = IOUtil.readFromChannel(channel, data);
+        final int i = IOUtil.readFromChannel(channel, data);
         if (i >= 0) {
             downloaded += i;
         } else {
@@ -167,7 +168,7 @@ public class Peer {
     }
 
     public ByteBuffer getData() {
-        ByteBuffer result = data;
+        final ByteBuffer result = data;
         data = null;
         result.rewind();
         return result;
@@ -275,19 +276,15 @@ public class Peer {
     public boolean isMessagesToSendEmpty() {
         return messagesToSend.isEmpty();
     }
-    
+
     public LengthPrefixMessage getMessageToSend() {
         return messagesToSend.poll();
     }
-    
+
     public void addMessageToSend(final LengthPrefixMessage message) {
         messagesToSend.add(message);
     }
-    
-    public Iterable<LengthPrefixMessage> listMessagesToSend() {
-        return messagesToSend;
-    }
-    
+
     public void resetCounters() {
         uploaded = 0;
         downloaded = 0;
@@ -311,5 +308,33 @@ public class Peer {
     @Override
     public int hashCode() {
         return this.address.hashCode();
+    }
+
+    public void cancelPieceMessage(final int begin, final int index,
+            final int length) {
+        final Iterator<LengthPrefixMessage> i = messagesToSend.iterator();
+        while (i.hasNext()) {
+            final LengthPrefixMessage m = i.next();
+            if (m instanceof PieceMessage) {
+                final PieceMessage pm = (PieceMessage) m;
+                if (pm.getIndex() == index && pm.getBegin() == begin &&
+                        pm.getLength() == length) {
+                    i.remove();
+                    removeRequest(pm.getIndex(), pm.getBegin());
+                }
+            }
+        }
+    }
+
+    public void cancelPieceMessage() {
+        final Iterator<LengthPrefixMessage> i = messagesToSend.iterator();
+        while (i.hasNext()) {
+            final LengthPrefixMessage m = i.next();
+            if (m instanceof PieceMessage) {
+                i.remove();
+                final PieceMessage pm = (PieceMessage) m;
+                removeRequest(pm.getIndex(), pm.getBegin());
+            }
+        }
     }
 }
