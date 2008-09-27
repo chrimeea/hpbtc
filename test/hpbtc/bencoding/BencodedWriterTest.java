@@ -19,8 +19,8 @@ public class BencodedWriterTest {
 
     @Test
     public void testWriteBencodedString() throws IOException {
-        ByteArrayOutputStream os = new ByteArrayOutputStream(10);
-        BencodingWriter w = new BencodingWriter(os);
+        final ByteArrayOutputStream os = new ByteArrayOutputStream(10);
+        final BencodingWriter w = new BencodingWriter(os);
         w.write("penelopa".getBytes(byteEncoding));
         assert os.toString(byteEncoding).equals("8:penelopa") :
                 "Error encoded string";
@@ -32,10 +32,10 @@ public class BencodedWriterTest {
         for (byte i = 0; i < x.length; i++) {
             x[i] = i;
         }
-        ByteArrayOutputStream os = new ByteArrayOutputStream(10);
-        BencodingWriter w = new BencodingWriter(os);
+        final ByteArrayOutputStream os = new ByteArrayOutputStream(10);
+        final BencodingWriter w = new BencodingWriter(os);
         w.write(x);
-        String r = os.toString(byteEncoding);
+        final String r = os.toString(byteEncoding);
         assert r.substring(0, 3).equals("10:") : "Error encoded string";
         byte[] b = r.substring(3).getBytes(byteEncoding);
         assert Arrays.equals(x, b) : "Error encoded string";
@@ -43,8 +43,8 @@ public class BencodedWriterTest {
 
     @Test
     public void testWriteBencodedInteger() throws IOException {
-        ByteArrayOutputStream os = new ByteArrayOutputStream(8);
-        BencodingWriter w = new BencodingWriter(os);
+        final ByteArrayOutputStream os = new ByteArrayOutputStream(8);
+        final BencodingWriter w = new BencodingWriter(os);
         w.write(-12908);
         assert os.toString(byteEncoding).equals("i-12908e") :
                 "Error encoded integer";
@@ -52,14 +52,14 @@ public class BencodedWriterTest {
 
     @Test
     public void testWriteBencodedList() throws IOException {
-        List l = new ArrayList(3);
+        final List l = new ArrayList(3);
         l.add(4527120);
         l.add("dvd".getBytes(byteEncoding));
-        List ll = new ArrayList(1);
+        final List ll = new ArrayList(1);
         ll.add("nemo".getBytes(byteEncoding));
         l.add(ll);
-        ByteArrayOutputStream os = new ByteArrayOutputStream(24);
-        BencodingWriter w = new BencodingWriter(os);
+        final ByteArrayOutputStream os = new ByteArrayOutputStream(24);
+        final BencodingWriter w = new BencodingWriter(os);
         w.write(l);
         assert os.toString(byteEncoding).equals("li4527120e3:dvdl4:nemoee") :
                 "Error encoded list";
@@ -67,15 +67,15 @@ public class BencodedWriterTest {
 
     @Test
     public void testWriteBencodedDictionary() throws IOException {
-        Map mm = new HashMap(1);
+        final Map mm = new HashMap(1);
         mm.put("second".getBytes(byteEncoding),
                 "value".getBytes(byteEncoding));
-        Map m = new HashMap(2);
+        final Map m = new HashMap(2);
         m.put("mykey".getBytes(byteEncoding), mm);
         m.put("another".getBytes(byteEncoding),
                 "myvalue".getBytes(byteEncoding));
-        ByteArrayOutputStream os = new ByteArrayOutputStream(44);
-        BencodingWriter w = new BencodingWriter(os);
+        final ByteArrayOutputStream os = new ByteArrayOutputStream(44);
+        final BencodingWriter w = new BencodingWriter(os);
         w.write(m);
         assert os.toString(byteEncoding).equals(
                 "d7:another7:myvalue5:mykeyd6:second5:valueee") :

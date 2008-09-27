@@ -79,7 +79,7 @@ public class MessageReaderImpl implements MessageReader {
                     }
                 }
                 if (peer.download()) {
-                    ByteBuffer data = peer.getData();
+                    final ByteBuffer data = peer.getData();
                     peer.setExpectBody(false);
                     byte disc = data.get();
                     switch (disc) {
@@ -165,18 +165,16 @@ public class MessageReaderImpl implements MessageReader {
             }
             boolean isIncoming = false;
             if (!peer.isHandshakeSent()) {
-                HandshakeMessage reply = new HandshakeMessage(peerId, protocol,
-                        peer, t.getInfoHash());
-                writer.postMessage(reply);
+                writer.postMessage(new HandshakeMessage(peerId, protocol, peer,
+                        t.getInfoHash()));
                 peer.setHandshakeSent();
                 isIncoming = true;
             }
             t.addPeer(peer, isIncoming);
             BitSet bs = t.getCompletePieces();
             if (bs.cardinality() > 0) {
-                BitfieldMessage bmessage = new BitfieldMessage(bs,
-                        t.getNrPieces(), peer);
-                writer.postMessage(bmessage);
+                writer.postMessage(new BitfieldMessage(bs, t.getNrPieces(),
+                        peer));
             }
         } else {
             logger.warning("Invalid message: " + message);

@@ -24,11 +24,11 @@ import util.IOUtil;
 public class NetworkTest {
 
     private String encoding = "US-ASCII";
-    
+
     @Test
     public void testNetworkIncomingConnection() throws IOException,
             UnsupportedEncodingException {
-        Register r = new Register();
+        final Register r = new Register();
         r.openWriteSelector();
         final NetworkReader c = new NetworkReader(new MessageReader() {
 
@@ -36,11 +36,11 @@ public class NetworkTest {
                     NoSuchAlgorithmException {
                 peer.setNextDataExpectation(11);
                 assert peer.download();
-                ByteBuffer bb = peer.getData();
-                SocketChannel ch = peer.getChannel();
-                Socket s = ch.socket();
-                InetSocketAddress a = IOUtil.getAddress(ch);
-                InetAddress remoteAddress = s.getLocalAddress();
+                final ByteBuffer bb = peer.getData();
+                final SocketChannel ch = peer.getChannel();
+                final Socket s = ch.socket();
+                final InetSocketAddress a = IOUtil.getAddress(ch);
+                final InetAddress remoteAddress = s.getLocalAddress();
                 int remotePort = s.getPort();
                 assert a.getAddress().equals(remoteAddress);
                 assert a.getPort() == remotePort;
@@ -56,19 +56,19 @@ public class NetworkTest {
             }
         }, r);
         int port = c.connect();
-        SocketChannel ch = SocketChannel.open(new InetSocketAddress(InetAddress.
-                getLocalHost(), port));
+        final SocketChannel ch = SocketChannel.open(new InetSocketAddress(
+                InetAddress.getLocalHost(), port));
         ch.write(ByteBuffer.wrap("test client".getBytes(encoding)));
         c.disconnect();
     }
 
     @Test
     public void testNetworkConnect() throws IOException {
-        Register r = new Register();
+        final Register r = new Register();
         r.openReadSelector();
-        ServerSocket ch = new ServerSocket(0);
-        NetworkWriter c = new NetworkWriter(new MessageWriter() {
-            
+        final ServerSocket ch = new ServerSocket(0);
+        final NetworkWriter c = new NetworkWriter(new MessageWriter() {
+
             public void postMessage(LengthPrefixMessage arg0) throws IOException {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
@@ -93,11 +93,11 @@ public class NetworkTest {
             }
         }, r);
         c.connect();
-        InetSocketAddress a = new InetSocketAddress(InetAddress.getLocalHost(),
-                ch.getLocalPort());
-        Peer peer = new Peer(a, null);
+        final InetSocketAddress a = new InetSocketAddress(InetAddress.
+                getLocalHost(), ch.getLocalPort());
+        final Peer peer = new Peer(a, null);
         r.registerWrite(peer);
-        Socket s = ch.accept();
+        final Socket s = ch.accept();
         byte[] b = new byte[11];
         int i = s.getInputStream().read(b);
         c.disconnect();
