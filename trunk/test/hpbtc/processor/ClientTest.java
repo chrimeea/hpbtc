@@ -21,6 +21,8 @@ import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.Ignore;
 import org.junit.Test;
 import util.TorrentUtil;
@@ -63,13 +65,13 @@ public class ClientTest {
         final byte[] peers = new byte[6];
         peers[0] = 127; peers[1] = 0;
         peers[2] = 0; peers[3] = 1;
-        int peerPort = ch.getLocalPort();
+        final int peerPort = ch.getLocalPort();
         peers[4] = (byte) (peerPort / 256);
         peers[5] = (byte) (peerPort % 256);
-        Map<byte[], Object> response = new HashMap<byte[], Object>();
+        final Map<byte[], Object> response = new HashMap<byte[], Object>();
         response.put("peers".getBytes(byteEncoding), peers);
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        BencodingWriter bw = new BencodingWriter(os);
+        final BencodingWriter bw = new BencodingWriter(os);
         bw.write(response);
         os.close();
         final String prefix = "/test";
@@ -82,6 +84,17 @@ public class ClientTest {
                 0);
         server.createContext(prefix, hh);
         server.start();
+        new Thread(new Runnable() {
+
+            public void run() {
+                try {
+                    Socket s = ch.accept();
+                    //TODO expect handshake from client
+                } catch (IOException ex) {
+                    assert false;
+                }
+            }
+        }).start();
         c.download(new ByteArrayInputStream("TODO".getBytes(byteEncoding)), ".");
         server.stop(0);
         c.stopProtocol();
