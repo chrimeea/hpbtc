@@ -29,11 +29,15 @@ public class Client {
     private byte[] peerId;
     private byte[] protocol;
 
-    public Client() throws UnsupportedEncodingException {
+    public Client(byte[] peerId) throws UnsupportedEncodingException {
         fastTimer = new Timer(true);
         torrents = new Vector<Torrent>();
-        this.peerId = TorrentUtil.generateId();
-        protocol = TorrentUtil.getSupportedProtocol();
+        this.peerId = peerId;
+        protocol = TorrentUtil.getSupportedProtocol();        
+    }
+    
+    public Client() throws UnsupportedEncodingException {
+        this(TorrentUtil.generateId());
     }
 
     public void download(final InputStream is, final String rootFolder)
