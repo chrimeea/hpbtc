@@ -5,7 +5,7 @@
 package hpbtc;
 
 import hpbtc.processor.Client;
-import java.io.File;
+import java.io.FileInputStream;
 import java.util.logging.Logger;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -39,7 +39,9 @@ public class HPBTC {
             protocol.startProtocol();
             String d = args[0];
             for (int i = 1; i < args.length; i++) {
-                protocol.download(new File(args[i]), d);
+                FileInputStream fis = new FileInputStream(args[i]);
+                protocol.download(fis, d);
+                fis.close();
             }
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 

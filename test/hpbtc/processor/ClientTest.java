@@ -23,7 +23,7 @@ public class ClientTest {
     public void testStartStop() throws UnsupportedEncodingException,
             IOException {
         final Client c = new Client();
-        int port = c.startProtocol();
+        final int port = c.startProtocol();
         final Socket s = new Socket(InetAddress.getLocalHost(), port);
         final HandshakeMessage hm = new HandshakeMessage(null,
                 TorrentUtil.getSupportedProtocol(), null, new byte[20]);
@@ -39,6 +39,9 @@ public class ClientTest {
     }
     
     @Test
-    public void download() {
+    public void download() throws UnsupportedEncodingException, IOException {
+        final Client c = new Client();
+        final int port = c.startProtocol();
+        c.stopProtocol();
     }
 }

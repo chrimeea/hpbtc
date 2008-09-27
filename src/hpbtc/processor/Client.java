@@ -4,9 +4,8 @@ import hpbtc.protocol.network.NetworkReader;
 import hpbtc.protocol.network.NetworkWriter;
 import hpbtc.protocol.network.Register;
 import hpbtc.protocol.torrent.Torrent;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -37,11 +36,9 @@ public class Client {
         protocol = TorrentUtil.getSupportedProtocol();
     }
 
-    public void download(final File fileName, final String rootFolder)
+    public void download(final InputStream is, final String rootFolder)
             throws IOException, NoSuchAlgorithmException {
-        FileInputStream fis = new FileInputStream(fileName);
-        final Torrent ti = new Torrent(fis, rootFolder, peerId, port);
-        fis.close();
+        final Torrent ti = new Torrent(is, rootFolder, peerId, port);
         torrents.add(ti);
         writer.download(ti);
     }
