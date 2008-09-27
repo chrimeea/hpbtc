@@ -50,7 +50,7 @@ public class MessageWriterImpl implements MessageWriter {
         Torrent torrent = peer.getTorrent();
         peer.disconnect();
         logger.info("Disconnected " + peer);
-        if (torrent != null && torrent.getRemainingPeers() < 3) {
+        if (torrent != null && torrent.getRemainingPeers() < 5) {
             if (torrent.cancelTrackerTask()) {
                 Tracker tracker = torrent.getTracker();
                 long delay = tracker.getMinInterval() * 1000 -
@@ -127,7 +127,7 @@ public class MessageWriterImpl implements MessageWriter {
             Collections.sort(prs, comp);
         }
         int k = 0;
-       final List<SimpleMessage> result = new LinkedList<SimpleMessage>();
+        final List<SimpleMessage> result = new LinkedList<SimpleMessage>();
         for (Peer p : prs) {
             if (k < 4) {
                 if (p.isClientChoking()) {
