@@ -19,10 +19,11 @@ import org.junit.Test;
 public class TrackerTest {
 
     private String byteEncoding = "US-ASCII";
-    
+
     @Test
     public void testConnectToTracker() throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
+        final HttpServer server = HttpServer.create(new InetSocketAddress(8000),
+                0);
         server.createContext("/test", new HttpHandler() {
 
             public void handle(HttpExchange t) throws IOException {
@@ -33,24 +34,26 @@ public class TrackerTest {
                 } catch (URISyntaxException e) {
                     assert false;
                 }
-                String response =
+                final String response =
                         "d8:intervali10e12:min intervali5e10:tracker id3:foo8:completei20e10:incompletei9e5:peersld7:peer id2:1P2:ip9:localhost4:porti9000eed7:peer id2:2P2:ip9:localhost4:porti3003eeee";
                 t.sendResponseHeaders(200, response.length());
-                OutputStream os = t.getResponseBody();
+                final OutputStream os = t.getResponseBody();
                 os.write(response.getBytes(byteEncoding));
                 os.close();
             }
         });
         server.setExecutor(null);
         server.start();
-        LinkedList<LinkedList<byte[]>> t = new LinkedList<LinkedList<byte[]>>();
-        LinkedList<byte[]> l = new LinkedList<byte[]>();
+        final LinkedList<LinkedList<byte[]>> t =
+                new LinkedList<LinkedList<byte[]>>();
+        final LinkedList<byte[]> l = new LinkedList<byte[]>();
         l.add("http://localhost:8001/test".getBytes(byteEncoding));
         l.add("http://localhost:8000/test".getBytes(byteEncoding));
         t.add(l);
-        Tracker ti = new Tracker("INFOHASH".getBytes(byteEncoding),
+        final Tracker ti = new Tracker("INFOHASH".getBytes(byteEncoding),
                 "PID".getBytes(byteEncoding), 2000, t, byteEncoding);
-        Iterable<Peer> peers = ti.updateTracker(Tracker.Event.started, 1, 2, 3,
+        final Iterable<Peer> peers = ti.updateTracker(Tracker.Event.started, 1,
+                2, 3,
                 false);
         server.stop(0);
         assert ti.getInterval() == 10;

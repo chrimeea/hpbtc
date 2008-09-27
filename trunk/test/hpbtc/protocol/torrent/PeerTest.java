@@ -26,12 +26,13 @@ public class PeerTest {
     @Test
     public void testRequests() throws IOException,
             NoSuchAlgorithmException {
-        Peer p = new Peer(InetSocketAddress.createUnresolved("localhost", 6000),
+        final Peer p = new Peer(InetSocketAddress.createUnresolved("localhost",
+                6000),
                 null);
-        ByteArrayInputStream b =
+        final ByteArrayInputStream b =
                 new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi10240e4:name11:manifest.mf12:piece lengthi256e6:pieces20:12345678901234567890ee".
                 getBytes(byteEncoding));
-        Torrent info = new Torrent(b, ".", null, 0);
+        final Torrent info = new Torrent(b, ".", null, 0);
         b.close();
         p.setTorrent(info);
         int cs = info.getChunkSize();
@@ -53,31 +54,31 @@ public class PeerTest {
 
     @Test
     public void testEquals() {
-        Peer p1 = new Peer(InetSocketAddress.createUnresolved("localhost", 6000),
-                null);
-        Peer p2 = new Peer(InetSocketAddress.createUnresolved("localhost", 6000),
-                null);
+        final Peer p1 = new Peer(InetSocketAddress.createUnresolved("localhost",
+                6000), null);
+        final Peer p2 = new Peer(InetSocketAddress.createUnresolved("localhost",
+                6000), null);
         assert p1.equals(p2);
         assert p2.equals(p1);
-        Peer p3 = new Peer(InetSocketAddress.createUnresolved("localhost", 7000),
-                null);
+        final Peer p3 = new Peer(InetSocketAddress.createUnresolved("localhost",
+                7000), null);
         assert !p1.equals(p3);
         assert !p3.equals(p1);
     }
 
     @Test
     public void testMessagesToSend() {
-        Peer p = new Peer(InetSocketAddress.createUnresolved("localhost", 6000),
-                null);
+        final Peer p = new Peer(InetSocketAddress.createUnresolved("localhost",
+                6000), null);
         assert p.isMessagesToSendEmpty();
-        LengthPrefixMessage m = new LengthPrefixMessage(0, p);
+        final LengthPrefixMessage m = new LengthPrefixMessage(0, p);
         p.addMessageToSend(m);
         assert !p.isMessagesToSendEmpty();
         p.cancelPieceMessage();
         assert !p.isMessagesToSendEmpty();
         assert m.equals(p.getMessageToSend());
         assert p.isMessagesToSendEmpty();
-        PieceMessage pm = new PieceMessage(1, 2, 3, p);
+        final PieceMessage pm = new PieceMessage(1, 2, 3, p);
         p.addMessageToSend(pm);
         assert !p.isMessagesToSendEmpty();
         p.cancelPieceMessage(0, 2, 3);
@@ -85,12 +86,12 @@ public class PeerTest {
         p.cancelPieceMessage(1, 2, 3);
         assert p.isMessagesToSendEmpty();
     }
-    
+
     @Test
     public void testUploadDownload() throws IOException {
-        InetSocketAddress a = new InetSocketAddress(
+        final InetSocketAddress a = new InetSocketAddress(
                 InetAddress.getByName("127.0.0.1"), 6001);
-        Peer p = new Peer(a, null);
+        final Peer p = new Peer(a, null);
         final ServerSocket ss = new ServerSocket(6001);
         final byte[] b = "test".getBytes("US-ASCII");
         final byte[] x = "response".getBytes("US-ASCII");
@@ -99,7 +100,7 @@ public class PeerTest {
             @Override
             public void run() {
                 try {
-                    Socket socket = ss.accept();
+                    final Socket socket = ss.accept();
                     byte[] r = new byte[4];
                     socket.getInputStream().read(r);
                     assert Arrays.equals(b, r);
@@ -110,7 +111,7 @@ public class PeerTest {
                 }
             }
         }.start();
-        SocketChannel s = SocketChannel.open(a);
+        final SocketChannel s = SocketChannel.open(a);
         p.setChannel(s);
         assert p.countUploaded() == 0;
         int i = p.upload(ByteBuffer.wrap(b));

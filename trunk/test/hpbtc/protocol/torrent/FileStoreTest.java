@@ -1,7 +1,6 @@
 /*
  * Created on 23.09.2008
  */
-
 package hpbtc.protocol.torrent;
 
 import java.io.File;
@@ -17,11 +16,12 @@ import org.junit.Test;
  * @author Cristian Mocanu <chrimeea@yahoo.com>
  */
 public class FileStoreTest {
-    
+
     @Test
     public void testComputeChunksInPiece() throws IOException,
             NoSuchAlgorithmException {
-        FileStore fs = new FileStore(20481, new byte[20], ".", "test", 86016);
+        final FileStore fs = new FileStore(20481, new byte[20], ".", "test",
+                86016);
         assert fs.computeChunksInPiece(0) == 2;
         assert fs.computeChunksInPiece(4) == 1;
     }
@@ -32,10 +32,10 @@ public class FileStoreTest {
         Arrays.fill(b1, (byte) 5);
         byte[] b2 = new byte[4097];
         Arrays.fill(b2, (byte) 30);
-        MessageDigest md = MessageDigest.getInstance("SHA1");
+        final MessageDigest md = MessageDigest.getInstance("SHA1");
         md.update(b1);
         md.update(b2);
-        File f = File.createTempFile("HPBTC", null);
+        final File f = File.createTempFile("HPBTC", null);
         byte[] dig = md.digest();
         FileStore fs = new FileStore(20481, dig,
                 f.getParentFile().getPath(), f.getName(), 20481);
