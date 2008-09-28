@@ -20,6 +20,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -97,7 +98,11 @@ public class ClientTest {
             public void run() {
                 try {
                     Socket s = ch.accept();
-                    //TODO expect handshake from client
+                    InputStream is = s.getInputStream();
+                    byte[] b = new byte[68];
+                    is.read(b);
+                    HandshakeMessage m = new HandshakeMessage(ByteBuffer.wrap(b),
+                            null);
                     s.close();
                 } catch (IOException ex) {
                     assert false;
