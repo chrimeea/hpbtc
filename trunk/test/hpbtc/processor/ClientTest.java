@@ -10,6 +10,7 @@ import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.torrent.HttpHandlerStub;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -18,12 +19,11 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.junit.Ignore;
 import org.junit.Test;
 import util.TorrentUtil;
 
@@ -55,7 +55,6 @@ public class ClientTest {
     }
     
     @Test
-    @Ignore
     public void download() throws UnsupportedEncodingException, IOException,
             NoSuchAlgorithmException, URISyntaxException {
         final byte[] pid = TorrentUtil.generateId();
@@ -70,15 +69,24 @@ public class ClientTest {
         peers[5] = (byte) (peerPort % 256);
         final Map<byte[], Object> response = new HashMap<byte[], Object>();
         response.put("peers".getBytes(byteEncoding), peers);
+        response.put("interval".getBytes(byteEncoding), 60);
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
         final BencodingWriter bw = new BencodingWriter(os);
         bw.write(response);
         os.close();
         final String prefix = "/test";
         final HttpHandlerStub hh = new HttpHandlerStub(1, byteEncoding);
-        hh.addExpectation(prefix + "?info_hash=TODO&peer_id=" +
-                new String(pid, byteEncoding) + "&port=" + port +
-                "&uploaded=0&downloaded=0&left=TODO&compact=1&event=started",
+        final String dfile = "manifest.mf";
+        final String trackEncoding = "ISO-8859-1";
+        String ihash = "d6:lengthi85e4:name11:" + dfile +
+                "12:piece lengthi65536e6:pieces20:12345678901234567890e";
+        String infoHash = URLEncoder.encode(new String(MessageDigest.
+                getInstance("SHA1").digest(ihash.getBytes(byteEncoding)),
+                trackEncoding), trackEncoding);
+        hh.addExpectation(prefix + "?info_hash=" + infoHash + "&peer_id=" +
+                URLEncoder.encode(new String(pid, trackEncoding),
+                trackEncoding) + "&port=" + port +
+                "&uploaded=0&downloaded=0&left=85&compact=1&event=started",
                 new String(os.toByteArray(), byteEncoding));
         final HttpServer server = HttpServer.create(new InetSocketAddress(6000),
                 0);
@@ -90,13 +98,17 @@ public class ClientTest {
                 try {
                     Socket s = ch.accept();
                     //TODO expect handshake from client
+                    s.close();
                 } catch (IOException ex) {
                     assert false;
                 }
             }
         }).start();
-        c.download(new ByteArrayInputStream("TODO".getBytes(byteEncoding)), ".");
-        server.stop(0);
+        c.download(new ByteArrayInputStream(("d8:announce26:http://localhost:6000/test4:info" +
+                ihash + "e").getBytes(byteEncoding)), ".");
         c.stopProtocol();
+        server.stop(0);
+        ch.close();
+        new File(dfile).delete();
     }
 }
