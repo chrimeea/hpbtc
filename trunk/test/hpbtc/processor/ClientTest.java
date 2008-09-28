@@ -99,17 +99,17 @@ public class ClientTest {
         server.start();
         c.download(new ByteArrayInputStream(("d8:announce26:http://localhost:6000/test4:info" +
                 ihash + "e").getBytes(byteEncoding)), ".");
-        Socket s = ch.accept();
-        InputStream is = s.getInputStream();
+        final Socket s = ch.accept();
+        final InputStream is = s.getInputStream();
         byte[] b = new byte[48];
         is.read(b);
-        HandshakeMessage m = new HandshakeMessage(ByteBuffer.wrap(b), null);
+        final HandshakeMessage m = new HandshakeMessage(ByteBuffer.wrap(b), null);
         assert Arrays.equals(m.getProtocol(), TorrentUtil.getSupportedProtocol());
         assert Arrays.equals(m.getInfoHash(), infoHash.getBytes(trackEncoding));
         b = new byte[20];
         is.read(b);
         assert Arrays.equals(b, pid);
-        OutputStream outs = s.getOutputStream();
+        final OutputStream outs = s.getOutputStream();
         m.setPeerId(TorrentUtil.generateId());
         outs.write(m.send().array());
         s.close();
