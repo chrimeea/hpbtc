@@ -1,7 +1,6 @@
 /*
  * Created on 26.09.2008
  */
-
 package hpbtc.processor;
 
 import com.sun.net.httpserver.HttpServer;
@@ -23,6 +22,7 @@ import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
@@ -35,7 +35,7 @@ import util.TorrentUtil;
 public class ClientTest {
 
     private String byteEncoding = "US-ASCII";
-    
+
     @Test
     public void testStartStop() throws UnsupportedEncodingException,
             IOException {
@@ -52,9 +52,10 @@ public class ClientTest {
         try {
             new Socket(InetAddress.getLocalHost(), port);
             assert false;
-        } catch (IOException e) {}
+        } catch (IOException e) {
+        }
     }
-    
+
     @Test
     public void download() throws UnsupportedEncodingException, IOException,
             NoSuchAlgorithmException, URISyntaxException {
@@ -63,8 +64,10 @@ public class ClientTest {
         final int port = c.startProtocol();
         final ServerSocket ch = new ServerSocket(0);
         final byte[] peers = new byte[6];
-        peers[0] = 127; peers[1] = 0;
-        peers[2] = 0; peers[3] = 1;
+        peers[0] = 127;
+        peers[1] = 0;
+        peers[2] = 0;
+        peers[3] = 1;
         final int peerPort = ch.getLocalPort();
         peers[4] = (byte) (peerPort / 256);
         peers[5] = (byte) (peerPort % 256);
@@ -79,12 +82,12 @@ public class ClientTest {
         final HttpHandlerStub hh = new HttpHandlerStub(1, byteEncoding);
         final String dfile = "manifest.mf";
         final String trackEncoding = "ISO-8859-1";
-        String ihash = "d6:lengthi85e4:name11:" + dfile +
+        final String ihash = "d6:lengthi85e4:name11:" + dfile +
                 "12:piece lengthi65536e6:pieces20:12345678901234567890e";
-        String infoHash = URLEncoder.encode(new String(MessageDigest.
-                getInstance("SHA1").digest(ihash.getBytes(byteEncoding)),
-                trackEncoding), trackEncoding);
-        hh.addExpectation(prefix + "?info_hash=" + infoHash + "&peer_id=" +
+        final String infoHash = new String(MessageDigest.getInstance("SHA1").
+                digest(ihash.getBytes(byteEncoding)), trackEncoding);
+        hh.addExpectation(prefix + "?info_hash=" + URLEncoder.encode(infoHash,
+                trackEncoding) + "&peer_id=" +
                 URLEncoder.encode(new String(pid, trackEncoding),
                 trackEncoding) + "&port=" + port +
                 "&uploaded=0&downloaded=0&left=85&compact=1&event=started",
@@ -93,24 +96,19 @@ public class ClientTest {
                 0);
         server.createContext(prefix, hh);
         server.start();
-        new Thread(new Runnable() {
-
-            public void run() {
-                try {
-                    Socket s = ch.accept();
-                    InputStream is = s.getInputStream();
-                    byte[] b = new byte[68];
-                    is.read(b);
-                    HandshakeMessage m = new HandshakeMessage(ByteBuffer.wrap(b),
-                            null);
-                    s.close();
-                } catch (IOException ex) {
-                    assert false;
-                }
-            }
-        }).start();
         c.download(new ByteArrayInputStream(("d8:announce26:http://localhost:6000/test4:info" +
                 ihash + "e").getBytes(byteEncoding)), ".");
+        Socket s = ch.accept();
+        InputStream is = s.getInputStream();
+        byte[] b = new byte[48];
+        is.read(b);
+        HandshakeMessage m = new HandshakeMessage(ByteBuffer.wrap(b), null);
+        assert Arrays.equals(m.getProtocol(), TorrentUtil.getSupportedProtocol());
+        assert Arrays.equals(m.getInfoHash(), infoHash.getBytes(trackEncoding));
+        b = new byte[20];
+        is.read(b);
+        assert Arrays.equals(b, pid);
+        s.close();
         c.stopProtocol();
         server.stop(0);
         ch.close();
