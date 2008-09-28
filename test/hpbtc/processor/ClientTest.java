@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -108,6 +109,9 @@ public class ClientTest {
         b = new byte[20];
         is.read(b);
         assert Arrays.equals(b, pid);
+        OutputStream outs = s.getOutputStream();
+        m.setPeerId(TorrentUtil.generateId());
+        outs.write(m.send().array());
         s.close();
         c.stopProtocol();
         server.stop(0);
