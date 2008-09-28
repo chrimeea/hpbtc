@@ -19,13 +19,13 @@ public class TrackerUtil {
 
     public static Set<Peer> doCompactPeer(final byte[] prs)
             throws UnsupportedEncodingException, UnknownHostException {
-        Set<Peer> peers = new HashSet<Peer>();
+        final Set<Peer> peers = new HashSet<Peer>();
         int k = 0;
         while (k < prs.length) {
-            InetAddress peerIp = InetAddress.getByAddress(
+            final InetAddress peerIp = InetAddress.getByAddress(
                     Arrays.copyOfRange(prs, k, k + 4));
             k += 6;
-            int peerPort = getUnsigned(prs[k - 2]) * 256 + getUnsigned(
+            final int peerPort = getUnsigned(prs[k - 2]) * 256 + getUnsigned(
                     prs[k - 1]);
             peers.add(new Peer(new InetSocketAddress(peerIp, peerPort), null));
         }
@@ -35,7 +35,7 @@ public class TrackerUtil {
     public static Set<Peer> doLoosePeer(final List<Map<byte[], Object>> prs,
             final String byteEncoding) throws
             UnsupportedEncodingException {
-        Set<Peer> peers = new HashSet<Peer>();
+        final Set<Peer> peers = new HashSet<Peer>();
         for (Map<byte[], Object> d : prs) {
             peers.add(new Peer(new InetSocketAddress(new String((byte[]) d.get("ip".
                     getBytes(byteEncoding)), byteEncoding), ((Long) d.get("port".
