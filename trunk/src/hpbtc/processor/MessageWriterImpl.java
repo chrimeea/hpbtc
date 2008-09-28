@@ -56,14 +56,12 @@ public class MessageWriterImpl implements MessageWriter {
                 long delay = tracker.getMinInterval() * 1000 -
                         System.currentTimeMillis() +
                         tracker.getLastTrackerContact();
-                torrent.setTrackerTask(scheduleTrackerTask(torrent,
-                        delay < 0L ? 0L : delay));
+                scheduleTrackerTask(torrent, delay < 0L ? 0L : delay);
             }
         }
     }
 
-    private TimerTask scheduleTrackerTask(final Torrent torrent,
-            final long delay) {
+    private void scheduleTrackerTask(final Torrent torrent, final long delay) {
         final TimerTask tt = new TimerTask() {
 
             @Override
@@ -73,13 +71,10 @@ public class MessageWriterImpl implements MessageWriter {
             }
         };
         timer.schedule(tt, delay, torrent.getTracker().getInterval() * 1000);
-        return tt;
+        torrent.setTrackerTask(tt);
     }
 
     public void download(final Torrent torrent) {
-        torrent.beginTracker();
-        contactFreshPeers(torrent);
-        scheduleTrackerTask(torrent, torrent.getTracker().getInterval() * 1000);
         timer.schedule(new TimerTask() {
 
             @Override
@@ -101,6 +96,17 @@ public class MessageWriterImpl implements MessageWriter {
                 }
             }
         }, 10000L, 10000L);
+        final TimerTask tt = new TimerTask() {
+
+            @Override
+            public void run() {
+                torrent.beginTracker();
+                scheduleTrackerTask(torrent,
+                        torrent.getTracker().getInterval() * 1000);
+                contactFreshPeers(torrent);
+            }
+        };
+        timer.schedule(tt, 0L);
     }
 
     private List<SimpleMessage> decideChoking(final Torrent torrent) {
