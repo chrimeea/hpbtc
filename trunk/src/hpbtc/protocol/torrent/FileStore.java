@@ -36,7 +36,7 @@ public class FileStore {
     private int chunksInPiece;
     private int chunksInLastPiece;
     private MessageDigest md;
-    
+
     public int getNrPieces() {
         return nrPieces;
     }
@@ -44,11 +44,11 @@ public class FileStore {
     public BitSet getChunksIndex(final int index) {
         return pieces[index];
     }
-    
+
     public int getPieceLength() {
         return pieceLength;
     }
-    
+
     public BitSet getCompletePieces() {
         return completePieces;
     }
@@ -67,7 +67,7 @@ public class FileStore {
         }
         return TorrentUtil.computeNextPieceIndexFromPosition(x, pieceLength);
     }
-    
+
     private void init(final int pieceLength, final byte[] pieceHash)
             throws IOException, NoSuchAlgorithmException {
         md = MessageDigest.getInstance("SHA1");
@@ -161,7 +161,7 @@ public class FileStore {
     public boolean isTorrentComplete() {
         return completePieces.cardinality() == nrPieces;
     }
-    
+
     public boolean isPieceComplete(final int index) {
         return completePieces.get(index);
     }
@@ -169,30 +169,31 @@ public class FileStore {
     public int computeChunksInPiece(int index) {
         return index == nrPieces - 1 ? chunksInLastPiece : chunksInPiece;
     }
-    
+
     private int computePieceLength(int index) {
         return index == nrPieces - 1 ? TorrentUtil.computeRemainingLastPiece(
-                0, fileLength, pieceLength): pieceLength;
+                0, fileLength, pieceLength) : pieceLength;
     }
-    
+
     public boolean savePiece(final int begin, final int index,
             final ByteBuffer piece) throws IOException, NoSuchAlgorithmException {
-        pieces[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
-                TorrentUtil.computeEndIndex(begin, piece.remaining(), chunkSize));
-        saveFileChunk(getFileList(begin, index, piece.remaining()), offset,
-                piece);
-        if (pieces[index].cardinality() == computeChunksInPiece(index)) {
-            if (isHashCorrect(index, computePieceLength(index))) {
-                completePieces.set(index);
-                logger.info("Have piece " + index);
-                return true;
-            } else {
-                pieces[index].clear();
-                return false;                
+        if (!completePieces.get(index)) {
+            pieces[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
+                    TorrentUtil.computeEndIndex(begin, piece.remaining(),
+                    chunkSize));
+            saveFileChunk(getFileList(begin, index, piece.remaining()), offset,
+                    piece);
+            if (pieces[index].cardinality() == computeChunksInPiece(index)) {
+                if (isHashCorrect(index, computePieceLength(index))) {
+                    completePieces.set(index);
+                    logger.info("Have piece " + index);
+                    return true;
+                } else {
+                    pieces[index].clear();
+                }
             }
-        } else {
-            return false;
         }
+        return false;
     }
 
     private List<File> getFileList(final int begin, final int index,
