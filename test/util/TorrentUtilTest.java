@@ -56,8 +56,8 @@ public class TorrentUtilTest {
     @Test
     public void testComputeChunkSize() {
         assert TorrentUtil.computeChunkSize(7, 3, 8, 10240L, 24) == 8;
-        assert TorrentUtil.computeChunkSize(427, 3, 8, 10240L, 24) == 8;
-        assert TorrentUtil.computeChunkSize(427, 9, 8, 10240L, 24) == 7;
+        assert TorrentUtil.computeChunkSize(426, 3, 8, 10240L, 24) == 8;
+        assert TorrentUtil.computeChunkSize(426, 9, 8, 10240L, 24) == 7;
     }
     
     @Test

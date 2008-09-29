@@ -2,8 +2,6 @@ package util;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
 /**
@@ -34,11 +32,10 @@ public class TorrentUtil {
 
     public static int computeChunkSize(final int index, final int begin,
             final int chunkSize, final long fileLength, final int pieceLength) {
-        if (index < computeNrPieces(fileLength, pieceLength) - 1) {
-            return chunkSize;
-        }
-        return Math.min(chunkSize, computeRemainingLastPiece(begin, fileLength,
-                pieceLength));
+        int rem = index == computeNrPieces(fileLength, pieceLength) - 1 ?
+            computeRemainingLastPiece(begin, fileLength, pieceLength) :
+            pieceLength - begin;
+        return Math.min(chunkSize, rem);
     }
 
     public static int computeNrPieces(long fileLength, int pieceLength) {

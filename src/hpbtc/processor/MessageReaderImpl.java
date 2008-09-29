@@ -81,53 +81,53 @@ public class MessageReaderImpl implements MessageReader {
                 if (peer.download()) {
                     final ByteBuffer data = peer.getData();
                     peer.setExpectBody(false);
-                    byte disc = data.get();
+                    final byte disc = data.get();
                     switch (disc) {
                         case SimpleMessage.TYPE_BITFIELD:
-                            BitfieldMessage mBit = new BitfieldMessage(data,
+                            final BitfieldMessage mBit = new BitfieldMessage(data,
                                     peer);
                             logger.fine("Received " + mBit);
                             processBitfield(mBit);
                             break;
                         case SimpleMessage.TYPE_CANCEL:
-                            BlockMessage mCan = new BlockMessage(data, disc,
+                            final BlockMessage mCan = new BlockMessage(data, disc,
                                     peer);
                             logger.fine("Received " + mCan);
                             processCancel(mCan);
                             break;
                         case SimpleMessage.TYPE_CHOKE:
-                            SimpleMessage mChoke = new SimpleMessage(disc, peer);
+                            final SimpleMessage mChoke = new SimpleMessage(disc, peer);
                             logger.fine("Received " + mChoke);
                             processChoke(mChoke);
                             break;
                         case SimpleMessage.TYPE_HAVE:
-                            HaveMessage mHave = new HaveMessage(data, peer);
+                            final HaveMessage mHave = new HaveMessage(data, peer);
                             logger.fine("Received " + mHave);
                             processHave(mHave);
                             break;
                         case SimpleMessage.TYPE_INTERESTED:
-                            SimpleMessage mInt = new SimpleMessage(disc, peer);
+                            final SimpleMessage mInt = new SimpleMessage(disc, peer);
                             logger.fine("Received " + mInt);
                             processInterested(mInt);
                             break;
                         case SimpleMessage.TYPE_NOT_INTERESTED:
-                            SimpleMessage mNot = new SimpleMessage(disc, peer);
+                            final SimpleMessage mNot = new SimpleMessage(disc, peer);
                             logger.fine("Received " + mNot);
                             processNotInterested(mNot);
                             break;
                         case SimpleMessage.TYPE_PIECE:
-                            PieceMessage mPiece = new PieceMessage(data, peer);
+                            final PieceMessage mPiece = new PieceMessage(data, peer);
                             logger.fine("Received " + mPiece);
                             processPiece(mPiece);
                             break;
                         case SimpleMessage.TYPE_REQUEST:
-                            BlockMessage mReq = new BlockMessage(data, disc,
+                            final BlockMessage mReq = new BlockMessage(data, disc,
                                     peer);
                             logger.fine("Received " + mReq);
                             processRequest(mReq);
                             break;
                         case SimpleMessage.TYPE_UNCHOKE:
-                            SimpleMessage mUn = new SimpleMessage(disc, peer);
+                            final SimpleMessage mUn = new SimpleMessage(disc, peer);
                             logger.fine("Received " + mUn);
                             processUnchoke(mUn);
                     }
@@ -137,7 +137,7 @@ public class MessageReaderImpl implements MessageReader {
         } else {
             peer.setNextDataExpectation(48);
             if (peer.download()) {
-                HandshakeMessage mHand = new HandshakeMessage(peer.getData(),
+                final HandshakeMessage mHand = new HandshakeMessage(peer.getData(),
                         peer);
                 logger.fine("Received " + mHand);
                 processHandshake(mHand);
@@ -149,10 +149,10 @@ public class MessageReaderImpl implements MessageReader {
 
     private void processHandshake(final HandshakeMessage message) throws
             IOException {
-        Peer peer = message.getDestination();
+        final Peer peer = message.getDestination();
         if (validator.validateHandshakeMessage(message)) {
             peer.setHandshakeReceived();
-            byte[] infoHash = message.getInfoHash();
+            final byte[] infoHash = message.getInfoHash();
             Torrent t = peer.getTorrent();
             if (t == null) {
                 for (Torrent tor : torrents) {
@@ -171,7 +171,7 @@ public class MessageReaderImpl implements MessageReader {
                 isIncoming = true;
             }
             t.addPeer(peer, isIncoming);
-            BitSet bs = t.getCompletePieces();
+            final BitSet bs = t.getCompletePieces();
             if (bs.cardinality() > 0) {
                 writer.postMessage(new BitfieldMessage(bs, t.getNrPieces(),
                         peer));
@@ -185,15 +185,14 @@ public class MessageReaderImpl implements MessageReader {
     private void processBitfield(final BitfieldMessage message) throws
             IOException {
         if (validator.validateBitfieldMessage(message)) {
-            Peer peer = message.getDestination();
+            final Peer peer = message.getDestination();
             peer.setPieces(message.getBitfield());
-            Torrent t = peer.getTorrent();
+            final Torrent t = peer.getTorrent();
             peer.getTorrent().updateAvailability(peer.getPieces());
             if (!t.getOtherPieces(peer).isEmpty()) {
-                SimpleMessage smessage = new SimpleMessage(
-                        SimpleMessage.TYPE_INTERESTED, peer);
-                writer.postMessage(smessage);
                 peer.setClientInterested(true);
+                writer.postMessage(new SimpleMessage(
+                        SimpleMessage.TYPE_INTERESTED, peer));
             }
         } else {
             logger.warning("Invalid message: " + message);
@@ -202,32 +201,30 @@ public class MessageReaderImpl implements MessageReader {
 
     private void processCancel(final BlockMessage message) {
         if (validator.validateCancelMessage(message)) {
-            Peer peer = message.getDestination();
-            peer.cancelPieceMessage(message.getBegin(), message.getIndex(),
-                    message.getLength());
+            message.getDestination().cancelPieceMessage(message.getBegin(),
+                    message.getIndex(), message.getLength());
         } else {
             logger.warning("Invalid message: " + message);
         }
     }
 
     private void processChoke(final SimpleMessage message) {
-        Peer peer = message.getDestination();
+        final Peer peer = message.getDestination();
         peer.setPeerChoking(true);
         peer.cancelPieceMessage();
     }
 
     private void processHave(final HaveMessage message) throws IOException {
         if (validator.validateHaveMessage(message)) {
-            Peer peer = message.getDestination();
-            int index = message.getIndex();
+            final Peer peer = message.getDestination();
+            final int index = message.getIndex();
             peer.setPiece(index);
-            Torrent t = peer.getTorrent();
+            final Torrent t = peer.getTorrent();
             t.updateAvailability(index);
             if (!peer.isClientInterested() && !t.isPieceComplete(index)) {
-                SimpleMessage m = new SimpleMessage(
-                        SimpleMessage.TYPE_INTERESTED, peer);
-                writer.postMessage(m);
                 peer.setClientInterested(true);
+                writer.postMessage(new SimpleMessage(
+                        SimpleMessage.TYPE_INTERESTED, peer));
             }
         } else {
             logger.warning("Invalid message: " + message);
@@ -244,22 +241,20 @@ public class MessageReaderImpl implements MessageReader {
 
     private void processPiece(final PieceMessage message)
             throws NoSuchAlgorithmException, IOException {
-        Peer peer = message.getDestination();
-        Torrent t = peer.getTorrent();
-        int index = message.getIndex();
-        int begin = message.getBegin();
+        final Peer peer = message.getDestination();
+        final Torrent t = peer.getTorrent();
+        final int index = message.getIndex();
+        final int begin = message.getBegin();
         if (validator.validatePieceMessage(message)) {
             peer.removeRequest(message.getIndex(), message.getBegin());
             if (t.savePiece(begin, index, message.getPiece())) {
                 for (Peer p : t.getConnectedPeers()) {
                     if (!p.getPieces().get(index)) {
-                        SimpleMessage msg = new HaveMessage(index, p);
-                        writer.postMessage(msg);
+                        writer.postMessage(new HaveMessage(index, p));
                     }
                     if (t.getOtherPieces(p).isEmpty()) {
-                        SimpleMessage smessage = new SimpleMessage(
-                                SimpleMessage.TYPE_NOT_INTERESTED, p);
-                        writer.postMessage(smessage);
+                        writer.postMessage(new SimpleMessage(
+                                SimpleMessage.TYPE_NOT_INTERESTED, p));
                         p.setClientInterested(false);
                     }
                 }
@@ -277,10 +272,10 @@ public class MessageReaderImpl implements MessageReader {
 
     private void processRequest(final BlockMessage message) throws
             IOException {
-        Peer peer = message.getDestination();
+        final Peer peer = message.getDestination();
         if (validator.validateRequestMessage(message) &&
                 !peer.isClientChoking() && peer.isPeerInterested()) {
-            PieceMessage pm = new PieceMessage(message.getBegin(),
+            final PieceMessage pm = new PieceMessage(message.getBegin(),
                     message.getIndex(), message.getLength(), peer);
             writer.postMessage(pm);
         } else {
@@ -289,7 +284,7 @@ public class MessageReaderImpl implements MessageReader {
     }
 
     private void processUnchoke(final SimpleMessage message) throws IOException {
-        Peer peer = message.getDestination();
+        final Peer peer = message.getDestination();
         peer.setPeerChoking(false);
         if (peer.isClientInterested()) {
             decideNextPieces(peer);
@@ -299,7 +294,7 @@ public class MessageReaderImpl implements MessageReader {
     private void decideNextPieces(final Peer peer)
             throws IOException {
         for (int i = peer.countTotalRequests(); i < 5; i++) {
-            BlockMessage bm = decideNextPiece(peer);
+            final BlockMessage bm = decideNextPiece(peer);
             if (bm != null) {
                 writer.postMessage(bm);
                 peer.addRequest(bm.getIndex(), bm.getBegin());
@@ -310,19 +305,18 @@ public class MessageReaderImpl implements MessageReader {
     }
 
     private BlockMessage decideNextPiece(final Peer peer) {
-        Torrent torrent = peer.getTorrent();
-        BitSet peerPieces = (BitSet) peer.getPieces().clone();
+        final Torrent torrent = peer.getTorrent();
+        final BitSet peerPieces = (BitSet) peer.getPieces().clone();
         peerPieces.andNot(torrent.getCompletePieces());
         int max = 0;
         int index = -1;
         int beginIndex = 0;
-        int n = torrent.getNrPieces();
-        BitSet rest = (BitSet) peerPieces.clone();
+        final BitSet rest = (BitSet) peerPieces.clone();
         for (int i = peerPieces.nextSetBit(0); i >= 0;
                 i = peerPieces.nextSetBit(i + 1)) {
-            BitSet sar = torrent.getChunksSavedAndRequested(peer, i);
-            int card = sar.cardinality();
-            int ch = sar.nextClearBit(0);
+            final BitSet sar = torrent.getChunksSavedAndRequested(peer, i);
+            final int card = sar.cardinality();
+            final int ch = sar.nextClearBit(0);
             if (ch < torrent.computeChunksInPiece(i)) {
                 if (card > max) {
                     max = card;
@@ -349,8 +343,8 @@ public class MessageReaderImpl implements MessageReader {
                 return null;
             }
         }
-        int cs = torrent.getChunkSize();
-        int begin = TorrentUtil.computeBeginPosition(beginIndex, cs);
+        final int cs = torrent.getChunkSize();
+        final int begin = TorrentUtil.computeBeginPosition(beginIndex, cs);
         return new BlockMessage(begin, index,
                 TorrentUtil.computeChunkSize(index, begin, cs,
                 torrent.getFileLength(), torrent.getPieceLength()),
