@@ -6,6 +6,9 @@ package hpbtc.processor;
 import com.sun.net.httpserver.HttpServer;
 import hpbtc.bencoding.BencodingWriter;
 import hpbtc.protocol.message.HandshakeMessage;
+import hpbtc.protocol.message.HaveMessage;
+import hpbtc.protocol.message.LengthPrefixMessage;
+import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.torrent.HttpHandlerStub;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -82,16 +85,18 @@ public class ClientTest {
         final HttpHandlerStub hh = new HttpHandlerStub(1, byteEncoding);
         final String dfile = "manifest.mf";
         final String trackEncoding = "ISO-8859-1";
-        final String ihash = "d6:lengthi85e4:name11:" + dfile +
-                "12:piece lengthi65536e6:pieces20:12345678901234567890e";
+        final int len = 2048;
+        final String ihash = "d6:lengthi" + len + "e4:name11:" + dfile +
+                "12:piece lengthi1024e6:pieces20:12345678901234567890e";
         final String infoHash = new String(MessageDigest.getInstance("SHA1").
                 digest(ihash.getBytes(byteEncoding)), trackEncoding);
         hh.addExpectation(prefix + "?info_hash=" + URLEncoder.encode(infoHash,
                 trackEncoding) + "&peer_id=" +
                 URLEncoder.encode(new String(pid, trackEncoding),
                 trackEncoding) + "&port=" + port +
-                "&uploaded=0&downloaded=0&left=85&compact=1&event=started",
-                new String(os.toByteArray(), byteEncoding));
+                "&uploaded=0&downloaded=0&left=" + len +
+                "&compact=1&event=started", new String(os.toByteArray(),
+                byteEncoding));
         final HttpServer server = HttpServer.create(new InetSocketAddress(6000),
                 0);
         server.createContext(prefix, hh);
@@ -102,7 +107,8 @@ public class ClientTest {
         final InputStream is = s.getInputStream();
         byte[] b = new byte[48];
         is.read(b);
-        final HandshakeMessage m = new HandshakeMessage(ByteBuffer.wrap(b), null);
+        ByteBuffer bb = ByteBuffer.wrap(b);
+        final HandshakeMessage m = new HandshakeMessage(bb, null);
         assert Arrays.equals(m.getProtocol(), TorrentUtil.getSupportedProtocol());
         assert Arrays.equals(m.getInfoHash(), infoHash.getBytes(trackEncoding));
         b = new byte[20];
@@ -111,6 +117,13 @@ public class ClientTest {
         final OutputStream outs = s.getOutputStream();
         m.setPeerId(TorrentUtil.generateId());
         outs.write(m.send().array());
+        LengthPrefixMessage hm = new HaveMessage(0, null);
+        outs.write(hm.send().array());
+        b = new byte[5];
+        is.read(b);
+        assert b[4] == SimpleMessage.TYPE_INTERESTED;
+        is.read(b);
+        assert b[4] == SimpleMessage.TYPE_UNCHOKE;
         s.close();
         c.stopProtocol();
         server.stop(0);
