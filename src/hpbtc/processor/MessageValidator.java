@@ -76,6 +76,7 @@ public class MessageValidator {
         Torrent t = message.getDestination().getTorrent();
         return message.getIndex() < t.getNrPieces() && message.getBegin() <
                 t.getPieceLength() && message.getLength() <= t.getChunkSize()
-                && t.isPieceComplete(message.getIndex());
+                && message.getLength() > 0 &&
+                t.isPieceComplete(message.getIndex());
     }
 }
