@@ -68,24 +68,18 @@ public class ClientTest {
         final int port = c.startProtocol();
         final ServerSocket ch = new ServerSocket(3332);
         final byte[] peers = new byte[6];
-        peers[0] = 127;
-        peers[1] = 0;
-        peers[2] = 0;
-        peers[3] = 1;
-        peers[4] = (byte) 13;
-        peers[5] = (byte) 4;
+        peers[0] = 127; peers[1] = 0; peers[2] = 0;
+        peers[3] = 1; peers[4] = (byte) 13; peers[5] = (byte) 4;
         final Map<byte[], Object> response = new HashMap<byte[], Object>();
         response.put("peers".getBytes(byteEncoding), peers);
         response.put("interval".getBytes(byteEncoding), 60);
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
         final BencodingWriter bw = new BencodingWriter(os);
-        bw.write(response);
-        os.close();
+        bw.write(response); os.close();
         final String prefix = "/test";
         final HttpHandlerStub hh = new HttpHandlerStub(1, byteEncoding);
         final String dfile = "manifest.mf";
-        final String trackEncoding = "ISO-8859-1";
-        final int len = 65536;
+        final String trackEncoding = "ISO-8859-1"; final int len = 65536;
         final String ihash = "d6:lengthi" + len + "e4:name11:" + dfile +
                 "12:piece lengthi32768e6:pieces20:12345678901234567890e";
         final String infoHash = new String(MessageDigest.getInstance("SHA1").
@@ -99,49 +93,39 @@ public class ClientTest {
                 byteEncoding));
         final HttpServer server = HttpServer.create(new InetSocketAddress(6000),
                 0);
-        server.createContext(prefix, hh);
-        server.start();
+        server.createContext(prefix, hh); server.start();
         c.download(new ByteArrayInputStream(("d8:announce26:http://localhost:6000/test4:info" +
                 ihash + "e").getBytes(byteEncoding)), ".");
         final Socket s = ch.accept();
         final InputStream is = s.getInputStream();
-        byte[] b = new byte[48];
-        is.read(b);
+        byte[] b = new byte[48]; is.read(b);
         ByteBuffer bb = ByteBuffer.wrap(b);
         final HandshakeMessage m = new HandshakeMessage(bb, null);
         assert Arrays.equals(m.getProtocol(), TorrentUtil.getSupportedProtocol());
         assert Arrays.equals(m.getInfoHash(), infoHash.getBytes(trackEncoding));
-        b = new byte[20];
-        is.read(b);
+        b = new byte[20]; is.read(b);
         assert Arrays.equals(b, pid);
         final OutputStream outs = s.getOutputStream();
         m.setPeerId(TorrentUtil.generateId());
         outs.write(m.send().array());
         LengthPrefixMessage hm = new HaveMessage(0, null);
         outs.write(hm.send().array());
-        b = new byte[5];
-        is.read(b);
+        b = new byte[5]; is.read(b);
         assert b[4] == SimpleMessage.TYPE_INTERESTED;
         is.read(b);
         assert b[4] == SimpleMessage.TYPE_UNCHOKE;
         hm = new SimpleMessage(SimpleMessage.TYPE_UNCHOKE, null);
         outs.write(hm.send().array());
-        b = new byte[17];
-        is.read(b);
+        b = new byte[17]; is.read(b);
         assert b[4] == SimpleMessage.TYPE_REQUEST;
-        assert b[8] == 0;
-        assert b[11] == 0; assert b[12] == 0;
+        assert b[8] == 0; assert b[11] == 0; assert b[12] == 0;
         assert b[15] == 64; assert b[16] == 0;
-        b = new byte[17];
-        is.read(b);
+        b = new byte[17]; is.read(b);
         assert b[4] == SimpleMessage.TYPE_REQUEST;
         assert b[8] == 0;
         assert b[11] == 64; assert b[12] == 0;
         assert b[15] == 64; assert b[16] == 0;
-        s.close();
-        c.stopProtocol();
-        server.stop(0);
-        ch.close();
+        s.close(); c.stopProtocol(); server.stop(0); ch.close();
         new File(dfile).delete();
     }
 }
