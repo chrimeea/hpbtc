@@ -63,15 +63,14 @@ public class ClientTest {
         final byte[] pid = TorrentUtil.generateId();
         final Client c = new Client(pid);
         final int port = c.startProtocol();
-        final ServerSocket ch = new ServerSocket(0);
+        final ServerSocket ch = new ServerSocket(3332);
         final byte[] peers = new byte[6];
         peers[0] = 127;
         peers[1] = 0;
         peers[2] = 0;
         peers[3] = 1;
-        final int peerPort = ch.getLocalPort();
-        peers[4] = (byte) (peerPort / 256);
-        peers[5] = (byte) (peerPort % 256);
+        peers[4] = (byte) 13;
+        peers[5] = (byte) 4;
         final Map<byte[], Object> response = new HashMap<byte[], Object>();
         response.put("peers".getBytes(byteEncoding), peers);
         response.put("interval".getBytes(byteEncoding), 60);

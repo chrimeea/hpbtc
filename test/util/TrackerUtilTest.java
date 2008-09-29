@@ -50,6 +50,26 @@ public class TrackerUtilTest {
     }
     
     @Test
+    public void testCompactPort() throws UnsupportedEncodingException,
+            UnknownHostException {
+        byte[] peers = new byte[6];
+        ByteBuffer bb = ByteBuffer.wrap(peers);
+        bb.put((byte) 127);
+        bb.put((byte) 0);
+        bb.put((byte) 0);
+        bb.put((byte) 1);
+        bb.put((byte) 11);
+        bb.put((byte) 184);
+        Set<Peer> p = TrackerUtil.doCompactPeer(peers);
+        assert p.size() == 1;
+        Peer pr = p.iterator().next();
+        InetSocketAddress a = pr.getAddress();
+        assert a.getHostName().equals("127.0.0.1");
+        assert a.getPort() == 3000;
+        assert pr.getId() == null;
+    }
+    
+    @Test
     public void testDoLoosePeer() throws UnsupportedEncodingException {
         List<Map<byte[], Object>> peers = new ArrayList<Map<byte[], Object>>(2);
         Map<byte[], Object> p = new TreeMap<byte[],

@@ -46,6 +46,6 @@ public class TrackerUtil {
     }
 
     private static int getUnsigned(final byte b) {
-        return b < 0 ? 127 - b : b;
+        return b < 0 ? 256 + b : b;
     }
 }
