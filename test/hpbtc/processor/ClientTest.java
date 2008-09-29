@@ -85,9 +85,9 @@ public class ClientTest {
         final HttpHandlerStub hh = new HttpHandlerStub(1, byteEncoding);
         final String dfile = "manifest.mf";
         final String trackEncoding = "ISO-8859-1";
-        final int len = 2048;
+        final int len = 65536;
         final String ihash = "d6:lengthi" + len + "e4:name11:" + dfile +
-                "12:piece lengthi1024e6:pieces20:12345678901234567890e";
+                "12:piece lengthi32768e6:pieces20:12345678901234567890e";
         final String infoHash = new String(MessageDigest.getInstance("SHA1").
                 digest(ihash.getBytes(byteEncoding)), trackEncoding);
         hh.addExpectation(prefix + "?info_hash=" + URLEncoder.encode(infoHash,
@@ -124,6 +124,20 @@ public class ClientTest {
         assert b[4] == SimpleMessage.TYPE_INTERESTED;
         is.read(b);
         assert b[4] == SimpleMessage.TYPE_UNCHOKE;
+        hm = new SimpleMessage(SimpleMessage.TYPE_UNCHOKE, null);
+        outs.write(hm.send().array());
+        b = new byte[17];
+        is.read(b);
+        assert b[4] == SimpleMessage.TYPE_REQUEST;
+        assert b[8] == 0;
+        assert b[11] == 0; assert b[12] == 0;
+        assert b[15] == 64; assert b[16] == 0;
+        b = new byte[17];
+        is.read(b);
+        assert b[4] == SimpleMessage.TYPE_REQUEST;
+        assert b[8] == 0;
+        assert b[11] == 64; assert b[12] == 0;
+        assert b[15] == 64; assert b[16] == 0;
         s.close();
         c.stopProtocol();
         server.stop(0);

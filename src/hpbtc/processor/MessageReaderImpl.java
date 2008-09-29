@@ -294,7 +294,6 @@ public class MessageReaderImpl implements MessageReader {
         if (peer.isClientInterested()) {
             decideNextPieces(peer);
         }
-
     }
 
     private void decideNextPieces(final Peer peer)
