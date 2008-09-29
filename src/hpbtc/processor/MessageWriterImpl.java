@@ -200,9 +200,9 @@ public class MessageWriterImpl implements MessageWriter {
         final Iterable<Peer> freshPeers = torrent.getFreshPeers();
         for (Peer peer : freshPeers) {
             try {
+                peer.setHandshakeSent();
                 postMessage(new HandshakeMessage(peerId, protocol, peer,
                         torrent.getInfoHash()));
-                peer.setHandshakeSent();
             } catch (Exception e) {
                 logger.log(Level.FINE, e.getLocalizedMessage(), e);
             }
