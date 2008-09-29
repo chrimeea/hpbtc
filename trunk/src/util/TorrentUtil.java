@@ -34,7 +34,7 @@ public class TorrentUtil {
 
     public static int computeChunkSize(final int index, final int begin,
             final int chunkSize, final long fileLength, final int pieceLength) {
-        if (index == computeNrPieces(fileLength, pieceLength) - 1) {
+        if (index < computeNrPieces(fileLength, pieceLength) - 1) {
             return chunkSize;
         }
         return Math.min(chunkSize, computeRemainingLastPiece(begin, fileLength,
