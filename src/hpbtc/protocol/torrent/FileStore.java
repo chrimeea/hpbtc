@@ -177,10 +177,12 @@ public class FileStore {
 
     public boolean savePiece(final int begin, final int index,
             final ByteBuffer piece) throws IOException, NoSuchAlgorithmException {
-        if (!completePieces.get(index)) {
-            pieces[index].set(TorrentUtil.computeBeginIndex(begin, chunkSize),
-                    TorrentUtil.computeEndIndex(begin, piece.remaining(),
-                    chunkSize));
+        final int bi = TorrentUtil.computeBeginIndex(begin, chunkSize);
+        final int ei = TorrentUtil.computeEndIndex(begin, piece.remaining(),
+                chunkSize);
+        final int nsb = pieces[index].nextSetBit(bi);
+        if (nsb < 0 || nsb >= ei) {
+            pieces[index].set(bi, ei);
             saveFileChunk(getFileList(begin, index, piece.remaining()), offset,
                     piece);
             if (pieces[index].cardinality() == computeChunksInPiece(index)) {
