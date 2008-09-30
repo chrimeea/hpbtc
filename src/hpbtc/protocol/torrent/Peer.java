@@ -107,18 +107,21 @@ public class Peer {
         totalRequests.getAndIncrement();
     }
 
-    public void removeRequest(final int index, final int begin) {
+    public boolean removeRequest(final int index, final int begin) {
         final BitSet bs = requests.get(index);
         if (bs != null) {
-            final int i = TorrentUtil.computeBeginIndex(begin, torrent.getChunkSize());
+            final int i = TorrentUtil.computeBeginIndex(begin,
+                    torrent.getChunkSize());
             if (bs.get(i)) {
                 bs.clear(i);
                 if (bs.isEmpty()) {
                     requests.remove(index);
                 }
                 totalRequests.getAndDecrement();
+                return true;
             }
         }
+        return false;
     }
 
     public void setExpectBody(boolean expectBody) {

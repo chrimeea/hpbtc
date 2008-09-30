@@ -130,7 +130,7 @@ public class MessageValidatorTest {
         peer.setTorrent(info);
         final MessageValidator v = new MessageValidator(null, protocol);
         int l = info.getPieceLength();
-        PieceMessage pm = new PieceMessage(0, 0, l, peer);
+        PieceMessage pm = new PieceMessage(0, 0, 85, peer);
         assert v.validatePieceMessage(pm);
         pm = new PieceMessage(l, 0, l, peer);
         assert !v.validatePieceMessage(pm);
