@@ -10,6 +10,7 @@ import hpbtc.protocol.torrent.Torrent;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
+import util.TorrentUtil;
 
 /**
  *
@@ -32,7 +33,7 @@ public class MessageValidator {
             return false;
         }
         for (Torrent t: torrents) {
-            byte[] ih = t.getInfoHash();
+            final byte[] ih = t.getInfoHash();
             if (Arrays.equals(ih, message.getInfoHash())) {
             message.setInfoHash(ih);
             return true;
@@ -42,11 +43,11 @@ public class MessageValidator {
     }
 
     public boolean validateBitfieldMessage(final BitfieldMessage message) {
-        Peer peer = message.getDestination();
+        final Peer peer = message.getDestination();
         if (peer.isMessagesReceived()) {
             return false;
         } else {
-            long nrPieces = peer.getTorrent().getNrPieces();
+            final long nrPieces = peer.getTorrent().getNrPieces();
             if (message.getBitfield().length() > nrPieces ||
                     message.getMessageLength() != 1 + Math.ceil(nrPieces / 8.0)) {
                 return false;
@@ -56,27 +57,31 @@ public class MessageValidator {
     }
 
     public boolean validateCancelMessage(final BlockMessage message) {
-        Torrent t = message.getDestination().getTorrent();
+        final Torrent t = message.getDestination().getTorrent();
         return message.getIndex() < t.getNrPieces() && message.getBegin() < t.
                 getPieceLength();
     }
 
     public boolean validateHaveMessage(final HaveMessage message) {
-        Torrent t = message.getDestination().getTorrent();
+        final Torrent t = message.getDestination().getTorrent();
         return message.getIndex() < t.getNrPieces();
     }
 
     public boolean validatePieceMessage(final PieceMessage message) {
-        Torrent t = message.getDestination().getTorrent();
-        return message.getIndex() < t.getNrPieces() && message.getBegin() < t.
-                getPieceLength();
+        final Torrent t = message.getDestination().getTorrent();
+        final int i = message.getIndex();
+        final int b = message.getBegin();
+        return i >= 0 && i < t.getNrPieces() && b >= 0 && b < t.getPieceLength()
+                && message.getLength() == TorrentUtil.computeChunkSize(i, b,
+                t.getChunkSize(), t.getFileLength(), t.getPieceLength());
     }
 
     public boolean validateRequestMessage(final BlockMessage message) {
-        Torrent t = message.getDestination().getTorrent();
-        return message.getIndex() < t.getNrPieces() && message.getBegin() <
-                t.getPieceLength() && message.getLength() <= t.getChunkSize()
-                && message.getLength() > 0 &&
-                t.isPieceComplete(message.getIndex());
+        final Torrent t = message.getDestination().getTorrent();
+        final int i = message.getIndex();
+        final int b = message.getBegin();
+        final int l = message.getLength();
+        return i >= 0 && i < t.getNrPieces() && b >= 0 && b < t.getPieceLength()
+                && l <= t.getChunkSize() && l > 0 && t.isPieceComplete(i);
     }
 }
