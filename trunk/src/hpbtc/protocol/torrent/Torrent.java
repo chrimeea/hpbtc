@@ -205,11 +205,13 @@ public class Torrent {
         }
     }
 
-    public BitSet getChunksSavedAndRequested(Peer peer, int index) {
+    public BitSet getChunksSavedAndRequested(int index) {
         final BitSet saved = (BitSet) fileStore.getChunksIndex(index).clone();
-        final BitSet req = peer.getRequests(index);
-        if (req != null) {
-            saved.or(req);
+        for (Peer p: peers) {
+            final BitSet req = p.getRequests(index);
+            if (req != null) {
+                saved.or(req);
+            }
         }
         return saved;
     }

@@ -325,7 +325,7 @@ public class MessageReaderImpl implements MessageReader {
         final BitSet rest = (BitSet) peerPieces.clone();
         for (int i = peerPieces.nextSetBit(0); i >= 0;
                 i = peerPieces.nextSetBit(i + 1)) {
-            final BitSet sar = torrent.getChunksSavedAndRequested(peer, i);
+            final BitSet sar = torrent.getChunksSavedAndRequested(i);
             final int card = sar.cardinality();
             final int ch = sar.nextClearBit(0);
             if (ch < torrent.computeChunksInPiece(i)) {

@@ -161,11 +161,11 @@ public class TorrentTest {
         final Torrent info = new Torrent(b, ".", null, 0);
         b.close();
         final Peer p = new Peer(InetSocketAddress.createUnresolved("localhost",
-                6000),
-                null);
+                6000), null);
         p.setTorrent(info);
         p.addRequest(10, info.getChunkSize() + 1);
-        final BitSet bs = info.getChunksSavedAndRequested(p, 10);
+        info.addPeer(p, true);
+        final BitSet bs = info.getChunksSavedAndRequested(10);
         assert bs.cardinality() == 1;
         assert bs.get(1);
     }
