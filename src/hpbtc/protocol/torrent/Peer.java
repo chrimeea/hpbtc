@@ -8,9 +8,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
-import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Queue;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -39,7 +37,7 @@ public class Peer {
     private int downloaded;
     private ByteBuffer data;
     private boolean expectBody;
-    private Map<Integer, BitSet> requests = new Hashtable<Integer, BitSet>();
+    private BitSet[] requests;
     private AtomicInteger totalRequests = new AtomicInteger();
     private TimerTask keepAliveRead;
     private TimerTask keepAliveWrite;
@@ -59,6 +57,7 @@ public class Peer {
 
     public void setTorrent(final Torrent torrent) {
         this.torrent = torrent;
+        requests = new BitSet[torrent.getNrPieces()];
     }
 
     public Torrent getTorrent() {
@@ -94,28 +93,28 @@ public class Peer {
     }
 
     public BitSet getRequests(final int index) {
-        return requests.get(index);
+        return requests[index];
     }
 
     public void addRequest(final int index, final int begin) {
-        BitSet bs = requests.get(index);
+        BitSet bs = requests[index];
         if (bs == null) {
             bs = new BitSet(torrent.computeChunksInPiece(index));
-            requests.put(index, bs);
+            requests[index] =  bs;
         }
         bs.set(TorrentUtil.computeBeginIndex(begin, torrent.getChunkSize()));
         totalRequests.getAndIncrement();
     }
 
     public boolean removeRequest(final int index, final int begin) {
-        final BitSet bs = requests.get(index);
+        final BitSet bs = requests[index];
         if (bs != null) {
             final int i = TorrentUtil.computeBeginIndex(begin,
                     torrent.getChunkSize());
             if (bs.get(i)) {
                 bs.clear(i);
                 if (bs.isEmpty()) {
-                    requests.remove(index);
+                    requests[index] = null;
                 }
                 totalRequests.getAndDecrement();
                 return true;
@@ -233,9 +232,17 @@ public class Peer {
         return peerInterested;
     }
 
+    private void clearRequests() {
+        if (requests != null) {
+            for (int i = 0; i < requests.length; i++) {
+                requests[i] = null;
+            }
+        }        
+    }
+    
     public void setPeerChoking(final boolean choking) {
         peerChoking = choking;
-        requests.clear();
+        clearRequests();
     }
 
     public boolean isPeerChoking() {
@@ -266,7 +273,7 @@ public class Peer {
         if (channel != null && channel.isOpen()) {
             channel.close();
         }
-        requests.clear();
+        clearRequests();
         messagesToSend.clear();
         if (torrent != null) {
             torrent.removePeer(this);
