@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import util.TorrentUtil;
 
@@ -147,8 +148,7 @@ public class MessageReaderImpl implements MessageReader {
             peer.setNextDataExpectation(48);
             if (peer.download()) {
                 final HandshakeMessage mHand = new HandshakeMessage(
-                        peer.getData(),
-                        peer);
+                        peer.getData(), peer);
                 logger.fine("Received " + mHand);
                 processHandshake(mHand);
                 peer.setNextDataExpectation(20);
@@ -258,14 +258,17 @@ public class MessageReaderImpl implements MessageReader {
         if (validator.validatePieceMessage(message) &&
                 peer.removeRequest(message.getIndex(), message.getBegin())) {
             if (t.savePiece(begin, index, message.getPiece())) {
-                for (Peer p : t.getConnectedPeers()) {
-                    if (!p.getPieces().get(index)) {
-                        writer.postMessage(new HaveMessage(index, p));
-                    }
-                    if (t.getOtherPieces(p).isEmpty()) {
-                        writer.postMessage(new SimpleMessage(
-                                SimpleMessage.TYPE_NOT_INTERESTED, p));
-                        p.setClientInterested(false);
+                Set<Peer> peers = t.getConnectedPeers();
+                synchronized (peers) {
+                    for (Peer p : peers) {
+                        if (!p.getPieces().get(index)) {
+                            writer.postMessage(new HaveMessage(index, p));
+                        }
+                        if (t.getOtherPieces(p).isEmpty()) {
+                            writer.postMessage(new SimpleMessage(
+                                    SimpleMessage.TYPE_NOT_INTERESTED, p));
+                            p.setClientInterested(false);
+                        }
                     }
                 }
                 if (t.isTorrentComplete()) {

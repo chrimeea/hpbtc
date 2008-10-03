@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -50,7 +51,7 @@ public class MessageWriterImpl implements MessageWriter {
         Torrent torrent = peer.getTorrent();
         peer.disconnect();
         logger.info("Disconnected " + peer);
-        if (torrent != null && torrent.getRemainingPeers() < 5) {
+        if (torrent != null && torrent.getRemainingPeers() == 5) {
             if (torrent.cancelTrackerTask()) {
                 Tracker tracker = torrent.getTracker();
                 long delay = tracker.getMinInterval() * 1000 -
@@ -110,7 +111,11 @@ public class MessageWriterImpl implements MessageWriter {
     }
 
     private List<SimpleMessage> decideChoking(final Torrent torrent) {
-        final List<Peer> prs = new ArrayList<Peer>(torrent.getConnectedPeers());
+        Set<Peer> peers = torrent.getConnectedPeers();
+        List<Peer> prs;
+        synchronized (peers) {
+            prs = new ArrayList<Peer>(peers);
+        }
         final Comparator<Peer> comp = torrent.isTorrentComplete() ? new Comparator<Peer>() {
 
             public int compare(Peer p1, Peer p2) {
@@ -198,13 +203,15 @@ public class MessageWriterImpl implements MessageWriter {
 
     private void contactFreshPeers(final Torrent torrent) {
         final Iterable<Peer> freshPeers = torrent.getFreshPeers();
-        for (Peer peer : freshPeers) {
-            try {
-                peer.setHandshakeSent();
-                postMessage(new HandshakeMessage(peerId, protocol, peer,
-                        torrent.getInfoHash()));
-            } catch (Exception e) {
-                logger.log(Level.FINE, e.getLocalizedMessage(), e);
+        synchronized (freshPeers) {
+            for (Peer peer : freshPeers) {
+                try {
+                    peer.setHandshakeSent();
+                    postMessage(new HandshakeMessage(peerId, protocol, peer,
+                            torrent.getInfoHash()));
+                } catch (Exception e) {
+                    logger.log(Level.FINE, e.getLocalizedMessage(), e);
+                }
             }
         }
     }
