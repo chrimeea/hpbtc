@@ -6,7 +6,6 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -85,9 +84,11 @@ public class FileStore {
         pieces[nrPieces - 1] = new BitSet(chunksInLastPiece);
         this.pieceHash = pieceHash;
         int k = 0;
+        final ByteBuffer bb = ByteBuffer.allocate(pieceLength);
         for (int i = 0; i < nrPieces;) {
             try {
-                if (isHashCorrect(i, computePieceLength(i))) {
+                bb.limit(computePieceLength(i));
+                if (isHashCorrect(i, bb)) {
                     pieces[i].set(0, computeChunksInPiece(i));
                     completePieces.set(i);
                     k++;
@@ -186,7 +187,9 @@ public class FileStore {
             saveFileChunk(getFileList(begin, index, piece.remaining()), offset,
                     piece);
             if (pieces[index].cardinality() == computeChunksInPiece(index)) {
-                if (isHashCorrect(index, computePieceLength(index))) {
+                final ByteBuffer bb =
+                        ByteBuffer.allocate(computePieceLength(index));
+                if (isHashCorrect(index, bb)) {
                     completePieces.set(index);
                     logger.info("Have piece " + index);
                     return true;
@@ -219,19 +222,23 @@ public class FileStore {
         return fls;
     }
 
-    public ByteBuffer loadPiece(final int begin, final int index,
-            final int length) throws IOException {
-        final ByteBuffer bb = ByteBuffer.allocate(length);
-        loadFileChunk(getFileList(begin, index, length), offset, bb);
+    public void loadPiece(final int begin, final int index,
+            final ByteBuffer bb) throws IOException {
+        loadFileChunk(getFileList(begin, index, bb.remaining()), offset, bb);
         bb.rewind();
-        return bb;
     }
 
-    private boolean isHashCorrect(final int index, final int pLength)
+    private boolean isHashCorrect(final int index, final ByteBuffer bb)
             throws NoSuchAlgorithmException, IOException {
-        md.update(loadPiece(0, index, pLength));
-        byte[] dig = md.digest();
-        final int i = index * 20;
-        return Arrays.equals(dig, Arrays.copyOfRange(pieceHash, i, i + 20));
+        loadPiece(0, index, bb);
+        md.update(bb);
+        final byte[] dig = md.digest();
+        int i = index * 20;
+        for (int j = 0; j < 20; j++) {
+            if (dig[j] != pieceHash[i++]) {
+                return false;
+            }
+        }
+        return true;
     }
 }

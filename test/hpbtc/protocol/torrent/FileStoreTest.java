@@ -40,9 +40,13 @@ public class FileStoreTest {
         FileStore fs = new FileStore(20481, dig,
                 f.getParentFile().getPath(), f.getName(), 20481);
         assert !fs.savePiece(0, 0, ByteBuffer.wrap(b1));
-        assert Arrays.equals(fs.loadPiece(0, 0, 16384).array(), b1);
+        ByteBuffer bb = ByteBuffer.allocate(16384);
+        fs.loadPiece(0, 0, bb);
+        assert Arrays.equals(bb.array(), b1);
         assert fs.savePiece(16384, 0, ByteBuffer.wrap(b2));
-        assert Arrays.equals(fs.loadPiece(16384, 0, 4097).array(), b2);
+        bb = ByteBuffer.allocate(4097);
+        fs.loadPiece(16384, 0, bb);
+        assert Arrays.equals(bb.array(), b2);
         assert fs.isPieceComplete(0);
         assert fs.isTorrentComplete();
         fs = new FileStore(20481, dig,
