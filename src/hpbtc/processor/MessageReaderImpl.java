@@ -86,15 +86,13 @@ public class MessageReaderImpl implements MessageReader {
                     switch (disc) {
                         case SimpleMessage.TYPE_BITFIELD:
                             final BitfieldMessage mBit = new BitfieldMessage(
-                                    data,
-                                    peer);
+                                    data, peer);
                             logger.fine("Received " + mBit);
                             processBitfield(mBit);
                             break;
                         case SimpleMessage.TYPE_CANCEL:
                             final BlockMessage mCan = new BlockMessage(data,
-                                    disc,
-                                    peer);
+                                    disc, peer);
                             logger.fine("Received " + mCan);
                             processCancel(mCan);
                             break;
@@ -256,18 +254,25 @@ public class MessageReaderImpl implements MessageReader {
         final int index = message.getIndex();
         final int begin = message.getBegin();
         if (validator.validatePieceMessage(message) &&
-                peer.removeRequest(message.getIndex(), message.getBegin())) {
+                peer.removeRequest(index, begin)) {
             if (t.savePiece(begin, index, message.getPiece())) {
-                Set<Peer> peers = t.getConnectedPeers();
+                final Set<Peer> peers = t.getConnectedPeers();
                 synchronized (peers) {
                     for (Peer p : peers) {
                         if (!p.getPieces().get(index)) {
                             writer.postMessage(new HaveMessage(index, p));
-                        }
-                        if (t.getOtherPieces(p).isEmpty()) {
-                            writer.postMessage(new SimpleMessage(
-                                    SimpleMessage.TYPE_NOT_INTERESTED, p));
-                            p.setClientInterested(false);
+                        } else {
+                            if (t.getOtherPieces(p).isEmpty()) {
+                                p.setClientInterested(false);
+                                writer.postMessage(
+                                        new SimpleMessage(
+                                        SimpleMessage.TYPE_NOT_INTERESTED, p));
+                            }
+                            if (peer.removeRequest(index, begin)) {
+                                writer.postMessage(createBlockMessage(begin,
+                                        index, peer,
+                                        SimpleMessage.TYPE_CANCEL));
+                            }
                         }
                     }
                 }
@@ -310,8 +315,8 @@ public class MessageReaderImpl implements MessageReader {
         for (int i = peer.countTotalRequests(); i < 5; i++) {
             final BlockMessage bm = decideNextPiece(peer);
             if (bm != null) {
-                writer.postMessage(bm);
                 peer.addRequest(bm.getIndex(), bm.getBegin());
+                writer.postMessage(bm);
             } else {
                 break;
             }
@@ -325,44 +330,55 @@ public class MessageReaderImpl implements MessageReader {
         int max = 0;
         int index = -1;
         int beginIndex = 0;
-        final BitSet rest = (BitSet) peerPieces.clone();
+        int min = -1;
         for (int i = peerPieces.nextSetBit(0); i >= 0;
                 i = peerPieces.nextSetBit(i + 1)) {
-            final BitSet sar = torrent.getChunksSavedAndRequested(i);
+            final BitSet sar = (BitSet) torrent.getChunksSaved(i).clone();
+            sar.or(torrent.getChunksRequested(i));
             final int card = sar.cardinality();
             final int ch = sar.nextClearBit(0);
+            int a = torrent.getAvailability(i);
             if (ch < torrent.computeChunksInPiece(i)) {
                 if (card > max) {
                     max = card;
                     index = i;
                     beginIndex = ch;
+                } else if (card == max && (a < min || min == -1)) {
+                    min = a;
+                    index = i;
+                    beginIndex = ch;
                 }
-            } else {
-                rest.clear(i);
             }
         }
-        if (index < 0) {
-            index = rest.nextSetBit(0);
-            if (index >= 0) {
-                int min = torrent.getAvailability(index);
-                for (int i = rest.nextSetBit(index + 1); i >= 0;
-                        i = rest.nextSetBit(i + 1)) {
-                    int a = torrent.getAvailability(i);
-                    if (a < min) {
-                        min = a;
-                        index = i;
-                    }
+        if (index == -1) {
+            BitSet r = null;
+            do {
+                index = peerPieces.nextSetBit(index + 1);
+                if (index != -1) {
+                    r = peer.getRequests(index);
+                } else {
+                    break;
                 }
+            } while (r != null && r.cardinality() ==
+                    torrent.computeChunksInPiece(index));
+            if (index != -1) {
+                beginIndex = r == null ? 0 : r.nextClearBit(0);
             } else {
                 return null;
             }
         }
-        final int cs = torrent.getChunkSize();
-        final int begin = TorrentUtil.computeBeginPosition(beginIndex, cs);
+        final int begin = TorrentUtil.computeBeginPosition(beginIndex,
+                torrent.getChunkSize());
+        return createBlockMessage(begin, index, peer, SimpleMessage.TYPE_REQUEST);
+    }
+
+    private BlockMessage createBlockMessage(final int begin, final int index,
+            final Peer peer, final byte disc) {
+        Torrent torrent = peer.getTorrent();
         return new BlockMessage(begin, index,
-                TorrentUtil.computeChunkSize(index, begin, cs,
-                torrent.getFileLength(), torrent.getPieceLength()),
-                SimpleMessage.TYPE_REQUEST, peer);
+                TorrentUtil.computeChunkSize(index, begin,
+                torrent.getChunkSize(),
+                torrent.getFileLength(), torrent.getPieceLength()), disc, peer);
     }
 
     public void connect(final Peer peer) throws IOException {

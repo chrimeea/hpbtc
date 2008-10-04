@@ -165,7 +165,7 @@ public class TorrentTest {
         p.setTorrent(info);
         p.addRequest(10, info.getChunkSize() + 1);
         info.addPeer(p, true);
-        final BitSet bs = info.getChunksSavedAndRequested(10);
+        final BitSet bs = info.getChunksRequested(10);
         assert bs.cardinality() == 1;
         assert bs.get(1);
     }
