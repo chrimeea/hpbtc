@@ -66,13 +66,14 @@ public class ClientTest {
         final byte[] pid = TorrentUtil.generateId();
         final Client c = new Client(pid);
         final int port = c.startProtocol();
-        final ServerSocket ch = new ServerSocket(3332);
-        final byte[] peers = new byte[6];
+        final byte[] peers = new byte[12];
         peers[0] = 127; peers[1] = 0; peers[2] = 0;
         peers[3] = 1; peers[4] = (byte) 13; peers[5] = (byte) 4;
+        peers[6] = 127; peers[7] = 0; peers[8] = 0;
+        peers[9] = 1; peers[10] = (byte) 13; peers[11] = (byte) 5;
         final Map<byte[], Object> response = new HashMap<byte[], Object>();
         response.put("peers".getBytes(byteEncoding), peers);
-        response.put("interval".getBytes(byteEncoding), 60);
+        response.put("interval".getBytes(byteEncoding), 1800);
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
         final BencodingWriter bw = new BencodingWriter(os);
         bw.write(response); os.close();
@@ -96,8 +97,25 @@ public class ClientTest {
         server.createContext(prefix, hh); server.start();
         c.download(new ByteArrayInputStream(("d8:announce26:http://localhost:6000/test4:info" +
                 ihash + "e").getBytes(byteEncoding)), ".");
-        final Socket s = ch.accept();
-        final InputStream is = s.getInputStream();
+        final ServerSocket ch1 = new ServerSocket(3332);
+        final Socket s1 = ch1.accept();
+        final ServerSocket ch2 = new ServerSocket(3333);
+        final Socket s2 = ch2.accept();
+        testHandshake(s1.getInputStream(), s1.getOutputStream(),
+                infoHash, trackEncoding, pid);
+        testHandshake(s2.getInputStream(), s2.getOutputStream(),
+                infoHash, trackEncoding, pid);
+        testPeerMessages(s1.getInputStream(), s1.getOutputStream());
+        testPeerMessages(s2.getInputStream(), s2.getOutputStream());
+        s1.close(); s2.close();
+        c.stopProtocol(); server.stop(0);
+        ch1.close(); ch2.close();
+        new File(dfile).delete();
+    }
+
+    private void testHandshake(final InputStream is, final OutputStream outs,
+            final String infoHash, final String trackEncoding, final byte[] pid)
+            throws IOException {
         byte[] b = new byte[48]; is.read(b);
         ByteBuffer bb = ByteBuffer.wrap(b);
         final HandshakeMessage m = new HandshakeMessage(bb, null);
@@ -105,16 +123,21 @@ public class ClientTest {
         assert Arrays.equals(m.getInfoHash(), infoHash.getBytes(trackEncoding));
         b = new byte[20]; is.read(b);
         assert Arrays.equals(b, pid);
-        final OutputStream outs = s.getOutputStream();
         m.setPeerId(TorrentUtil.generateId());
         outs.write(m.send().array());
         LengthPrefixMessage hm = new HaveMessage(0, null);
         outs.write(hm.send().array());
         b = new byte[5]; is.read(b);
-        assert b[4] == SimpleMessage.TYPE_INTERESTED;
+        assert b[4] == SimpleMessage.TYPE_INTERESTED;        
+    }
+    
+    private void testPeerMessages(final InputStream is, final OutputStream outs)
+            throws IOException {
+        byte[] b = new byte[5];
         is.read(b);
         assert b[4] == SimpleMessage.TYPE_UNCHOKE;
-        hm = new SimpleMessage(SimpleMessage.TYPE_UNCHOKE, null);
+        LengthPrefixMessage hm = new SimpleMessage(SimpleMessage.TYPE_UNCHOKE,
+                null);
         outs.write(hm.send().array());
         b = new byte[17]; is.read(b);
         assert b[4] == SimpleMessage.TYPE_REQUEST;
@@ -124,8 +147,6 @@ public class ClientTest {
         assert b[4] == SimpleMessage.TYPE_REQUEST;
         assert b[8] == 0;
         assert b[11] == 64; assert b[12] == 0;
-        assert b[15] == 64; assert b[16] == 0;
-        s.close(); c.stopProtocol(); server.stop(0); ch.close();
-        new File(dfile).delete();
+        assert b[15] == 64; assert b[16] == 0;        
     }
 }
