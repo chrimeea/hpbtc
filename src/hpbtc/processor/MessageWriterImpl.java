@@ -128,8 +128,7 @@ public class MessageWriterImpl implements MessageWriter {
                 return p2.countDownloaded() - p1.countDownloaded();
             }
         };
-        if (torrent.increaseOptimisticCounter() == 3 &&
-                !prs.isEmpty()) {
+        if (torrent.increaseOptimisticCounter() == 3 && !prs.isEmpty()) {
             final Peer optimisticPeer = prs.remove(random.nextInt(prs.size()));
             Collections.sort(prs, comp);
             prs.add(0, optimisticPeer);

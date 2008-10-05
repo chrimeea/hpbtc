@@ -165,7 +165,7 @@ public class FileStore {
         while (i.hasNext()) {
             f = i.next();
             j = f.getLength() + piece.position();
-            if (j < piece.capacity()) {
+            if (j > piece.capacity()) {
                 j = piece.capacity();
             }
             piece.limit((int) j);
