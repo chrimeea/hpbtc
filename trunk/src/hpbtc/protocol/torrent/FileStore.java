@@ -72,6 +72,9 @@ public class FileStore {
         md = MessageDigest.getInstance("SHA1");
         completePieces = new BitSet(nrPieces);
         this.pieceLength = pieceLength;
+        if (pieceLength < chunkSize) {
+            chunkSize = pieceLength;
+        }
         nrPieces = TorrentUtil.computeNrPieces(fileLength, pieceLength);
         pieces = new BitSet[nrPieces];
         chunksInPiece = TorrentUtil.computeChunksInNotLastPiece(pieceLength,
@@ -111,20 +114,20 @@ public class FileStore {
     }
 
     public FileStore(final int pieceLength, final byte[] pieceHash,
-            final String rootFolder, final List<Map> fls, String byteEncoding)
-            throws IOException, NoSuchAlgorithmException {
+            final String rootFolder, final List<Map<byte[], Object>> fls,
+            String byteEncoding) throws IOException, NoSuchAlgorithmException {
         files = new ArrayList<BTFile>(fls.size());
         fileLength = 0L;
-        for (Map fd : fls) {
+        for (Map<byte[], Object> fd : fls) {
             final List<byte[]> dirs = (List<byte[]>) fd.get("path".getBytes(
                     byteEncoding));
-            StringBuilder sb = new StringBuilder(rootFolder);
+            final StringBuilder sb = new StringBuilder(rootFolder);
             sb.append(File.separator);
             for (byte[] dir : dirs) {
                 sb.append(new String(dir, byteEncoding));
                 sb.append(File.separator);
             }
-            long fl = (Long) fd.get("length".getBytes(byteEncoding));
+            final long fl = (Long) fd.get("length".getBytes(byteEncoding));
             fileLength += fl;
             files.add(
                     new BTFile(sb.substring(0, sb.length() - 1).toString(), fl));
@@ -141,21 +144,32 @@ public class FileStore {
         init(pieceLength, pieceHash);
     }
 
-    private void loadFileChunk(final List<File> files, final long begin,
+    private void loadFileChunk(final List<BTFile> files, final long begin,
             final ByteBuffer dest) throws IOException {
-        final Iterator<File> i = files.iterator();
-        IOUtil.readFromFile(i.next(), begin, dest);
+        final Iterator<BTFile> i = files.iterator();
+        IOUtil.readFromFile(i.next().getFile(), begin, dest);
         while (i.hasNext()) {
-            IOUtil.readFromFile(i.next(), 0, dest);
+            IOUtil.readFromFile(i.next().getFile(), 0, dest);
         }
     }
 
-    private void saveFileChunk(final List<File> files, final long begin,
+    private void saveFileChunk(final List<BTFile> files, final long begin,
             final ByteBuffer piece) throws IOException {
-        final Iterator<File> i = files.iterator();
-        IOUtil.writeToFile(i.next(), begin, piece);
-        for (int j = 0; j < files.size() - 1; j++) {
-            IOUtil.writeToFile(i.next(), 0, piece);
+        final Iterator<BTFile> i = files.iterator();
+        BTFile f = i.next();
+        long j = f.getLength() - begin;
+        if (j < piece.capacity()) {
+            piece.limit((int) j);
+        }
+        IOUtil.writeToFile(f.getFile(), begin, piece);
+        while (i.hasNext()) {
+            f = i.next();
+            j = f.getLength() + piece.position();
+            if (j < piece.capacity()) {
+                j = piece.capacity();
+            }
+            piece.limit((int) j);
+            IOUtil.writeToFile(f.getFile(), 0, piece);
         }
     }
 
@@ -201,7 +215,7 @@ public class FileStore {
         return false;
     }
 
-    private List<File> getFileList(final int begin, final int index,
+    private List<BTFile> getFileList(final int begin, final int index,
             final int length) {
         long o = index * pieceLength + begin;
         final Iterator<BTFile> i = files.iterator();
@@ -211,12 +225,12 @@ public class FileStore {
             o -= f.getLength();
         } while (o > 0);
         offset = o + f.getLength();
-        final List<File> fls = new LinkedList<File>();
+        final List<BTFile> fls = new LinkedList<BTFile>();
         o += length;
-        fls.add(f.getFile());
+        fls.add(f);
         while (o >= 0 && i.hasNext()) {
             f = i.next();
-            fls.add(f.getFile());
+            fls.add(f);
             o -= f.getLength();
         }
         return fls;

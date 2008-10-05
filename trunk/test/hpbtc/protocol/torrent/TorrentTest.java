@@ -59,7 +59,7 @@ public class TorrentTest {
         final BencodingWriter wr = new BencodingWriter(bos);
         wr.write(f.getName().getBytes(byteEncoding));
         final String s = new String(bos.toByteArray(), byteEncoding);
-        t += s + "12:piece lengthi65536e6:pieces20:12345678901234567890ee";
+        t += s + "12:piece lengthi85e6:pieces20:12345678901234567890ee";
         bos.close();
         final ByteArrayInputStream b = new ByteArrayInputStream(t.getBytes(
                 byteEncoding));
@@ -76,6 +76,7 @@ public class TorrentTest {
         f.delete();
         dest.rewind();
         piece.rewind();
+        piece.limit(piece.capacity());
         assert dest.equals(piece);
     }
 
