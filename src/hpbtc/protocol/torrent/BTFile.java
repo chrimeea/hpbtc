@@ -36,4 +36,9 @@ public class BTFile {
     public long getLength() {
         return length;
     }
+
+    @Override
+    public String toString() {
+        return file.toString();
+    }
 }

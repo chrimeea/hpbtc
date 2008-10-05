@@ -92,7 +92,8 @@ public class Torrent {
         final byte[] pieceHash = (byte[]) info.get("pieces".getBytes(
                 byteEncoding));
         if (multiple) {
-            final List<Map> fls = (List<Map>) info.get("files".getBytes(
+            final List<Map<byte[], Object>> fls =
+                    (List<Map<byte[], Object>>) info.get("files".getBytes(
                     byteEncoding));
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder, fls,
                     byteEncoding);
