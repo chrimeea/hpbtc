@@ -6,6 +6,7 @@
 package hpbtc;
 
 import hpbtc.processor.Client;
+import hpbtc.protocol.torrent.Torrent;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
@@ -18,6 +19,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -46,13 +49,14 @@ public class HPBTCW extends JFrame {
     private static Logger logger = Logger.getLogger(HPBTCW.class.getName());
     private JTabbedPane tabbed;
     private JFileChooser fc = new JFileChooser();
+    private List<JProgressBar> progress = new LinkedList<JProgressBar>();
+    private List<Torrent> torrents = new LinkedList<Torrent>();
     private File filetarget;
     private File filetorrent;
-    private Timer timer;
+    private Timer timer = new Timer();
     private Client client;
 
     public HPBTCW() throws UnsupportedEncodingException, IOException {
-        timer = new Timer();
         final JDialog popup = new JDialog();
         popup.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         popup.getContentPane().setLayout(new GridBagLayout());
@@ -110,7 +114,9 @@ public class HPBTCW extends JFrame {
                 popup.dispose();
                 try {
                     FileInputStream fis = new FileInputStream(filetorrent);
-                    client.download(fis, filetarget.getAbsolutePath());
+                    Torrent t = client.download(fis,
+                            filetarget.getAbsolutePath());
+                    torrents.add(t);
                     fis.close();
                     JPanel panel = new JPanel();
                     panel.setLayout(new GridBagLayout());
@@ -136,10 +142,10 @@ public class HPBTCW extends JFrame {
                     c.gridx = 0;
                     c.gridy = 2;
                     panel.add(l, c);
-                    JProgressBar progress = new JProgressBar();
+                    JProgressBar p = new JProgressBar(0, t.getNrPieces());
                     c.weightx = 1;
                     c.gridx = 1;
-                    panel.add(progress, c);
+                    panel.add(p, c);
                     c.gridwidth = 2;
                     c.weighty = 1;
                     c.gridx = 0;
@@ -147,6 +153,7 @@ public class HPBTCW extends JFrame {
                     panel.add(new JSplitPane(), c);
                     tabbed.addTab("1", panel);
                     pack();
+                    progress.add(p);
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
@@ -176,10 +183,17 @@ public class HPBTCW extends JFrame {
         item.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
+                final int i = tabbed.getSelectedIndex();
+                progress.remove(i);
                 final Component c = tabbed.getSelectedComponent();
                 c.setVisible(false);
                 tabbed.remove(c);
                 pack();
+                try {
+                    client.stopTorrent(torrents.remove(i));
+                } catch (IOException ex) {
+                    logger.log(Level.SEVERE, null, ex);
+                }
             }
         });
         menu.add(item);
@@ -190,7 +204,9 @@ public class HPBTCW extends JFrame {
 
             @Override
             public void run() {
-                //TODO: update progress, upload, download
+                int i = tabbed.getSelectedIndex();
+                progress.get(i).setValue(
+                        torrents.get(i).getCompletePieces().cardinality());
             }
         };
         timer.schedule(tt, 6000L, 6000L);

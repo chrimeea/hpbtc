@@ -46,6 +46,13 @@ public class MessageWriterImpl implements MessageWriter {
         this.timer = timer;
     }
 
+    public void stopTorrent(final Torrent torrent) throws IOException {
+        for (Peer peer: torrent.getConnectedPeers()) {
+            register.disconnect(peer);
+            peer.disconnect();
+        }
+    }
+    
     public void disconnect(final Peer peer) throws IOException {
         register.disconnect(peer);
         Torrent torrent = peer.getTorrent();
