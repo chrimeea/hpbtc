@@ -11,6 +11,8 @@ import java.io.IOException;
  */
 public interface MessageWriter {
     
+    void stopTorrent(Torrent torrent) throws IOException;
+    
     void writeNext(Peer peer) throws IOException;
     
     void disconnect(Peer peer) throws IOException;

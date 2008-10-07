@@ -91,6 +91,10 @@ public class NetworkTest {
             public void keepAliveRead(Peer arg0) {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
+
+            public void stopTorrent(Torrent arg0) throws IOException {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
         }, r);
         c.connect();
         final InetSocketAddress a = new InetSocketAddress(InetAddress.

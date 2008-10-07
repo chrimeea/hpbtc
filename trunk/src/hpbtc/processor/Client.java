@@ -53,6 +53,11 @@ public class Client {
         netWriter.disconnect();
     }
     
+    public void stopTorrent(final Torrent torrent) throws IOException {
+        writer.stopTorrent(torrent);
+        torrents.remove(torrent);
+    }
+    
     public int startProtocol() throws IOException {
         Register register = new Register();
         writer = new MessageWriterImpl(register, fastTimer, peerId, protocol);
