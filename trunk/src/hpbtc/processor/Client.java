@@ -40,11 +40,12 @@ public class Client {
         this(TorrentUtil.generateId());
     }
 
-    public void download(final InputStream is, final String rootFolder)
+    public Torrent download(final InputStream is, final String rootFolder)
             throws IOException, NoSuchAlgorithmException {
         final Torrent ti = new Torrent(is, rootFolder, peerId, port);
         torrents.add(ti);
         writer.download(ti);
+        return ti;
     }
 
     public void stopProtocol() {
