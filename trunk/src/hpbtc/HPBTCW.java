@@ -44,8 +44,6 @@ public class HPBTCW extends JFrame {
 
     private static final long serialVersionUID = 6534802684324378898L;
     private static Logger logger = Logger.getLogger(HPBTCW.class.getName());
-    private JPanel panel;
-    private JProgressBar progress;
     private JTabbedPane tabbed;
     private JFileChooser fc = new JFileChooser();
     private File filetarget;
@@ -114,7 +112,7 @@ public class HPBTCW extends JFrame {
                     FileInputStream fis = new FileInputStream(filetorrent);
                     client.download(fis, filetarget.getAbsolutePath());
                     fis.close();
-                    panel = new JPanel();
+                    JPanel panel = new JPanel();
                     panel.setLayout(new GridBagLayout());
                     JLabel l = new JLabel("Torrent");
                     GridBagConstraints c = new GridBagConstraints();
@@ -138,7 +136,7 @@ public class HPBTCW extends JFrame {
                     c.gridx = 0;
                     c.gridy = 2;
                     panel.add(l, c);
-                    progress = new JProgressBar();
+                    JProgressBar progress = new JProgressBar();
                     c.weightx = 1;
                     c.gridx = 1;
                     panel.add(progress, c);
