@@ -6,10 +6,8 @@
 package hpbtc;
 
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -44,11 +42,11 @@ public class HPBTCW extends JFrame {
     public HPBTCW() {
         final JDialog popup = new JDialog();
         popup.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        Container cp = popup.getContentPane();
-        cp.setLayout(new GridBagLayout());
+        popup.getContentPane().setLayout(new GridBagLayout());
         final JLabel ltorrentpop = new JLabel();
         ltorrentpop.setText("Torrent");
         GridBagConstraints c = new GridBagConstraints();
+        c.weighty = 0.3;
         popup.add(ltorrentpop, c);
         JButton b = new JButton("...");
         b.addActionListener(new ActionListener() {
@@ -91,19 +89,30 @@ public class HPBTCW extends JFrame {
             public void actionPerformed(ActionEvent arg0) {
                 popup.dispose();
                 panel = new JPanel();
-                panel.setLayout(new GridLayout(4, 2));
+                panel.setLayout(new GridBagLayout());
                 JLabel l = new JLabel();
                 l.setText("Torrent " + filetorrent.getAbsolutePath());
-                panel.add(l);
+                GridBagConstraints c = new GridBagConstraints();
+                c.gridwidth = 2;
+                panel.add(l, c);
                 l = new JLabel();
                 l.setText("Target " + filetarget.getAbsolutePath());
-                panel.add(l);
+                c.gridy = 1;
+                panel.add(l, c);
                 l = new JLabel();
                 l.setText("Progress");
-                panel.add(l);
+                c.gridwidth = 1;
+                c.gridy = 2;
+                panel.add(l, c);
                 progress = new JProgressBar();
-                panel.add(progress);
-                panel.add(new JSplitPane());
+                c.weightx = 1;
+                c.gridx = 1;
+                panel.add(progress, c);
+                c.gridwidth = 2;
+                c.weighty = 1;
+                c.gridx = 0;
+                c.gridy = 3;
+                panel.add(new JSplitPane(), c);
                 tabbed.addTab("1", panel);
                 pack();
             }
