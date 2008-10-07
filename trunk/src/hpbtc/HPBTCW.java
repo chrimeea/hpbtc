@@ -5,6 +5,7 @@
  */
 package hpbtc;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -31,35 +32,16 @@ import javax.swing.WindowConstants;
 public class HPBTCW extends JFrame {
 
     private static final long serialVersionUID = 6534802684324378898L;
-    private javax.swing.JPanel panel;
-    private javax.swing.JProgressBar progress;
-    private javax.swing.JTabbedPane tabbed;
+    private JPanel panel;
+    private JProgressBar progress;
+    private JTabbedPane tabbed;
     private JFileChooser fc = new JFileChooser();
     private File filetarget;
     private File filetorrent;
 
     public HPBTCW() {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        panel = new JPanel();
-        panel.setLayout(new GridLayout(4, 2));
-        JLabel l = new JLabel();
-        l.setText("Torrent");
-        panel.add(l);
-        final JLabel ltorrent = new JLabel();
-        panel.add(ltorrent);
-        l = new JLabel();
-        l.setText("Target");
-        panel.add(l);
-        final JLabel ltarget = new JLabel();
-        panel.add(ltarget);
-        l = new JLabel();
-        l.setText("Progress");
-        panel.add(l);
-        progress = new JProgressBar();
-        panel.add(progress);
-        panel.add(new JSplitPane());
         tabbed = new JTabbedPane();
-        tabbed.addTab("1", panel);
         add(tabbed);
         final JMenuBar bar = new JMenuBar();
         final JMenu menu = new JMenu();
@@ -70,7 +52,7 @@ public class HPBTCW extends JFrame {
         popup.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         Container cp = popup.getContentPane();
         cp.setLayout(new GridLayout(3, 3));
-        l = new JLabel();
+        JLabel l = new JLabel();
         l.setText("Torrent");
         popup.add(l);
         final JLabel ltorrentpop = new JLabel();
@@ -111,8 +93,22 @@ public class HPBTCW extends JFrame {
 
             public void actionPerformed(ActionEvent arg0) {
                 popup.dispose();
-                ltorrent.setText(filetorrent.getAbsolutePath());
-                ltarget.setText(filetarget.getAbsolutePath());
+                panel = new JPanel();
+                panel.setLayout(new GridLayout(4, 2));
+                JLabel l = new JLabel();
+                l.setText("Torrent " + filetorrent.getAbsolutePath());
+                panel.add(l);
+                l = new JLabel();
+                l.setText("Target " + filetarget.getAbsolutePath());
+                panel.add(l);
+                l = new JLabel();
+                l.setText("Progress");
+                panel.add(l);
+                progress = new JProgressBar();
+                panel.add(progress);
+                panel.add(new JSplitPane());
+                tabbed.addTab("1", panel);
+                pack();
             }
         });
         popup.add(button);
@@ -126,6 +122,15 @@ public class HPBTCW extends JFrame {
         menu.add(item);
         item = new JMenuItem();
         item.setText("Stop this torrent");
+        item.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent arg0) {
+                final Component c = tabbed.getSelectedComponent();
+                c.setVisible(false);
+                tabbed.remove(c);
+                pack();
+            }
+        });
         menu.add(item);
         bar.add(menu);
         setJMenuBar(bar);
