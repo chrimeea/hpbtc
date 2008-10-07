@@ -7,6 +7,8 @@ package hpbtc;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -43,12 +45,11 @@ public class HPBTCW extends JFrame {
         final JDialog popup = new JDialog();
         popup.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         Container cp = popup.getContentPane();
-        cp.setLayout(new GridLayout(3, 3));
-        JLabel l = new JLabel();
-        l.setText("Torrent");
-        popup.add(l);
+        cp.setLayout(new GridBagLayout());
         final JLabel ltorrentpop = new JLabel();
-        popup.add(ltorrentpop);
+        ltorrentpop.setText("Torrent");
+        GridBagConstraints c = new GridBagConstraints();
+        popup.add(ltorrentpop, c);
         JButton b = new JButton("...");
         b.addActionListener(new ActionListener() {
 
@@ -57,16 +58,18 @@ public class HPBTCW extends JFrame {
                 final int returnVal = fc.showOpenDialog(HPBTCW.this);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     filetorrent = fc.getSelectedFile();
-                    ltorrentpop.setText(filetorrent.getAbsolutePath());
+                    ltorrentpop.setText("Torrent " + filetorrent.getAbsolutePath());
+                    popup.pack();
                 }
             }
         });
-        popup.add(b);
-        l = new JLabel();
-        l.setText("Target");
-        popup.add(l);
+        c.gridx = 1;
+        popup.add(b, c);
+        c.gridx = 0;
+        c.gridy = 1;
         final JLabel ltargetpop = new JLabel();
-        popup.add(ltargetpop);
+        ltargetpop.setText("Target");
+        popup.add(ltargetpop, c);
         b = new JButton("...");
         b.addActionListener(new ActionListener() {
 
@@ -75,11 +78,13 @@ public class HPBTCW extends JFrame {
                 final int returnVal = fc.showOpenDialog(HPBTCW.this);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     filetarget = fc.getSelectedFile();
-                    ltargetpop.setText(filetarget.getAbsolutePath());
+                    ltargetpop.setText("Target " + filetarget.getAbsolutePath());
+                    popup.pack();
                 }
             }
         });
-        popup.add(b);
+        c.gridx = 1;
+        popup.add(b, c);
         JButton button = new JButton("OK");
         button.addActionListener(new ActionListener() {
 
@@ -103,7 +108,10 @@ public class HPBTCW extends JFrame {
                 pack();
             }
         });
-        popup.add(button);
+        c.gridx = 0;
+        c.gridy = 2;
+        c.gridwidth = 2;
+        popup.add(button, c);
         popup.pack();
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         tabbed = new JTabbedPane();
