@@ -43,10 +43,13 @@ public class HPBTCW extends JFrame {
         final JDialog popup = new JDialog();
         popup.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         popup.getContentPane().setLayout(new GridBagLayout());
-        final JLabel ltorrentpop = new JLabel();
-        ltorrentpop.setText("Torrent");
+        JLabel l = new JLabel("Torrent");
         GridBagConstraints c = new GridBagConstraints();
         c.weighty = 0.3;
+        popup.add(l, c);
+        final JLabel ltorrentpop = new JLabel();
+        c.weightx = 1;
+        c.gridx = 1;
         popup.add(ltorrentpop, c);
         JButton b = new JButton("...");
         b.addActionListener(new ActionListener() {
@@ -56,17 +59,21 @@ public class HPBTCW extends JFrame {
                 final int returnVal = fc.showOpenDialog(HPBTCW.this);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     filetorrent = fc.getSelectedFile();
-                    ltorrentpop.setText("Torrent " + filetorrent.getAbsolutePath());
+                    ltorrentpop.setText(filetorrent.getAbsolutePath());
                     popup.pack();
                 }
             }
         });
-        c.gridx = 1;
+        c.weightx = 0;
+        c.gridx = 2;
         popup.add(b, c);
         c.gridx = 0;
         c.gridy = 1;
+        l = new JLabel("Target");
+        popup.add(l, c);
         final JLabel ltargetpop = new JLabel();
-        ltargetpop.setText("Target");
+        c.weightx = 1;
+        c.gridx = 1;
         popup.add(ltargetpop, c);
         b = new JButton("...");
         b.addActionListener(new ActionListener() {
@@ -81,7 +88,7 @@ public class HPBTCW extends JFrame {
                 }
             }
         });
-        c.gridx = 1;
+        c.gridx = 2;
         popup.add(b, c);
         JButton button = new JButton("OK");
         button.addActionListener(new ActionListener() {
@@ -90,18 +97,26 @@ public class HPBTCW extends JFrame {
                 popup.dispose();
                 panel = new JPanel();
                 panel.setLayout(new GridBagLayout());
-                JLabel l = new JLabel();
-                l.setText("Torrent " + filetorrent.getAbsolutePath());
+                JLabel l = new JLabel("Torrent");
                 GridBagConstraints c = new GridBagConstraints();
-                c.gridwidth = 2;
                 panel.add(l, c);
-                l = new JLabel();
-                l.setText("Target " + filetarget.getAbsolutePath());
+                l = new JLabel(filetorrent.getAbsolutePath());
+                c.gridx = 1;
+                c.weightx = 1;
+                panel.add(l, c);
+                l = new JLabel("Target");
+                c.weightx = 0;
+                c.gridx = 0;
                 c.gridy = 1;
+                panel.add(l, c);
+                l = new JLabel(filetarget.getAbsolutePath());
+                c.weightx = 1;
+                c.gridx = 1;
                 panel.add(l, c);
                 l = new JLabel();
                 l.setText("Progress");
-                c.gridwidth = 1;
+                c.weightx = 0;
+                c.gridx = 0;
                 c.gridy = 2;
                 panel.add(l, c);
                 progress = new JProgressBar();
@@ -117,9 +132,8 @@ public class HPBTCW extends JFrame {
                 pack();
             }
         });
-        c.gridx = 0;
+        c.gridx = 1;
         c.gridy = 2;
-        c.gridwidth = 2;
         popup.add(button, c);
         popup.pack();
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
