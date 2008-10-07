@@ -34,11 +34,13 @@
             </batchtest>
         </junit>
     </target>
-    <target name="run" description="run client" depends="compile">
+    <target name="run" description="run command line client" depends="compile">
         <java classname="hpbtc.HPBTC" classpathref="cp.classpath">
             <arg value="D:\Documents and Settings\Administrator\Desktop\test"/>
             <arg value="D:\Documents and Settings\Administrator\Desktop\test.torrent"/>
         </java>
     </target>
-    
+    <target name="runw" description="run window client" depends="compile">
+        <java classname="hpbtc.HPBTCW" classpathref="cp.classpath"/>
+    </target>    
 </project>
