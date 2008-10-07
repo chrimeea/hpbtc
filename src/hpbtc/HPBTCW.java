@@ -40,14 +40,6 @@ public class HPBTCW extends JFrame {
     private File filetorrent;
 
     public HPBTCW() {
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        tabbed = new JTabbedPane();
-        add(tabbed);
-        final JMenuBar bar = new JMenuBar();
-        final JMenu menu = new JMenu();
-        JMenuItem item = new JMenuItem();
-        menu.setText("File");
-        item.setText("New torrent");
         final JDialog popup = new JDialog();
         popup.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         Container cp = popup.getContentPane();
@@ -113,6 +105,14 @@ public class HPBTCW extends JFrame {
         });
         popup.add(button);
         popup.pack();
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        tabbed = new JTabbedPane();
+        add(tabbed);
+        final JMenuBar bar = new JMenuBar();
+        final JMenu menu = new JMenu();
+        JMenuItem item = new JMenuItem();
+        menu.setText("File");
+        item.setText("New torrent");
         item.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
