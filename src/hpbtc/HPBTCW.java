@@ -262,7 +262,7 @@ public class HPBTCW extends JFrame {
 
         private static final long serialVersionUID = -2774542544931440878L;
         private int[] history;
-        private short index;
+        private short index = 0;
         private long lastValue;
 
         public GraphComponent(int h) {
@@ -270,10 +270,10 @@ public class HPBTCW extends JFrame {
         }
 
         public void pushValueToHistory(long value) {
-            history[index++] = (int) (value - lastValue);
-            if (index == history.length) {
+            if (++index == history.length - 1) {
                 index = 0;
             }
+            history[index] = (int) (value - lastValue);
             lastValue = value;
             repaint();
         }
@@ -301,8 +301,8 @@ public class HPBTCW extends JFrame {
             int jc = index;
             int jf = jc == history.length - 1? 0 : jc + 1;
             for (int i = 0; i < history.length - 1; i++) {
-                g2d.drawLine(jc, (int) (d.height - (history[jc] - min) * k - 1), jf,
-                        (int) (d.height - (history[jf] - min) * k - 1));
+                g2d.drawLine(i, (int) (d.height - (history[jc] - min) * k - 1),
+                        i + 1, (int) (d.height - (history[jf] - min) * k - 1));
                 jc = jf;
                 jf = jc == history.length - 1? 0 : jc + 1;
             }

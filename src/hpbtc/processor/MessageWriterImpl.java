@@ -48,6 +48,7 @@ public class MessageWriterImpl implements MessageWriter {
     }
 
     public void stopTorrent(final Torrent torrent) throws IOException {
+        torrent.cancelTrackerTask();
         Set<Peer> peers = new HashSet<Peer>(torrent.getConnectedPeers());
         for (Peer peer : peers) {
             register.disconnect(peer);
