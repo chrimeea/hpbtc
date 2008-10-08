@@ -8,15 +8,18 @@ package hpbtc;
 import hpbtc.processor.Client;
 import hpbtc.protocol.torrent.Torrent;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
@@ -26,6 +29,7 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -51,6 +55,8 @@ public class HPBTCW extends JFrame {
     private JFileChooser fc = new JFileChooser();
     private List<JProgressBar> progress = new LinkedList<JProgressBar>();
     private List<Torrent> torrents = new LinkedList<Torrent>();
+    private List<GraphComponent> upload = new LinkedList<GraphComponent>();
+    private List<GraphComponent> download = new LinkedList<GraphComponent>();
     private File filetarget;
     private File filetorrent;
     private Timer timer = new Timer();
@@ -77,7 +83,6 @@ public class HPBTCW extends JFrame {
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     filetorrent = fc.getSelectedFile();
                     ltorrentpop.setText(filetorrent.getAbsolutePath());
-                    popup.pack();
                 }
             }
         });
@@ -101,7 +106,6 @@ public class HPBTCW extends JFrame {
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     filetarget = fc.getSelectedFile();
                     ltargetpop.setText("Target " + filetarget.getAbsolutePath());
-                    popup.pack();
                 }
             }
         });
@@ -113,11 +117,11 @@ public class HPBTCW extends JFrame {
             public void actionPerformed(ActionEvent arg0) {
                 popup.dispose();
                 try {
-                    FileInputStream fis = new FileInputStream(filetorrent);
-                    Torrent t = client.download(fis,
-                            filetarget.getAbsolutePath());
-                    torrents.add(t);
-                    fis.close();
+//                    FileInputStream fis = new FileInputStream(filetorrent);
+//                    Torrent t = client.download(fis,
+//                            filetarget.getAbsolutePath());
+//                    torrents.add(t);
+//                    fis.close();
                     JPanel panel = new JPanel();
                     panel.setLayout(new GridBagLayout());
                     JLabel l = new JLabel("Torrent");
@@ -142,18 +146,23 @@ public class HPBTCW extends JFrame {
                     c.gridx = 0;
                     c.gridy = 2;
                     panel.add(l, c);
-                    JProgressBar p = new JProgressBar(0, t.getNrPieces());
+//                    JProgressBar p = new JProgressBar(0, t.getNrPieces());
                     c.weightx = 1;
                     c.gridx = 1;
-                    panel.add(p, c);
+//                    panel.add(p, c);
                     c.gridwidth = 2;
                     c.weighty = 1;
                     c.gridx = 0;
                     c.gridy = 3;
-                    panel.add(new JSplitPane(), c);
+                    GraphComponent g1 = new GraphComponent(100);
+                    download.add(g1);
+                    GraphComponent g2 = new GraphComponent(100);
+                    upload.add(g2);
+                    panel.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                           g1 , g2), c);
                     tabbed.addTab("1", panel);
                     pack();
-                    progress.add(p);
+//                    progress.add(p);
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
@@ -162,7 +171,7 @@ public class HPBTCW extends JFrame {
         c.gridx = 1;
         c.gridy = 2;
         popup.add(button, c);
-        popup.pack();
+        popup.setSize(450, 100);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         tabbed = new JTabbedPane();
         add(tabbed);
@@ -185,6 +194,8 @@ public class HPBTCW extends JFrame {
             public void actionPerformed(ActionEvent arg0) {
                 final int i = tabbed.getSelectedIndex();
                 progress.remove(i);
+                upload.remove(i);
+                download.remove(i);
                 final Component c = tabbed.getSelectedComponent();
                 c.setVisible(false);
                 tabbed.remove(c);
@@ -199,14 +210,16 @@ public class HPBTCW extends JFrame {
         menu.add(item);
         bar.add(menu);
         setJMenuBar(bar);
-        pack();
+        setSize(400, 200);
         TimerTask tt = new TimerTask() {
 
             @Override
             public void run() {
-                int i = tabbed.getSelectedIndex();
-                progress.get(i).setValue(
-                        torrents.get(i).getCompletePieces().cardinality());
+//                int i = tabbed.getSelectedIndex();
+//                progress.get(i).setValue(
+//                        torrents.get(i).getCompletePieces().cardinality());
+//                download.get(i).pushValueToHistory();
+//                upload.get(i).pushValueToHistory();
             }
         };
         timer.schedule(tt, 6000L, 6000L);
@@ -232,5 +245,45 @@ public class HPBTCW extends JFrame {
                 }
             }
         });
+    }
+    
+    private class GraphComponent extends JComponent {
+        private static final long serialVersionUID = -2774542544931440878L;
+        private int[] history;
+        private short index;
+
+        public GraphComponent(int h) {
+            history = new int[h];
+        }
+        
+        public void pushValueToHistory(int value) {
+            history[index++] = value;
+            if (index == history.length) {
+                index = 0;
+            }
+            invalidate();
+        }
+        
+        @Override
+        public Dimension getPreferredSize() {
+            return new Dimension(200, 100);
+        }
+        
+        @Override
+        public void paint(Graphics arg0) {
+            super.paint(arg0);
+            int max = history[0];
+            int min = history[0];
+            for (int i = 1; i < history.length; i++) {
+                if (history[i] > max) {
+                    max = history[i];
+                } else if (history[i] < min) {
+                    min = history[i];
+                }
+            }
+            Graphics2D g2d = (Graphics2D) arg0;
+            Dimension d = getSize();
+            g2d.drawRect(0, 0, d.width - 1, d.height - 1);
+        }
     }
 }
