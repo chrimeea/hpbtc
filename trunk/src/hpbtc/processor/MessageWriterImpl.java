@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -47,12 +48,13 @@ public class MessageWriterImpl implements MessageWriter {
     }
 
     public void stopTorrent(final Torrent torrent) throws IOException {
-        for (Peer peer: torrent.getConnectedPeers()) {
+        Set<Peer> peers = new HashSet<Peer>(torrent.getConnectedPeers());
+        for (Peer peer : peers) {
             register.disconnect(peer);
             peer.disconnect();
         }
     }
-    
+
     public void disconnect(final Peer peer) throws IOException {
         register.disconnect(peer);
         Torrent torrent = peer.getTorrent();
