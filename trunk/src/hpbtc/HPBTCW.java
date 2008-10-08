@@ -14,12 +14,12 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
@@ -117,11 +117,11 @@ public class HPBTCW extends JFrame {
             public void actionPerformed(ActionEvent arg0) {
                 popup.dispose();
                 try {
-//                    FileInputStream fis = new FileInputStream(filetorrent);
+                    FileInputStream fis = new FileInputStream(filetorrent);
 //                    Torrent t = client.download(fis,
 //                            filetarget.getAbsolutePath());
 //                    torrents.add(t);
-//                    fis.close();
+                    fis.close();
                     JPanel panel = new JPanel();
                     panel.setLayout(new GridBagLayout());
                     JLabel l = new JLabel("Torrent");
@@ -215,7 +215,7 @@ public class HPBTCW extends JFrame {
 
             @Override
             public void run() {
-//                int i = tabbed.getSelectedIndex();
+                int i = tabbed.getSelectedIndex();
 //                progress.get(i).setValue(
 //                        torrents.get(i).getCompletePieces().cardinality());
 //                download.get(i).pushValueToHistory();
@@ -261,7 +261,7 @@ public class HPBTCW extends JFrame {
             if (index == history.length) {
                 index = 0;
             }
-            invalidate();
+            repaint();
         }
         
         @Override
@@ -273,7 +273,7 @@ public class HPBTCW extends JFrame {
         public void paint(Graphics arg0) {
             super.paint(arg0);
             int max = history[0];
-            int min = history[0];
+            int min = max;
             for (int i = 1; i < history.length; i++) {
                 if (history[i] > max) {
                     max = history[i];
@@ -283,7 +283,11 @@ public class HPBTCW extends JFrame {
             }
             Graphics2D g2d = (Graphics2D) arg0;
             Dimension d = getSize();
-            g2d.drawRect(0, 0, d.width - 1, d.height - 1);
+            float k = max == min ? 1f : d.height / (max - min);
+            for (int i = 0; i < history.length - 1; i++) {
+                g2d.drawLine(i, (int) (d.height - (history[i] - min) * k), i + 1,
+                        (int) (d.height - (history[i + 1] - min) * k));
+            }
         }
     }
 }
