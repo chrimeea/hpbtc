@@ -298,9 +298,13 @@ public class HPBTCW extends JFrame {
             Graphics2D g2d = (Graphics2D) arg0;
             Dimension d = getSize();
             float k = max == min ? 1f : d.height / (max - min);
+            int jc = index;
+            int jf = jc == history.length - 1? 0 : jc + 1;
             for (int i = 0; i < history.length - 1; i++) {
-                g2d.drawLine(i, (int) (d.height - (history[i] - min) * k - 1), i + 1,
-                        (int) (d.height - (history[i + 1] - min) * k - 1));
+                g2d.drawLine(jc, (int) (d.height - (history[jc] - min) * k - 1), jf,
+                        (int) (d.height - (history[jf] - min) * k - 1));
+                jc = jf;
+                jf = jc == history.length - 1? 0 : jc + 1;
             }
         }
     }
