@@ -150,6 +150,7 @@ public class Peer {
     public int upload(final ByteBuffer bb) throws IOException {
         final int i = IOUtil.writeToChannel(channel, bb);
         uploaded += i;
+        torrent.incrementUploaded(i);
         return i;
     }
 
@@ -163,6 +164,7 @@ public class Peer {
         final int i = IOUtil.readFromChannel(channel, data);
         if (i >= 0) {
             downloaded += i;
+            torrent.incrementDownloaded(i);
         } else {
             throw new EOFException();
         }
