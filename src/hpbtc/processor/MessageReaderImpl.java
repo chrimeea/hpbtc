@@ -278,6 +278,7 @@ public class MessageReaderImpl implements MessageReader {
                 }
                 if (t.isTorrentComplete()) {
                     t.endTracker();
+                    logger.info("Torrent complete !");
                     return;
                 }
             }

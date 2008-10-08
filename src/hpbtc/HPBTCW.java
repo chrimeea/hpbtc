@@ -26,8 +26,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -237,7 +240,12 @@ public class HPBTCW extends JFrame {
         });
     }
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
+        Handler fh = new FileHandler("D:\\Documents and Settings\\Administrator\\Desktop\\hpbtc.log");
+        fh.setFormatter(new SimpleFormatter());
+        Logger l = Logger.getLogger("hpbtc");
+        l.addHandler(fh);
+        l.setLevel(Level.ALL);
         EventQueue.invokeLater(new Runnable() {
 
             public void run() {
@@ -272,7 +280,7 @@ public class HPBTCW extends JFrame {
 
         @Override
         public Dimension getPreferredSize() {
-            return new Dimension(200, 100);
+            return new Dimension(history.length, 100);
         }
 
         @Override
@@ -291,8 +299,8 @@ public class HPBTCW extends JFrame {
             Dimension d = getSize();
             float k = max == min ? 1f : d.height / (max - min);
             for (int i = 0; i < history.length - 1; i++) {
-                g2d.drawLine(i, (int) (d.height - (history[i] - min) * k), i + 1,
-                        (int) (d.height - (history[i + 1] - min) * k));
+                g2d.drawLine(i, (int) (d.height - (history[i] - min) * k - 1), i + 1,
+                        (int) (d.height - (history[i + 1] - min) * k - 1));
             }
         }
     }
