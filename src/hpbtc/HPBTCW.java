@@ -228,7 +228,7 @@ public class HPBTCW extends JFrame {
                 }
             }
         };
-        timer.schedule(tt, 6000L, 6000L);
+        timer.schedule(tt, 2000L, 2000L);
         client = new Client();
         client.startProtocol();
         addWindowListener(new WindowAdapter() {
@@ -262,7 +262,7 @@ public class HPBTCW extends JFrame {
 
         private static final long serialVersionUID = -2774542544931440878L;
         private int[] history;
-        private short index = 0;
+        private short index;
         private long lastValue;
 
         public GraphComponent(int h) {
@@ -273,7 +273,7 @@ public class HPBTCW extends JFrame {
             if (++index == history.length - 1) {
                 index = 0;
             }
-            history[index] = (int) (value - lastValue);
+            history[index] = (int) (value - lastValue);            
             lastValue = value;
             repaint();
         }
@@ -297,9 +297,9 @@ public class HPBTCW extends JFrame {
             }
             Graphics2D g2d = (Graphics2D) arg0;
             Dimension d = getSize();
-            float k = max == min ? 1f : d.height / (max - min);
-            int jc = index;
-            int jf = jc == history.length - 1? 0 : jc + 1;
+            float k = max == min ? 1f : (d.height - 1f) / (max - min);
+            int jc = index == history.length - 1 ? 0 : index + 1;
+            int jf = jc == history.length - 1 ? 0 : jc + 1;
             for (int i = 0; i < history.length - 1; i++) {
                 g2d.drawLine(i, (int) (d.height - (history[jc] - min) * k - 1),
                         i + 1, (int) (d.height - (history[jf] - min) * k - 1));
