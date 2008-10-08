@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
 /**
@@ -39,8 +40,8 @@ public class Torrent {
     private FileStore fileStore;
     private Set<Peer> peers;
     private Set<Peer> freshPeers;
-    private long uploaded;
-    private long downloaded;
+    private AtomicLong uploaded;
+    private AtomicLong downloaded;
     private Tracker tracker;
     private AtomicIntegerArray availability;
     private int optimisticCounter;
@@ -110,7 +111,9 @@ public class Torrent {
         tracker = new Tracker(infoHash, peerId, port, trackers,
                 byteEncoding);
         availability = new AtomicIntegerArray(getNrPieces());
-        remainingPeers = new AtomicInteger(0);
+        remainingPeers = new AtomicInteger();
+        uploaded = new AtomicLong();
+        downloaded = new AtomicLong();
     }
 
     public void setTrackerTask(TimerTask trackerTask) {
@@ -143,7 +146,7 @@ public class Torrent {
     }
 
     public void endTracker() {
-        tracker.endTracker(uploaded, downloaded);
+        tracker.endTracker(uploaded.get(), downloaded.get());
     }
 
     public void updateAvailability(int index) {
@@ -177,8 +180,9 @@ public class Torrent {
     }
 
     public void updateTracker() {
-        final Set<Peer> pr = tracker.updateTracker(null, uploaded,
-                downloaded, getFileLength() - downloaded, true);
+        final long d = downloaded.get();
+        final Set<Peer> pr = tracker.updateTracker(null, uploaded.get(),
+                d, getFileLength() - d, true);
         for (Peer p : pr) {
             p.setTorrent(this);
         }
@@ -258,17 +262,24 @@ public class Torrent {
     }
 
     public long getUploaded() {
-        return uploaded;
+        return uploaded.get();
     }
 
     public long getDownloaded() {
-        return downloaded;
+        return downloaded.get();
     }
 
+    public void incrementUploaded(int up) {
+        uploaded.getAndAdd(up);
+    }
+    
+    public void incrementDownloaded(int down) {
+        downloaded.getAndAdd(down);
+    }
+    
     public boolean savePiece(final int begin, final int index,
             final ByteBuffer piece) throws IOException,
             NoSuchAlgorithmException {
-        downloaded += piece.remaining();
         return fileStore.savePiece(begin, index, piece);
     }
 
@@ -278,7 +289,6 @@ public class Torrent {
 
     public ByteBuffer loadPiece(final int begin, final int index,
             final int length) throws IOException {
-        uploaded += length;
         ByteBuffer bb = ByteBuffer.allocate(length);
         fileStore.loadPiece(begin, index, bb);
         return bb;

@@ -118,9 +118,9 @@ public class HPBTCW extends JFrame {
                 popup.dispose();
                 try {
                     FileInputStream fis = new FileInputStream(filetorrent);
-//                    Torrent t = client.download(fis,
-//                            filetarget.getAbsolutePath());
-//                    torrents.add(t);
+                    Torrent t = client.download(fis,
+                            filetarget.getAbsolutePath());
+                    torrents.add(t);
                     fis.close();
                     JPanel panel = new JPanel();
                     panel.setLayout(new GridBagLayout());
@@ -146,10 +146,10 @@ public class HPBTCW extends JFrame {
                     c.gridx = 0;
                     c.gridy = 2;
                     panel.add(l, c);
-//                    JProgressBar p = new JProgressBar(0, t.getNrPieces());
+                    JProgressBar p = new JProgressBar(0, t.getNrPieces());
                     c.weightx = 1;
                     c.gridx = 1;
-//                    panel.add(p, c);
+                    panel.add(p, c);
                     c.gridwidth = 2;
                     c.weighty = 1;
                     c.gridx = 0;
@@ -162,7 +162,7 @@ public class HPBTCW extends JFrame {
                            g1 , g2), c);
                     tabbed.addTab("1", panel);
                     pack();
-//                    progress.add(p);
+                    progress.add(p);
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
@@ -216,10 +216,11 @@ public class HPBTCW extends JFrame {
             @Override
             public void run() {
                 int i = tabbed.getSelectedIndex();
-//                progress.get(i).setValue(
-//                        torrents.get(i).getCompletePieces().cardinality());
-//                download.get(i).pushValueToHistory();
-//                upload.get(i).pushValueToHistory();
+                Torrent t = torrents.get(i);
+                progress.get(i).setValue(
+                        t.getCompletePieces().cardinality());
+                download.get(i).pushValueToHistory(t.getDownloaded());
+                upload.get(i).pushValueToHistory(t.getUploaded());
             }
         };
         timer.schedule(tt, 6000L, 6000L);
@@ -251,16 +252,18 @@ public class HPBTCW extends JFrame {
         private static final long serialVersionUID = -2774542544931440878L;
         private int[] history;
         private short index;
+        private long lastValue;
 
         public GraphComponent(int h) {
             history = new int[h];
         }
         
-        public void pushValueToHistory(int value) {
-            history[index++] = value;
+        public void pushValueToHistory(long value) {
+            history[index++] = (int) (value - lastValue);
             if (index == history.length) {
                 index = 0;
             }
+            lastValue = value;
             repaint();
         }
         
