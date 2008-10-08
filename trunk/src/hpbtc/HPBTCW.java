@@ -159,7 +159,7 @@ public class HPBTCW extends JFrame {
                     GraphComponent g2 = new GraphComponent(100);
                     upload.add(g2);
                     panel.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                           g1 , g2), c);
+                            g1, g2), c);
                     tabbed.addTab("1", panel);
                     pack();
                     progress.add(p);
@@ -216,11 +216,13 @@ public class HPBTCW extends JFrame {
             @Override
             public void run() {
                 int i = tabbed.getSelectedIndex();
-                Torrent t = torrents.get(i);
-                progress.get(i).setValue(
-                        t.getCompletePieces().cardinality());
-                download.get(i).pushValueToHistory(t.getDownloaded());
-                upload.get(i).pushValueToHistory(t.getUploaded());
+                if (i > -1) {
+                    Torrent t = torrents.get(i);
+                    progress.get(i).setValue(
+                            t.getCompletePieces().cardinality());
+                    download.get(i).pushValueToHistory(t.getDownloaded());
+                    upload.get(i).pushValueToHistory(t.getUploaded());
+                }
             }
         };
         timer.schedule(tt, 6000L, 6000L);
@@ -247,8 +249,9 @@ public class HPBTCW extends JFrame {
             }
         });
     }
-    
+
     private class GraphComponent extends JComponent {
+
         private static final long serialVersionUID = -2774542544931440878L;
         private int[] history;
         private short index;
@@ -257,7 +260,7 @@ public class HPBTCW extends JFrame {
         public GraphComponent(int h) {
             history = new int[h];
         }
-        
+
         public void pushValueToHistory(long value) {
             history[index++] = (int) (value - lastValue);
             if (index == history.length) {
@@ -266,12 +269,12 @@ public class HPBTCW extends JFrame {
             lastValue = value;
             repaint();
         }
-        
+
         @Override
         public Dimension getPreferredSize() {
             return new Dimension(200, 100);
         }
-        
+
         @Override
         public void paint(Graphics arg0) {
             super.paint(arg0);
