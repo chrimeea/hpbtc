@@ -209,6 +209,7 @@ public class FileStore {
                     return true;
                 } else {
                     pieces[index].clear();
+                    logger.info("Incorrect hash " + index);
                 }
             }
         } else {
