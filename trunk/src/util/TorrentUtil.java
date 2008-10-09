@@ -18,8 +18,8 @@ public class TorrentUtil {
 
     public static int computeChunksInNotLastPiece(final int pieceLength,
             final int chunkSize) {
-        int c = pieceLength / chunkSize;
-        int r = pieceLength % chunkSize;
+        final int c = pieceLength / chunkSize;
+        final int r = pieceLength % chunkSize;
         return r == 0 ? c : c + 1;
     }
 

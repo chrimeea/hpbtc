@@ -58,21 +58,22 @@ public class MessageValidator {
 
     public boolean validateCancelMessage(final BlockMessage message) {
         final Torrent t = message.getDestination().getTorrent();
-        return message.getIndex() < t.getNrPieces() && message.getBegin() < t.
-                getPieceLength();
+        return t != null && message.getIndex() < t.getNrPieces() &&
+                message.getBegin() < t.getPieceLength();
     }
 
     public boolean validateHaveMessage(final HaveMessage message) {
         final Torrent t = message.getDestination().getTorrent();
-        return message.getIndex() < t.getNrPieces();
+        return t != null && message.getIndex() < t.getNrPieces();
     }
 
     public boolean validatePieceMessage(final PieceMessage message) {
         final Torrent t = message.getDestination().getTorrent();
         final int i = message.getIndex();
         final int b = message.getBegin();
-        return i >= 0 && i < t.getNrPieces() && b >= 0 && b < t.getPieceLength()
-                && message.getLength() == TorrentUtil.computeChunkSize(i, b,
+        return t != null && i >= 0 && i < t.getNrPieces() && b >= 0 &&
+                b < t.getPieceLength() &&
+                message.getLength() == TorrentUtil.computeChunkSize(i, b,
                 t.getChunkSize(), t.getFileLength(), t.getPieceLength());
     }
 
@@ -81,7 +82,8 @@ public class MessageValidator {
         final int i = message.getIndex();
         final int b = message.getBegin();
         final int l = message.getLength();
-        return i >= 0 && i < t.getNrPieces() && b >= 0 && b < t.getPieceLength()
-                && l <= t.getChunkSize() && l > 0 && t.isPieceComplete(i);
+        return t != null && i >= 0 && i < t.getNrPieces() && b >= 0 &&
+                b < t.getPieceLength() && l <= t.getChunkSize() && l > 0 &&
+                t.isPieceComplete(i);
     }
 }
