@@ -201,9 +201,8 @@ public class FileStore {
             saveFileChunk(getFileList(begin, index, piece.remaining()), offset,
                     piece);
             if (pieces[index].cardinality() == computeChunksInPiece(index)) {
-                final ByteBuffer bb =
-                        ByteBuffer.allocate(computePieceLength(index));
-                if (isHashCorrect(index, bb)) {
+                if (isHashCorrect(index,
+                        ByteBuffer.allocate(computePieceLength(index)))) {
                     completePieces.set(index);
                     logger.info("Have piece " + index);
                     return true;
