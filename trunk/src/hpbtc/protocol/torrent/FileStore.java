@@ -211,6 +211,8 @@ public class FileStore {
                     pieces[index].clear();
                 }
             }
+        } else {
+            logger.fine("Already have this chunk, index " + index + ", begin " + begin);
         }
         return false;
     }
