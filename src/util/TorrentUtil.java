@@ -32,7 +32,7 @@ public class TorrentUtil {
 
     public static int computeChunkSize(final int index, final int begin,
             final int chunkSize, final long fileLength, final int pieceLength) {
-        int rem = index == computeNrPieces(fileLength, pieceLength) - 1 ?
+        final int rem = index == computeNrPieces(fileLength, pieceLength) - 1 ?
             computeRemainingLastPiece(begin, fileLength, pieceLength) :
             pieceLength - begin;
         return Math.min(chunkSize, rem);
@@ -61,7 +61,7 @@ public class TorrentUtil {
 
     public static int computeEndIndex(final int begin, final int length,
             final int chunkSize) {
-        int i = begin + length;
+        final int i = begin + length;
         int n = i / chunkSize;
         if (i % chunkSize > 0) {
             n++;

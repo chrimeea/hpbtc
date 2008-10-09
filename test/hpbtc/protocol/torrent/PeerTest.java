@@ -95,10 +95,17 @@ public class PeerTest {
     }
 
     @Test
-    public void testUploadDownload() throws IOException {
+    public void testUploadDownload() throws IOException,
+            NoSuchAlgorithmException {
         final InetSocketAddress a = new InetSocketAddress(
                 InetAddress.getByName("127.0.0.1"), 6001);
         final Peer p = new Peer(a, null);
+        final ByteArrayInputStream bai =
+                new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".
+                getBytes(byteEncoding));
+        final Torrent info = new Torrent(bai, ".", null, 0);
+        bai.close();
+        p.setTorrent(info);
         final ServerSocket ss = new ServerSocket(6001);
         final byte[] b = "test".getBytes("US-ASCII");
         final byte[] x = "response".getBytes("US-ASCII");

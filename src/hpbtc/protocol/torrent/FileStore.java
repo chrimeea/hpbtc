@@ -212,7 +212,8 @@ public class FileStore {
                 }
             }
         } else {
-            logger.fine("Already have this chunk, index " + index + ", begin " + begin);
+            logger.fine("Already have Index " + index + ", Begin "
+                    + begin);
         }
         return false;
     }
