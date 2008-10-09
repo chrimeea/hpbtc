@@ -164,7 +164,9 @@ public class Peer {
         final int i = IOUtil.readFromChannel(channel, data);
         if (i >= 0) {
             downloaded += i;
-            torrent.incrementDownloaded(i);
+            if (torrent != null) {
+                torrent.incrementDownloaded(i);
+            }
         } else {
             throw new EOFException();
         }

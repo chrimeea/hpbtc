@@ -268,10 +268,9 @@ public class MessageReaderImpl implements MessageReader {
                                         new SimpleMessage(
                                         SimpleMessage.TYPE_NOT_INTERESTED, p));
                             }
-                            if (peer.removeRequest(index, begin)) {
+                            if (p.removeRequest(index, begin)) {
                                 writer.postMessage(createBlockMessage(begin,
-                                        index, peer,
-                                        SimpleMessage.TYPE_CANCEL));
+                                        index, p, SimpleMessage.TYPE_CANCEL));
                             }
                         }
                     }
@@ -338,7 +337,7 @@ public class MessageReaderImpl implements MessageReader {
             sar.or(torrent.getChunksRequested(i));
             final int card = sar.cardinality();
             final int ch = sar.nextClearBit(0);
-            int a = torrent.getAvailability(i);
+            final int a = torrent.getAvailability(i);
             if (ch < torrent.computeChunksInPiece(i)) {
                 if (card > max) {
                     max = card;
@@ -356,14 +355,20 @@ public class MessageReaderImpl implements MessageReader {
             do {
                 index = peerPieces.nextSetBit(index + 1);
                 if (index != -1) {
-                    r = peer.getRequests(index);
+                    r = (BitSet) peer.getRequests(index);
+                    final BitSet x = torrent.getChunksSaved(index);
+                    if (r == null) {
+                        r = x;
+                    } else {
+                        r = (BitSet) r.clone();
+                        r.or(x);
+                    }
                 } else {
                     break;
                 }
-            } while (r != null && r.cardinality() ==
-                    torrent.computeChunksInPiece(index));
+            } while (r.cardinality() == torrent.computeChunksInPiece(index));
             if (index != -1) {
-                beginIndex = r == null ? 0 : r.nextClearBit(0);
+                beginIndex = r.nextClearBit(0);
             } else {
                 return null;
             }

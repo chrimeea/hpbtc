@@ -223,7 +223,7 @@ public class Torrent {
     }
 
     public BitSet getChunksRequested(final int index) {
-        BitSet b = new BitSet(computeChunksInPiece(index));
+        final BitSet b = new BitSet(computeChunksInPiece(index));
         synchronized (peers) {
             for (Peer p : peers) {
                 final BitSet req = p.getRequests(index);
@@ -250,13 +250,14 @@ public class Torrent {
                 availability.getAndDecrement(i);
             }
         }
-        int rem = remainingPeers.decrementAndGet();
+        final int rem = remainingPeers.decrementAndGet();
         logger.info("Have " + rem + " peers");
     }
 
     public void addPeer(final Peer peer, boolean isIncoming) {
         if (peers.add(peer) && isIncoming) {
-            int rem = remainingPeers.incrementAndGet();
+            final int rem = remainingPeers.incrementAndGet();
+            downloaded.getAndAdd(48);
             logger.info("Have " + rem + " peers");
         }
     }
