@@ -7,6 +7,7 @@ package hpbtc;
 
 import hpbtc.processor.Client;
 import hpbtc.protocol.torrent.Torrent;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -157,9 +158,9 @@ public class HPBTCW extends JFrame {
                     c.weighty = 1;
                     c.gridx = 0;
                     c.gridy = 3;
-                    GraphComponent g1 = new GraphComponent(100);
+                    GraphComponent g1 = new GraphComponent(100, Color.BLUE);
                     download.add(g1);
-                    GraphComponent g2 = new GraphComponent(100);
+                    GraphComponent g2 = new GraphComponent(100, Color.ORANGE);
                     upload.add(g2);
                     panel.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                             g1, g2), c);
@@ -264,12 +265,14 @@ public class HPBTCW extends JFrame {
         private int[] history;
         private short index;
         private long lastValue;
+        private Color color;
 
-        public GraphComponent(int h) {
+        public GraphComponent(final int h, final Color c) {
             history = new int[h];
+            this.color = c;
         }
 
-        public void pushValueToHistory(long value) {
+        public void pushValueToHistory(final long value) {
             if (++index == history.length) {
                 index = 0;
             }
@@ -300,14 +303,26 @@ public class HPBTCW extends JFrame {
             float k = max == min ? 1f : (d.height - 1f) / (max - min);
             int jc = index == history.length - 1 ? 0 : index + 1;
             int jf = jc == history.length - 1 ? 0 : jc + 1;
+            g2d.setColor(color);
             for (int i = 0; i < history.length - 1; i++) {
                 g2d.drawLine(2 * i, (int) (d.height - (history[jc] - min) * k - 1),
                         2 * (i + 1), (int) (d.height - (history[jf] - min) * k - 1));
                 jc = jf;
                 jf = jc == history.length - 1? 0 : jc + 1;
             }
-            g2d.drawString(String.valueOf(max), 0, 9);
-            g2d.drawString(String.valueOf(min), 0, d.height - 1);
+            g2d.setColor(Color.BLACK);
+            g2d.drawString(getRepresentation(max), 0, 9);
+            g2d.drawString(getRepresentation(min), 0, d.height - 1);
+        }
+        
+        private String getRepresentation(final int value) {
+            if (value < 1024) {
+                return String.valueOf(value);
+            } else if (value < 1048576) {
+                return String.format("%1$.1fKb", value / 1024f);
+            } else {
+                return String.format("%1$.1fMb", value / 1048576f);
+            }
         }
     }
 }
