@@ -270,7 +270,7 @@ public class HPBTCW extends JFrame {
         }
 
         public void pushValueToHistory(long value) {
-            if (++index == history.length - 1) {
+            if (++index == history.length) {
                 index = 0;
             }
             history[index] = (int) (value - lastValue);            
@@ -280,7 +280,7 @@ public class HPBTCW extends JFrame {
 
         @Override
         public Dimension getPreferredSize() {
-            return new Dimension(history.length, 100);
+            return new Dimension(history.length * 2, 100);
         }
 
         @Override
@@ -301,11 +301,13 @@ public class HPBTCW extends JFrame {
             int jc = index == history.length - 1 ? 0 : index + 1;
             int jf = jc == history.length - 1 ? 0 : jc + 1;
             for (int i = 0; i < history.length - 1; i++) {
-                g2d.drawLine(i, (int) (d.height - (history[jc] - min) * k - 1),
-                        i + 1, (int) (d.height - (history[jf] - min) * k - 1));
+                g2d.drawLine(2 * i, (int) (d.height - (history[jc] - min) * k - 1),
+                        2 * (i + 1), (int) (d.height - (history[jf] - min) * k - 1));
                 jc = jf;
                 jf = jc == history.length - 1? 0 : jc + 1;
             }
+            g2d.drawString(String.valueOf(max), 0, 9);
+            g2d.drawString(String.valueOf(min), 0, d.height - 1);
         }
     }
 }
