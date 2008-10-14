@@ -125,49 +125,52 @@ public class HPBTCW extends JFrame {
                     FileInputStream fis = new FileInputStream(filetorrent);
                     Torrent t = client.download(fis,
                             filetarget.getAbsolutePath());
-                    torrents.add(t);
-                    fis.close();
-                    JPanel panel = new JPanel();
-                    panel.setLayout(new GridBagLayout());
-                    JLabel l = new JLabel("Torrent");
-                    GridBagConstraints c = new GridBagConstraints();
-                    panel.add(l, c);
-                    l = new JLabel(filetorrent.getAbsolutePath());
-                    c.gridx = 1;
-                    c.weightx = 1;
-                    panel.add(l, c);
-                    l = new JLabel("Target");
-                    c.weightx = 0;
-                    c.gridx = 0;
-                    c.gridy = 1;
-                    panel.add(l, c);
-                    l = new JLabel(filetarget.getAbsolutePath());
-                    c.weightx = 1;
-                    c.gridx = 1;
-                    panel.add(l, c);
-                    l = new JLabel();
-                    l.setText("Progress");
-                    c.weightx = 0;
-                    c.gridx = 0;
-                    c.gridy = 2;
-                    panel.add(l, c);
-                    JProgressBar p = new JProgressBar(0, t.getNrPieces());
-                    c.weightx = 1;
-                    c.gridx = 1;
-                    panel.add(p, c);
-                    c.gridwidth = 2;
-                    c.weighty = 1;
-                    c.gridx = 0;
-                    c.gridy = 3;
-                    GraphComponent g1 = new GraphComponent(100, Color.BLUE);
-                    download.add(g1);
-                    GraphComponent g2 = new GraphComponent(100, Color.ORANGE);
-                    upload.add(g2);
-                    panel.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                            g1, g2), c);
-                    tabbed.addTab("1", panel);
-                    pack();
-                    progress.add(p);
+                    if (!torrents.contains(t)) {
+                        torrents.add(t);
+                        fis.close();
+                        JPanel panel = new JPanel();
+                        panel.setLayout(new GridBagLayout());
+                        JLabel l = new JLabel("Torrent");
+                        GridBagConstraints c = new GridBagConstraints();
+                        panel.add(l, c);
+                        l = new JLabel(filetorrent.getAbsolutePath());
+                        c.gridx = 1;
+                        c.weightx = 1;
+                        panel.add(l, c);
+                        l = new JLabel("Target");
+                        c.weightx = 0;
+                        c.gridx = 0;
+                        c.gridy = 1;
+                        panel.add(l, c);
+                        l = new JLabel(filetarget.getAbsolutePath());
+                        c.weightx = 1;
+                        c.gridx = 1;
+                        panel.add(l, c);
+                        l = new JLabel();
+                        l.setText("Progress");
+                        c.weightx = 0;
+                        c.gridx = 0;
+                        c.gridy = 2;
+                        panel.add(l, c);
+                        JProgressBar p = new JProgressBar(0, t.getNrPieces());
+                        c.weightx = 1;
+                        c.gridx = 1;
+                        panel.add(p, c);
+                        c.gridwidth = 2;
+                        c.weighty = 1;
+                        c.gridx = 0;
+                        c.gridy = 3;
+                        GraphComponent g1 = new GraphComponent(100, Color.BLUE);
+                        download.add(g1);
+                        GraphComponent g2 =
+                                new GraphComponent(100, Color.ORANGE);
+                        upload.add(g2);
+                        panel.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+                                g1, g2), c);
+                        tabbed.addTab("1", panel);
+                        pack();
+                        progress.add(p);
+                    }
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
@@ -277,7 +280,7 @@ public class HPBTCW extends JFrame {
             if (++index == history.length) {
                 index = 0;
             }
-            history[index] = (int) (value - lastValue);            
+            history[index] = (int) (value - lastValue);
             lastValue = value;
             repaint();
         }
@@ -306,16 +309,18 @@ public class HPBTCW extends JFrame {
             int jf = jc == history.length - 1 ? 0 : jc + 1;
             g2d.setColor(color);
             for (int i = 0; i < history.length - 1; i++) {
-                g2d.drawLine(2 * i, (int) (d.height - (history[jc] - min) * k - 1),
-                        2 * (i + 1), (int) (d.height - (history[jf] - min) * k - 1));
+                g2d.drawLine(2 * i, (int) (d.height - (history[jc] - min) * k -
+                        1),
+                        2 * (i + 1), (int) (d.height - (history[jf] - min) * k -
+                        1));
                 jc = jf;
-                jf = jc == history.length - 1? 0 : jc + 1;
+                jf = jc == history.length - 1 ? 0 : jc + 1;
             }
             g2d.setColor(Color.BLACK);
             g2d.drawString(getRepresentation(max), 0, 9);
             g2d.drawString(getRepresentation(min), 0, d.height - 1);
         }
-        
+
         private String getRepresentation(final int value) {
             if (value < 1024) {
                 return String.format("%1$db", value);
