@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -242,11 +243,12 @@ public class HPBTCW extends JFrame {
     }
 
     public static void main(String args[]) throws IOException {
-        Handler fh = new FileHandler("D:\\Documents and Settings\\Administrator\\Desktop\\hpbtc.log");
+        Handler fh =
+                args.length == 1 ? new FileHandler(args[0]) : new ConsoleHandler();
         fh.setFormatter(new SimpleFormatter());
         Logger l = Logger.getLogger("hpbtc");
         l.addHandler(fh);
-        l.setLevel(Level.ALL);
+        l.setLevel(args.length == 1 ? Level.ALL : Level.INFO);
         EventQueue.invokeLater(new Runnable() {
 
             public void run() {
