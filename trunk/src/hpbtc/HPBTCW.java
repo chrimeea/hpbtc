@@ -204,7 +204,6 @@ public class HPBTCW extends JFrame {
                 final Component c = tabbed.getSelectedComponent();
                 c.setVisible(false);
                 tabbed.remove(c);
-                pack();
                 try {
                     client.stopTorrent(torrents.remove(i));
                 } catch (IOException ex) {
@@ -319,7 +318,7 @@ public class HPBTCW extends JFrame {
         
         private String getRepresentation(final int value) {
             if (value < 1024) {
-                return String.valueOf(value);
+                return String.format("%1$db", value);
             } else if (value < 1048576) {
                 return String.format("%1$.1fKb", value / 1024f);
             } else {
