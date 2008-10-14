@@ -153,6 +153,7 @@ public class HPBTCW extends JFrame {
                         c.gridy = 2;
                         panel.add(l, c);
                         JProgressBar p = new JProgressBar(0, t.getNrPieces());
+                        p.setStringPainted(true);
                         c.weightx = 1;
                         c.gridx = 1;
                         panel.add(p, c);
@@ -167,7 +168,7 @@ public class HPBTCW extends JFrame {
                         upload.add(g2);
                         panel.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                                 g1, g2), c);
-                        tabbed.addTab("1", panel);
+                        tabbed.addTab("ETA", panel);
                         pack();
                         progress.add(p);
                     }
