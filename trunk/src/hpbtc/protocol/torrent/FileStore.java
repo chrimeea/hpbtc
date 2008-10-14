@@ -8,7 +8,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -26,7 +25,6 @@ public class FileStore {
     private int chunkSize = 16384;
     private int nrPieces;
     private BitSet[] pieces;
-    private long offset;
     private byte[] pieceHash;
     private List<BTFile> files;
     private long fileLength;
@@ -144,32 +142,34 @@ public class FileStore {
         init(pieceLength, pieceHash);
     }
 
-    private void loadFileChunk(final List<BTFile> files, final long begin,
+    private void loadFileChunk(int k, long begin,
             final ByteBuffer dest) throws IOException {
-        final Iterator<BTFile> i = files.iterator();
-        IOUtil.readFromFile(i.next().getFile(), begin, dest);
-        while (i.hasNext()) {
-            IOUtil.readFromFile(i.next().getFile(), 0, dest);
-        }
+        int len = dest.remaining();
+        int r;
+        do {
+            r = IOUtil.readFromFile(files.get(k++).getFile(), begin, dest);
+            len -= r;
+            begin = 0;
+        } while (r > 0 && len > 0 && k < files.size());
     }
 
-    private void saveFileChunk(final List<BTFile> files, final long begin,
+    private void saveFileChunk(int k, final long begin,
             final ByteBuffer piece) throws IOException {
-        final Iterator<BTFile> i = files.iterator();
-        BTFile f = i.next();
-        long j = f.getLength() - begin;
+        int len = piece.remaining();
+        BTFile f = files.get(k++);
+        long j = f.getLength() - begin + piece.position();
         if (j < piece.capacity()) {
             piece.limit((int) j);
         }
-        IOUtil.writeToFile(f.getFile(), begin, piece);
-        while (i.hasNext()) {
-            f = i.next();
+        len -= IOUtil.writeToFile(f.getFile(), begin, piece);
+        while (len > 0 && k < files.size()) {
+            f = files.get(k++);
             j = f.getLength() + piece.position();
             if (j > piece.capacity()) {
                 j = piece.capacity();
             }
             piece.limit((int) j);
-            IOUtil.writeToFile(f.getFile(), 0, piece);
+            len -= IOUtil.writeToFile(f.getFile(), 0, piece);
         }
     }
 
@@ -198,8 +198,8 @@ public class FileStore {
         final int nsb = pieces[index].nextSetBit(bi);
         if (nsb < 0 || nsb >= ei) {
             pieces[index].set(bi, ei);
-            saveFileChunk(getFileList(begin, index, piece.remaining()), offset,
-                    piece);
+            long[] l = getFileList(begin, index);
+            saveFileChunk((int) l[0], l[1], piece);
             if (pieces[index].cardinality() == computeChunksInPiece(index)) {
                 if (isHashCorrect(index,
                         ByteBuffer.allocate(computePieceLength(index)))) {
@@ -212,36 +212,26 @@ public class FileStore {
                 }
             }
         } else {
-            logger.fine("Already have Index " + index + ", Begin "
-                    + begin);
+            logger.fine("Already have Index " + index + ", Begin " + begin);
         }
         return false;
     }
 
-    private List<BTFile> getFileList(final int begin, final int index,
-            final int length) {
+    private long[] getFileList(final int begin, final int index) {
         long o = index * pieceLength + begin;
-        final Iterator<BTFile> i = files.iterator();
+        int k = -1;
         BTFile f;
         do {
-            f = i.next();
+            f = files.get(++k);
             o -= f.getLength();
         } while (o > 0);
-        offset = o + f.getLength();
-        final List<BTFile> fls = new LinkedList<BTFile>();
-        o += length;
-        fls.add(f);
-        while (o >= 0 && i.hasNext()) {
-            f = i.next();
-            fls.add(f);
-            o -= f.getLength();
-        }
-        return fls;
+        return new long[] {k, o + f.getLength()};
     }
 
     public void loadPiece(final int begin, final int index,
             final ByteBuffer bb) throws IOException {
-        loadFileChunk(getFileList(begin, index, bb.remaining()), offset, bb);
+        long[] l = getFileList(begin, index);
+        loadFileChunk((int) l[0], l[1], bb);
         bb.rewind();
     }
 
