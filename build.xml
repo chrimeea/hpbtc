@@ -4,7 +4,7 @@
     <property name="dir.test" value="test"/>
     <property name="dir.lib" value="lib"/>
     <property name="dir.build" value="classes"/>
-    <property name="javac.source" value="1.5"/>
+    <property name="javac.source" value="1.6"/>
     <path id="cp.classpath">
         <pathelement location="${dir.build}"/>
         <fileset dir="${dir.lib}">
@@ -45,5 +45,15 @@
         <java classname="hpbtc.HPBTCW" classpathref="cp.classpath">
             <arg value="D:\Documents and Settings\Administrator\Desktop\hpbtc.log"/>
         </java>
-    </target>    
+    </target>
+    <target name="jar" description="create jar" depends="compile">
+        <jar destfile="hpbtc.jar"
+             basedir="${dir.build}"
+             excludes="**/*Test.class">
+            <manifest>
+                <attribute name="Built-By" value="Cristian Mocanu"/>
+                <attribute name="Main-Class" value="hpbtc.HPBTCW"/>
+            </manifest>
+        </jar>
+    </target>
 </project>
