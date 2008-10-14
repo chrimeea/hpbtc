@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Timer;
 import java.util.Vector;
@@ -43,6 +44,11 @@ public class Client {
     public Torrent download(final InputStream is, final String rootFolder)
             throws IOException, NoSuchAlgorithmException {
         final Torrent ti = new Torrent(is, rootFolder, peerId, port);
+        for (Torrent t: torrents) {
+            if (Arrays.equals(t.getInfoHash(), ti.getInfoHash())) {
+                return t;
+            }
+        }
         torrents.add(ti);
         writer.download(ti);
         return ti;
