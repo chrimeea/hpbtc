@@ -156,18 +156,22 @@ public class HPBTCW extends JFrame {
                         p.setStringPainted(true);
                         c.weightx = 1;
                         c.gridx = 1;
+                        c.fill = GridBagConstraints.HORIZONTAL;
                         panel.add(p, c);
                         c.gridwidth = 2;
                         c.weighty = 1;
                         c.gridx = 0;
                         c.gridy = 3;
+                        c.fill = GridBagConstraints.BOTH;
                         GraphComponent g1 = new GraphComponent(100, Color.BLUE);
                         download.add(g1);
                         GraphComponent g2 =
                                 new GraphComponent(100, Color.ORANGE);
                         upload.add(g2);
-                        panel.add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                                g1, g2), c);
+                        JSplitPane jsp = new JSplitPane(
+                                JSplitPane.HORIZONTAL_SPLIT, g1, g2);
+                        jsp.setResizeWeight(0.5f);
+                        panel.add(jsp, c);
                         tabbed.addTab("ETA", panel);
                         pack();
                         progress.add(p);
@@ -308,7 +312,7 @@ public class HPBTCW extends JFrame {
         public Dimension getPreferredSize() {
             return new Dimension(history.length * 2, 100);
         }
-
+        
         @Override
         public void paint(Graphics arg0) {
             super.paint(arg0);
