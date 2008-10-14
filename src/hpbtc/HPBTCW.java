@@ -223,12 +223,22 @@ public class HPBTCW extends JFrame {
             @Override
             public void run() {
                 int i = tabbed.getSelectedIndex();
+                Torrent t;
                 if (i > -1) {
-                    Torrent t = torrents.get(i);
+                    t = torrents.get(i);
                     progress.get(i).setValue(
                             t.getCompletePieces().cardinality());
                     download.get(i).pushValueToHistory(t.getDownloaded());
                     upload.get(i).pushValueToHistory(t.getUploaded());
+                }
+                for (int j = 0; j < tabbed.getTabCount(); j++) {
+                    t = torrents.get(j);
+                    if (t.isTorrentComplete()) {
+                        tabbed.setTitleAt(j, "seed");
+                    } else {
+                        tabbed.setTitleAt(j, getETA(t.getFileLength(),
+                            download.get(j).getAverage() / 2f));
+                    }
                 }
             }
         };
@@ -276,6 +286,14 @@ public class HPBTCW extends JFrame {
             this.color = c;
         }
 
+        public float getAverage() {
+            float i = history[0];
+            for (int j = 1; j < history.length; j++) {
+                i += history[j];
+            }
+            return i / history.length;
+        }
+        
         public void pushValueToHistory(final long value) {
             if (++index == history.length) {
                 index = 0;
@@ -320,15 +338,33 @@ public class HPBTCW extends JFrame {
             g2d.drawString(getRepresentation(max), 0, 9);
             g2d.drawString(getRepresentation(min), 0, d.height - 1);
         }
+    }
 
-        private String getRepresentation(final int value) {
-            if (value < 1024) {
-                return String.format("%1$db", value);
-            } else if (value < 1048576) {
-                return String.format("%1$.1fKb", value / 1024f);
-            } else {
-                return String.format("%1$.1fMb", value / 1048576f);
-            }
+    private static String getETA(long total, float speedpersec) {
+        if (speedpersec == 0) {
+            return "inf";
+        }
+        float eta = total / speedpersec;
+        if (eta < 60) {
+            return String.format("%1$.1fs", eta);
+        } else if (eta < 3600) {
+            return String.format("%1$.1fm", eta / 60);
+        } else if (eta < 86400) {
+            return String.format("%1$.1fh", eta / 3600);
+        } else if (eta < 604800) {
+            return String.format("%1$.1fd", eta / 86400);
+        } else {
+            return String.format("%1$.1fw", eta / 604800);
+        }
+    }
+
+    private static String getRepresentation(final int value) {
+        if (value < 1024) {
+            return String.format("%1$db", value);
+        } else if (value < 1048576) {
+            return String.format("%1$.1fKb", value / 1024f);
+        } else {
+            return String.format("%1$.1fMb", value / 1048576f);
         }
     }
 }
