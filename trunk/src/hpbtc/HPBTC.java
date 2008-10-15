@@ -4,7 +4,10 @@
  */
 package hpbtc;
 
+import hpbtc.desktop.HPBTCW;
 import hpbtc.processor.Client;
+import java.awt.EventQueue;
+import java.io.File;
 import java.io.FileInputStream;
 import java.util.logging.Logger;
 import java.io.IOException;
@@ -26,25 +29,46 @@ public class HPBTC {
     /**
      * @param args
      */
-    public static void main(String[] args) throws IOException,
+    public static void main(final String[] args) throws IOException,
             NoSuchAlgorithmException {
+        String arg = getArg(args, "-log");
         final Handler fh =
-                args.length == 3 ? new FileHandler(args[2]) : new ConsoleHandler();
+                arg != null ? new FileHandler(arg) : new ConsoleHandler();
         fh.setFormatter(new SimpleFormatter());
         final Logger l = Logger.getLogger("hpbtc");
         l.addHandler(fh);
-        l.setLevel(args.length == 3 ? Level.ALL : Level.INFO);
-        if (args.length < 2) {
+        l.setLevel(arg != null ? Level.ALL : Level.INFO);
+        final String port = getArg(args, "-port");
+        arg = getArg(args, "-window");
+        final String tor = getArg(args, "-torrent");
+        final String target = getArg(args, "-target");
+        if (arg != null) {
+            EventQueue.invokeLater(new Runnable() {
+
+                public void run() {
+                    try {
+                        HPBTCW h = port != null ? new HPBTCW(Integer.parseInt(
+                                port)) : new hpbtc.desktop.HPBTCW();
+                        h.setVisible(true);
+                        if (tor != null && target != null) {
+                            h.startTorrent(new File(tor), new File(target));
+                        }
+                    } catch (Exception ex) {
+                        logger.log(Level.SEVERE, null, ex);
+                    }
+                }
+            });
+        } else if (tor == null || target == null) {
             logger.severe("Mandatory parameter missing");
         } else {
             final Client protocol = new Client();
-            if (args.length == 4) {
-                protocol.startProtocol(Integer.parseInt(args[3]));
+            if (port != null) {
+                protocol.startProtocol(Integer.parseInt(port));
             } else {
                 protocol.startProtocol();
             }
-            final FileInputStream fis = new FileInputStream(args[0]);
-            protocol.download(fis, args[1]);
+            final FileInputStream fis = new FileInputStream(tor);
+            protocol.download(fis, target);
             fis.close();
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
@@ -53,5 +77,14 @@ public class HPBTC {
                 }
             }, "Shutdown"));
         }
+    }
+
+    private static String getArg(String[] args, String prefix) {
+        for (String a : args) {
+            if (a.startsWith(prefix)) {
+                return a.substring(prefix.length());
+            }
+        }
+        return null;
     }
 }

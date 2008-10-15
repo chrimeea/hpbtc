@@ -1,7 +1,6 @@
 /*
  * Created on 15.10.2008
  */
-
 package hpbtc.desktop;
 
 import hpbtc.processor.Client;
@@ -18,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
@@ -115,60 +115,7 @@ public class HPBTCW extends JFrame {
             public void actionPerformed(ActionEvent arg0) {
                 popup.dispose();
                 try {
-                    FileInputStream fis = new FileInputStream(filetorrent);
-                    Torrent t = client.download(fis,
-                            filetarget.getAbsolutePath());
-                    if (!torrents.contains(t)) {
-                        torrents.add(t);
-                        fis.close();
-                        JPanel panel = new JPanel();
-                        panel.setLayout(new GridBagLayout());
-                        JLabel l = new JLabel("Torrent");
-                        GridBagConstraints c = new GridBagConstraints();
-                        panel.add(l, c);
-                        l = new JLabel(filetorrent.getAbsolutePath());
-                        c.gridx = 1;
-                        c.weightx = 1;
-                        panel.add(l, c);
-                        l = new JLabel("Target");
-                        c.weightx = 0;
-                        c.gridx = 0;
-                        c.gridy = 1;
-                        panel.add(l, c);
-                        l = new JLabel(filetarget.getAbsolutePath());
-                        c.weightx = 1;
-                        c.gridx = 1;
-                        panel.add(l, c);
-                        l = new JLabel();
-                        l.setText("Progress");
-                        c.weightx = 0;
-                        c.gridx = 0;
-                        c.gridy = 2;
-                        panel.add(l, c);
-                        JProgressBar p = new JProgressBar(0, t.getNrPieces());
-                        p.setStringPainted(true);
-                        c.weightx = 1;
-                        c.gridx = 1;
-                        c.fill = GridBagConstraints.HORIZONTAL;
-                        panel.add(p, c);
-                        c.gridwidth = 2;
-                        c.weighty = 1;
-                        c.gridx = 0;
-                        c.gridy = 3;
-                        c.fill = GridBagConstraints.BOTH;
-                        GraphComponent g1 = new GraphComponent(100, Color.BLUE);
-                        download.add(g1);
-                        GraphComponent g2 =
-                                new GraphComponent(100, Color.ORANGE);
-                        upload.add(g2);
-                        JSplitPane jsp = new JSplitPane(
-                                JSplitPane.HORIZONTAL_SPLIT, g1, g2);
-                        jsp.setResizeWeight(0.5f);
-                        panel.add(jsp, c);
-                        tabbed.addTab("ETA", panel);
-                        pack();
-                        progress.add(p);
-                    }
+                    startTorrent(filetorrent, filetarget);
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
@@ -243,8 +190,9 @@ public class HPBTCW extends JFrame {
                     if (t.isTorrentComplete()) {
                         tabbed.setTitleAt(j, "seed");
                     } else {
-                        tabbed.setTitleAt(j, DesktopUtil.getETA(t.getFileLength(),
-                            download.get(j).getAverage() / 2f));
+                        tabbed.setTitleAt(j, DesktopUtil.getETA(
+                                t.getFileLength(),
+                                download.get(j).getAverage() / 2f));
                     }
                 }
             }
@@ -258,7 +206,7 @@ public class HPBTCW extends JFrame {
             }
         });
     }
-    
+
     public HPBTCW() throws UnsupportedEncodingException, IOException {
         initComponents();
         client = new Client();
@@ -270,5 +218,62 @@ public class HPBTCW extends JFrame {
         initComponents();
         client = new Client();
         client.startProtocol(port);
+    }
+
+    public void startTorrent(final File ftorrent, final File ftarget)
+            throws IOException, NoSuchAlgorithmException {
+        FileInputStream fis = new FileInputStream(ftorrent);
+        Torrent t = client.download(fis, ftarget.getAbsolutePath());
+        fis.close();
+        if (!torrents.contains(t)) {
+            torrents.add(t);
+            JPanel panel = new JPanel();
+            panel.setLayout(new GridBagLayout());
+            JLabel l = new JLabel("Torrent");
+            GridBagConstraints c = new GridBagConstraints();
+            panel.add(l, c);
+            l = new JLabel(ftorrent.getAbsolutePath());
+            c.gridx = 1;
+            c.weightx = 1;
+            panel.add(l, c);
+            l = new JLabel("Target");
+            c.weightx = 0;
+            c.gridx = 0;
+            c.gridy = 1;
+            panel.add(l, c);
+            l = new JLabel(ftarget.getAbsolutePath());
+            c.weightx = 1;
+            c.gridx = 1;
+            panel.add(l, c);
+            l = new JLabel();
+            l.setText("Progress");
+            c.weightx = 0;
+            c.gridx = 0;
+            c.gridy = 2;
+            panel.add(l, c);
+            JProgressBar p = new JProgressBar(0, t.getNrPieces());
+            p.setStringPainted(true);
+            c.weightx = 1;
+            c.gridx = 1;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            panel.add(p, c);
+            c.gridwidth = 2;
+            c.weighty = 1;
+            c.gridx = 0;
+            c.gridy = 3;
+            c.fill = GridBagConstraints.BOTH;
+            GraphComponent g1 = new GraphComponent(100, Color.BLUE);
+            download.add(g1);
+            GraphComponent g2 =
+                    new GraphComponent(100, Color.ORANGE);
+            upload.add(g2);
+            JSplitPane jsp = new JSplitPane(
+                    JSplitPane.HORIZONTAL_SPLIT, g1, g2);
+            jsp.setResizeWeight(0.5f);
+            panel.add(jsp, c);
+            tabbed.addTab("ETA", panel);
+            pack();
+            progress.add(p);
+        }
     }
 }
