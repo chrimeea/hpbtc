@@ -39,10 +39,10 @@ public class HPBTC {
         l.addHandler(fh);
         l.setLevel(arg != null ? Level.ALL : Level.INFO);
         final String port = getArg(args, "-port");
-        arg = getArg(args, "-window");
+        arg = getArg(args, "-cmd");
         final String tor = getArg(args, "-torrent");
         final String target = getArg(args, "-target");
-        if (arg != null) {
+        if (arg == null) {
             EventQueue.invokeLater(new Runnable() {
 
                 public void run() {

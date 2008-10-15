@@ -42,7 +42,6 @@
             <arg value="-targetD:\Documents and Settings\Administrator\Desktop\test"/>
             <arg value="-logD:\Documents and Settings\Administrator\Desktop\hpbtc.log"/>
             <arg value="-port32745"/>
-            <arg value="-window"/>
         </java>
     </target>
     <target name="jar" description="create jar" depends="compile">
@@ -51,7 +50,7 @@
              excludes="**/*Test.class">
             <manifest>
                 <attribute name="Built-By" value="Cristian Mocanu"/>
-                <attribute name="Main-Class" value="hpbtc.HPBTCW"/>
+                <attribute name="Main-Class" value="hpbtc.HPBTC"/>
             </manifest>
         </jar>
     </target>
