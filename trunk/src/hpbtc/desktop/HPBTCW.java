@@ -69,7 +69,6 @@ public class HPBTCW extends JFrame {
         popup.setTitle(rb.getString("title.popup"));
         JLabel l = new JLabel(rb.getString("label.torrent"));
         GridBagConstraints c = new GridBagConstraints();
-        c.weighty = 0.3;
         popup.add(l, c);
         final JLabel ltorrentpop = new JLabel();
         c.weightx = 1;
@@ -110,6 +109,7 @@ public class HPBTCW extends JFrame {
                 }
             }
         });
+        c.weightx = 0;
         c.gridx = 2;
         popup.add(b, c);
         JButton button = new JButton(rb.getString("label.ok"));
