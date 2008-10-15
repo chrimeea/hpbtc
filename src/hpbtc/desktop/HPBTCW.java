@@ -60,6 +60,7 @@ public class HPBTCW extends JFrame {
     private File filetorrent;
     private Timer timer = new Timer();
     private Client client;
+    private JMenuItem stopTorrent;
 
     private void initComponents() {
         setTitle(rb.getString("title.main"));
@@ -141,9 +142,9 @@ public class HPBTCW extends JFrame {
             }
         });
         menu.add(item);
-        item = new JMenuItem(rb.getString("menu.stop"));
-
-        item.addActionListener(new ActionListener() {
+        stopTorrent = new JMenuItem(rb.getString("menu.stop"));
+        stopTorrent.setEnabled(false);
+        stopTorrent.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
                 final int i = tabbed.getSelectedIndex();
@@ -151,8 +152,10 @@ public class HPBTCW extends JFrame {
                 upload.remove(i);
                 download.remove(i);
                 final Component c = tabbed.getSelectedComponent();
-                c.setVisible(false);
                 tabbed.remove(c);
+                if (tabbed.getTabCount() == 0) {
+                    stopTorrent.setEnabled(false);
+                }
                 try {
                     client.stopTorrent(torrents.remove(i));
                 } catch (IOException ex) {
@@ -160,7 +163,7 @@ public class HPBTCW extends JFrame {
                 }
             }
         });
-        menu.add(item);
+        menu.add(stopTorrent);
         menu.addSeparator();
         item = new JMenuItem(rb.getString("menu.about"));
         item.addActionListener(new ActionListener() {
@@ -229,6 +232,7 @@ public class HPBTCW extends JFrame {
         Torrent t = client.download(fis, ftarget.getAbsolutePath());
         fis.close();
         if (!torrents.contains(t)) {
+            stopTorrent.setEnabled(true);
             torrents.add(t);
             JPanel panel = new JPanel();
             panel.setLayout(new GridBagLayout());
