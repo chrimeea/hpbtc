@@ -18,6 +18,8 @@
         classpathref="cp.classpath" debug="true" source="${javac.source}"/>
         <javac srcdir="${dir.test}" destdir="${dir.build}"
         classpathref="cp.classpath" debug="true" source="${javac.source}"/>
+        <copy file="${dir.src}/hpbtc/desktop/hpbtc.properties"
+              todir="${dir.build}/hpbtc/desktop"/>
     </target>
     <target name="clean" description="deletes build directory">
         <delete dir="${dir.build}"/>
