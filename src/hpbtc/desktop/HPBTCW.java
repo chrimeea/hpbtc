@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -47,6 +48,8 @@ public class HPBTCW extends JFrame {
 
     private static final long serialVersionUID = 6534802684324378898L;
     private static Logger logger = Logger.getLogger(HPBTCW.class.getName());
+    private static ResourceBundle rb =
+            ResourceBundle.getBundle("hpbtc/desktop/hpbtc");
     private JTabbedPane tabbed;
     private JFileChooser fc = new JFileChooser();
     private List<JProgressBar> progress = new LinkedList<JProgressBar>();
@@ -59,12 +62,12 @@ public class HPBTCW extends JFrame {
     private Client client;
 
     private void initComponents() {
-        setTitle("BitTorrent");
+        setTitle(rb.getString("title.main"));
         final JDialog popup = new JDialog();
         popup.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         popup.getContentPane().setLayout(new GridBagLayout());
-        popup.setTitle("Download");
-        JLabel l = new JLabel("Torrent");
+        popup.setTitle(rb.getString("title.popup"));
+        JLabel l = new JLabel(rb.getString("label.torrent"));
         GridBagConstraints c = new GridBagConstraints();
         c.weighty = 0.3;
         popup.add(l, c);
@@ -72,7 +75,7 @@ public class HPBTCW extends JFrame {
         c.weightx = 1;
         c.gridx = 1;
         popup.add(ltorrentpop, c);
-        JButton b = new JButton("...");
+        JButton b = new JButton(rb.getString("label.browse"));
         b.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent evt) {
@@ -89,13 +92,13 @@ public class HPBTCW extends JFrame {
         popup.add(b, c);
         c.gridx = 0;
         c.gridy = 1;
-        l = new JLabel("Target");
+        l = new JLabel(rb.getString("label.target"));
         popup.add(l, c);
         final JLabel ltargetpop = new JLabel();
         c.weightx = 1;
         c.gridx = 1;
         popup.add(ltargetpop, c);
-        b = new JButton("...");
+        b = new JButton(rb.getString("label.browse"));
         b.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent evt) {
@@ -103,13 +106,13 @@ public class HPBTCW extends JFrame {
                 final int returnVal = fc.showOpenDialog(HPBTCW.this);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     filetarget = fc.getSelectedFile();
-                    ltargetpop.setText("Target " + filetarget.getAbsolutePath());
+                    ltargetpop.setText(filetarget.getAbsolutePath());
                 }
             }
         });
         c.gridx = 2;
         popup.add(b, c);
-        JButton button = new JButton("OK");
+        JButton button = new JButton(rb.getString("label.ok"));
         button.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
@@ -129,8 +132,8 @@ public class HPBTCW extends JFrame {
         tabbed = new JTabbedPane();
         add(tabbed);
         final JMenuBar bar = new JMenuBar();
-        final JMenu menu = new JMenu("File");
-        JMenuItem item = new JMenuItem("New torrent");
+        final JMenu menu = new JMenu(rb.getString("menu.file"));
+        JMenuItem item = new JMenuItem(rb.getString("menu.new"));
         item.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
@@ -138,7 +141,7 @@ public class HPBTCW extends JFrame {
             }
         });
         menu.add(item);
-        item = new JMenuItem("Stop this torrent");
+        item = new JMenuItem(rb.getString("menu.stop"));
 
         item.addActionListener(new ActionListener() {
 
@@ -159,13 +162,13 @@ public class HPBTCW extends JFrame {
         });
         menu.add(item);
         menu.addSeparator();
-        item = new JMenuItem("About");
+        item = new JMenuItem(rb.getString("menu.about"));
         item.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
                 JOptionPane.showMessageDialog(HPBTCW.this,
-                        "Programming by Cristian Mocanu\nEmail chrimeea@yahoo.com",
-                        "About", JOptionPane.INFORMATION_MESSAGE);
+                        rb.getString("label.about"), rb.getString("title.about"),
+                        JOptionPane.INFORMATION_MESSAGE);
             }
         });
         menu.add(item);
@@ -188,7 +191,7 @@ public class HPBTCW extends JFrame {
                 for (int j = 0; j < tabbed.getTabCount(); j++) {
                     t = torrents.get(j);
                     if (t.isTorrentComplete()) {
-                        tabbed.setTitleAt(j, "seed");
+                        tabbed.setTitleAt(j, rb.getString("label.seed"));
                     } else {
                         tabbed.setTitleAt(j, DesktopUtil.getETA(
                                 t.getFileLength(),
@@ -229,14 +232,14 @@ public class HPBTCW extends JFrame {
             torrents.add(t);
             JPanel panel = new JPanel();
             panel.setLayout(new GridBagLayout());
-            JLabel l = new JLabel("Torrent");
+            JLabel l = new JLabel(rb.getString("label.torrent"));
             GridBagConstraints c = new GridBagConstraints();
             panel.add(l, c);
             l = new JLabel(ftorrent.getAbsolutePath());
             c.gridx = 1;
             c.weightx = 1;
             panel.add(l, c);
-            l = new JLabel("Target");
+            l = new JLabel(rb.getString("label.target"));
             c.weightx = 0;
             c.gridx = 0;
             c.gridy = 1;
@@ -246,7 +249,7 @@ public class HPBTCW extends JFrame {
             c.gridx = 1;
             panel.add(l, c);
             l = new JLabel();
-            l.setText("Progress");
+            l.setText(rb.getString("label.progress"));
             c.weightx = 0;
             c.gridx = 0;
             c.gridy = 2;
@@ -271,7 +274,7 @@ public class HPBTCW extends JFrame {
                     JSplitPane.HORIZONTAL_SPLIT, g1, g2);
             jsp.setResizeWeight(0.5f);
             panel.add(jsp, c);
-            tabbed.addTab("ETA", panel);
+            tabbed.addTab(rb.getString("label.eta"), panel);
             pack();
             progress.add(p);
         }
