@@ -40,14 +40,12 @@ public class NetworkReader {
         this.register = register;
     }
 
-    public int connect() throws IOException {
+    private int findPort() throws IOException {
         int port = MIN_PORT;
-        serverCh = ServerSocketChannel.open();
         while (port <= MAX_PORT) {
             try {
-                InetSocketAddress isa = new InetSocketAddress(
-                        InetAddress.getLocalHost(), port);
-                serverCh.socket().bind(isa);
+                serverCh.socket().bind(new InetSocketAddress(
+                        InetAddress.getLocalHost(), port));
                 break;
             } catch (IOException e) {
                 port++;
@@ -56,10 +54,14 @@ public class NetworkReader {
         if (port > MAX_PORT) {
             throw new IOException("No ports available");
         } else {
-            selector = register.openReadSelector();
-            serverCh.configureBlocking(false);
-            serverCh.register(selector, SelectionKey.OP_ACCEPT);
+            return port;
         }
+    }
+
+    private void startListen() throws IOException {
+        selector = register.openReadSelector();
+        serverCh.configureBlocking(false);
+        serverCh.register(selector, SelectionKey.OP_ACCEPT);
         running = true;
         new Thread(new Runnable() {
 
@@ -81,7 +83,20 @@ public class NetworkReader {
                     logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
                 }
             }
-        }).start();
+        }).start();        
+    }
+    
+    public void connect(int port) throws IOException {
+        serverCh = ServerSocketChannel.open();
+        serverCh.socket().bind(new InetSocketAddress(
+                        InetAddress.getLocalHost(), port));
+        startListen();
+    }
+    
+    public int connect() throws IOException {
+        serverCh = ServerSocketChannel.open();
+        int port = findPort();
+        startListen();
         return port;
     }
 
@@ -94,7 +109,8 @@ public class NetworkReader {
             NoSuchAlgorithmException {
         while (running) {
             if (selector.select() > 0) {
-                final Iterator<SelectionKey> i = selector.selectedKeys().iterator();
+                final Iterator<SelectionKey> i = selector.selectedKeys().
+                        iterator();
                 while (i.hasNext()) {
                     final SelectionKey key = i.next();
                     i.remove();
@@ -112,8 +128,8 @@ public class NetworkReader {
                                 processor.readMessage(peer);
                             }
                         } catch (IOException ioe) {
-                            logger.log(Level.FINE, peer == null ?
-                                ioe.getLocalizedMessage() : peer.toString(), ioe);
+                            logger.log(Level.FINE, peer == null ? ioe.
+                                    getLocalizedMessage() : peer.toString(), ioe);
                             if (peer != null) {
                                 processor.disconnect(peer);
                             } else {

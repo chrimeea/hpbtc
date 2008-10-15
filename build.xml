@@ -39,11 +39,13 @@
             <arg value="D:\Documents and Settings\Administrator\Desktop\test.torrent"/>
             <arg value="D:\Documents and Settings\Administrator\Desktop\test"/>
             <arg value="D:\Documents and Settings\Administrator\Desktop\hpbtc.log"/>
+            <arg value="32745"/>
         </java>
     </target>
     <target name="runw" description="run window client" depends="compile">
         <java classname="hpbtc.HPBTCW" classpathref="cp.classpath">
             <arg value="D:\Documents and Settings\Administrator\Desktop\hpbtc.log"/>
+            <arg value="32745"/>
         </java>
     </target>
     <target name="jar" description="create jar" depends="compile">

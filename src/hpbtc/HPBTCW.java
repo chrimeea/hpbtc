@@ -68,10 +68,12 @@ public class HPBTCW extends JFrame {
     private Timer timer = new Timer();
     private Client client;
 
-    public HPBTCW() throws UnsupportedEncodingException, IOException {
+    private void initComponents() {
+        setTitle("BitTorrent");
         final JDialog popup = new JDialog();
         popup.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         popup.getContentPane().setLayout(new GridBagLayout());
+        popup.setTitle("Download");
         JLabel l = new JLabel("Torrent");
         GridBagConstraints c = new GridBagConstraints();
         c.weighty = 0.3;
@@ -258,8 +260,6 @@ public class HPBTCW extends JFrame {
             }
         };
         timer.schedule(tt, 2000L, 2000L);
-        client = new Client();
-        client.startProtocol();
         addWindowListener(new WindowAdapter() {
 
             @Override
@@ -268,19 +268,34 @@ public class HPBTCW extends JFrame {
             }
         });
     }
+    
+    public HPBTCW() throws UnsupportedEncodingException, IOException {
+        initComponents();
+        client = new Client();
+        client.startProtocol();
+    }
 
-    public static void main(String args[]) throws IOException {
-        Handler fh =
+    public HPBTCW(final int port) throws UnsupportedEncodingException,
+            IOException {
+        initComponents();
+        client = new Client();
+        client.startProtocol(port);
+    }
+    
+    public static void main(final String args[]) throws IOException {
+        final Handler fh =
                 args.length == 1 ? new FileHandler(args[0]) : new ConsoleHandler();
         fh.setFormatter(new SimpleFormatter());
-        Logger l = Logger.getLogger("hpbtc");
+        final Logger l = Logger.getLogger("hpbtc");
         l.addHandler(fh);
         l.setLevel(args.length == 1 ? Level.ALL : Level.INFO);
         EventQueue.invokeLater(new Runnable() {
 
             public void run() {
                 try {
-                    new HPBTCW().setVisible(true);
+                    HPBTCW h = args.length == 2 ? new HPBTCW(Integer.parseInt(
+                            args[1])) : new HPBTCW();
+                    h.setVisible(true);
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
@@ -288,6 +303,34 @@ public class HPBTCW extends JFrame {
         });
     }
 
+    private static String getETA(long total, float speedpersec) {
+        if (speedpersec == 0) {
+            return "inf";
+        }
+        float eta = total / speedpersec;
+        if (eta < 60) {
+            return String.format("%1$.1fs", eta);
+        } else if (eta < 3600) {
+            return String.format("%1$.1fm", eta / 60);
+        } else if (eta < 86400) {
+            return String.format("%1$.1fh", eta / 3600);
+        } else if (eta < 604800) {
+            return String.format("%1$.1fd", eta / 86400);
+        } else {
+            return String.format("%1$.1fw", eta / 604800);
+        }
+    }
+
+    private static String getRepresentation(final int value) {
+        if (value < 1024) {
+            return String.format("%1$db", value);
+        } else if (value < 1048576) {
+            return String.format("%1$.1fKb", value / 1024f);
+        } else {
+            return String.format("%1$.1fMb", value / 1048576f);
+        }
+    }
+    
     private class GraphComponent extends JComponent {
 
         private static final long serialVersionUID = -2774542544931440878L;
@@ -352,34 +395,6 @@ public class HPBTCW extends JFrame {
             g2d.setColor(Color.BLACK);
             g2d.drawString(getRepresentation(max), 0, 9);
             g2d.drawString(getRepresentation(min), 0, d.height - 1);
-        }
-    }
-
-    private static String getETA(long total, float speedpersec) {
-        if (speedpersec == 0) {
-            return "inf";
-        }
-        float eta = total / speedpersec;
-        if (eta < 60) {
-            return String.format("%1$.1fs", eta);
-        } else if (eta < 3600) {
-            return String.format("%1$.1fm", eta / 60);
-        } else if (eta < 86400) {
-            return String.format("%1$.1fh", eta / 3600);
-        } else if (eta < 604800) {
-            return String.format("%1$.1fd", eta / 86400);
-        } else {
-            return String.format("%1$.1fw", eta / 604800);
-        }
-    }
-
-    private static String getRepresentation(final int value) {
-        if (value < 1024) {
-            return String.format("%1$db", value);
-        } else if (value < 1048576) {
-            return String.format("%1$.1fKb", value / 1024f);
-        } else {
-            return String.format("%1$.1fMb", value / 1048576f);
         }
     }
 }

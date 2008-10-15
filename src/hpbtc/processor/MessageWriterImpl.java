@@ -113,7 +113,7 @@ public class MessageWriterImpl implements MessageWriter {
             public void run() {
                 torrent.beginTracker();
                 scheduleTrackerTask(torrent,
-                        torrent.getTracker().getInterval() * 1000);
+                        torrent.getTracker().getInterval() * 1000L);
                 contactFreshPeers(torrent);
             }
         };
