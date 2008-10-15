@@ -42,6 +42,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JSplitPane;
@@ -189,10 +190,8 @@ public class HPBTCW extends JFrame {
         tabbed = new JTabbedPane();
         add(tabbed);
         final JMenuBar bar = new JMenuBar();
-        final JMenu menu = new JMenu();
-        JMenuItem item = new JMenuItem();
-        menu.setText("File");
-        item.setText("New torrent");
+        final JMenu menu = new JMenu("File");
+        JMenuItem item = new JMenuItem("New torrent");
         item.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
@@ -200,8 +199,8 @@ public class HPBTCW extends JFrame {
             }
         });
         menu.add(item);
-        item = new JMenuItem();
-        item.setText("Stop this torrent");
+        item = new JMenuItem("Stop this torrent");
+
         item.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
@@ -217,6 +216,17 @@ public class HPBTCW extends JFrame {
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
+            }
+        });
+        menu.add(item);
+        menu.addSeparator();
+        item = new JMenuItem("About");
+        item.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent arg0) {
+                JOptionPane.showMessageDialog(HPBTCW.this,
+                        "Programming by Cristian Mocanu\nEmail chrimeea@yahoo.com",
+                        "About", JOptionPane.INFORMATION_MESSAGE);
             }
         });
         menu.add(item);
