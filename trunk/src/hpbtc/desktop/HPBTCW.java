@@ -75,6 +75,7 @@ public class HPBTCW extends JFrame {
         c.weightx = 1;
         c.gridx = 1;
         popup.add(ltorrentpop, c);
+        final JButton button = new JButton(rb.getString("label.ok"));
         JButton b = new JButton(rb.getString("label.browse"));
         b.addActionListener(new ActionListener() {
 
@@ -84,6 +85,9 @@ public class HPBTCW extends JFrame {
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     filetorrent = fc.getSelectedFile();
                     ltorrentpop.setText(filetorrent.getAbsolutePath());
+                    if (filetarget != null) {
+                        button.setEnabled(true);
+                    }
                 }
             }
         });
@@ -107,19 +111,27 @@ public class HPBTCW extends JFrame {
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     filetarget = fc.getSelectedFile();
                     ltargetpop.setText(filetarget.getAbsolutePath());
+                    if (filetorrent != null) {
+                        button.setEnabled(true);
+                    }
                 }
             }
         });
         c.weightx = 0;
         c.gridx = 2;
         popup.add(b, c);
-        JButton button = new JButton(rb.getString("label.ok"));
+        button.setEnabled(false);
         button.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent arg0) {
                 popup.dispose();
                 try {
                     startTorrent(filetorrent, filetarget);
+                    filetorrent = null;
+                    ltorrentpop.setText("");
+                    filetarget = null;
+                    ltargetpop.setText("");
+                    button.setEnabled(false);
                 } catch (Exception ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
@@ -128,7 +140,7 @@ public class HPBTCW extends JFrame {
         c.gridx = 1;
         c.gridy = 2;
         popup.add(button, c);
-        popup.setSize(450, 100);
+        popup.setSize(450, 120);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         tabbed = new JTabbedPane();
         add(tabbed);
