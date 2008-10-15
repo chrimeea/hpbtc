@@ -36,16 +36,11 @@
     </target>
     <target name="run" description="run command line client" depends="compile">
         <java classname="hpbtc.HPBTC" classpathref="cp.classpath">
-            <arg value="D:\Documents and Settings\Administrator\Desktop\test.torrent"/>
-            <arg value="D:\Documents and Settings\Administrator\Desktop\test"/>
-            <arg value="D:\Documents and Settings\Administrator\Desktop\hpbtc.log"/>
-            <arg value="32745"/>
-        </java>
-    </target>
-    <target name="runw" description="run window client" depends="compile">
-        <java classname="hpbtc.HPBTCW" classpathref="cp.classpath">
-            <arg value="D:\Documents and Settings\Administrator\Desktop\hpbtc.log"/>
-            <arg value="32745"/>
+            <arg value="-torrentD:\Documents and Settings\Administrator\Desktop\test.torrent"/>
+            <arg value="-targetD:\Documents and Settings\Administrator\Desktop\test"/>
+            <arg value="-logD:\Documents and Settings\Administrator\Desktop\hpbtc.log"/>
+            <arg value="-port32745"/>
+            <arg value="-window"/>
         </java>
     </target>
     <target name="jar" description="create jar" depends="compile">
