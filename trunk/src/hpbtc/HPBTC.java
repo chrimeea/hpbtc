@@ -28,20 +28,23 @@ public class HPBTC {
      */
     public static void main(String[] args) throws IOException,
             NoSuchAlgorithmException {
-        Handler fh =
+        final Handler fh =
                 args.length == 3 ? new FileHandler(args[2]) : new ConsoleHandler();
         fh.setFormatter(new SimpleFormatter());
-        Logger l = Logger.getLogger("hpbtc");
+        final Logger l = Logger.getLogger("hpbtc");
         l.addHandler(fh);
         l.setLevel(args.length == 3 ? Level.ALL : Level.INFO);
         if (args.length < 2) {
             logger.severe("Mandatory parameter missing");
         } else {
             final Client protocol = new Client();
-            protocol.startProtocol();
-            String d = args[1];
-            FileInputStream fis = new FileInputStream(args[0]);
-            protocol.download(fis, d);
+            if (args.length == 4) {
+                protocol.startProtocol(Integer.parseInt(args[3]));
+            } else {
+                protocol.startProtocol();
+            }
+            final FileInputStream fis = new FileInputStream(args[0]);
+            protocol.download(fis, args[1]);
             fis.close();
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 

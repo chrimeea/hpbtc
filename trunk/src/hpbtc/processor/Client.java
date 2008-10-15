@@ -64,13 +64,23 @@ public class Client {
         torrents.remove(torrent);
     }
     
-    public int startProtocol() throws IOException {
+    private void initNetwork() {
         Register register = new Register();
         writer = new MessageWriterImpl(register, fastTimer, peerId, protocol);
         netWriter = new NetworkWriter(writer, register);
         processor = new MessageReaderImpl(register, protocol, writer, torrents,
                 peerId);
-        netReader = new NetworkReader(processor, register);
+        netReader = new NetworkReader(processor, register);        
+    }
+    
+    public void startProtocol(int port) throws IOException {
+        initNetwork();
+        netReader.connect(port);
+        netWriter.connect();
+    }
+    
+    public int startProtocol() throws IOException {
+        initNetwork();
         port = netReader.connect();
         netWriter.connect();
         return port;
