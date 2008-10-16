@@ -126,7 +126,8 @@ public class MessageWriterImpl implements MessageWriter {
         synchronized (peers) {
             prs = new ArrayList<Peer>(peers);
         }
-        final Comparator<Peer> comp = torrent.isTorrentComplete() ? new Comparator<Peer>() {
+        final Comparator<Peer> comp = torrent.countRemainingPieces() == 0 ?
+            new Comparator<Peer>() {
 
             public int compare(Peer p1, Peer p2) {
                 return p2.countUploaded() - p1.countUploaded();

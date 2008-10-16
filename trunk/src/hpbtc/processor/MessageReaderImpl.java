@@ -128,8 +128,7 @@ public class MessageReaderImpl implements MessageReader {
                             break;
                         case SimpleMessage.TYPE_REQUEST:
                             final BlockMessage mReq = new BlockMessage(data,
-                                    disc,
-                                    peer);
+                                    disc, peer);
                             logger.fine("Received " + mReq);
                             processRequest(mReq);
                             break;
@@ -194,10 +193,14 @@ public class MessageReaderImpl implements MessageReader {
             IOException {
         if (validator.validateBitfieldMessage(message)) {
             final Peer peer = message.getDestination();
-            peer.setPieces(message.getBitfield());
+            BitSet b = message.getBitfield();
+            peer.setPieces(b);
             final Torrent t = peer.getTorrent();
-            peer.getTorrent().updateAvailability(peer.getPieces());
-            if (!t.getOtherPieces(peer).isEmpty()) {
+            t.updateAvailability(peer.getPieces());
+            if (t.countRemainingPieces() == 0 &&
+                    b.cardinality() == t.getNrPieces()) {
+                writer.disconnect(peer);
+            } else if (!t.getOtherPieces(peer).isEmpty()) {
                 peer.setClientInterested(true);
                 writer.postMessage(new SimpleMessage(
                         SimpleMessage.TYPE_INTERESTED, peer));
@@ -229,7 +232,10 @@ public class MessageReaderImpl implements MessageReader {
             peer.setPiece(index);
             final Torrent t = peer.getTorrent();
             t.updateAvailability(index);
-            if (!peer.isClientInterested() && !t.isPieceComplete(index)) {
+            if (t.countRemainingPieces() == 0 &&
+                    peer.getPieces().cardinality() == t.getNrPieces()) {
+                writer.disconnect(peer);
+            } else if (!peer.isClientInterested() && !t.isPieceComplete(index)) {
                 peer.setClientInterested(true);
                 writer.postMessage(new SimpleMessage(
                         SimpleMessage.TYPE_INTERESTED, peer));
@@ -275,7 +281,7 @@ public class MessageReaderImpl implements MessageReader {
                         }
                     }
                 }
-                if (t.isTorrentComplete()) {
+                if (t.countRemainingPieces() == 0) {
                     t.endTracker();
                     logger.info("Torrent complete !");
                     return;
@@ -351,24 +357,28 @@ public class MessageReaderImpl implements MessageReader {
             }
         }
         if (index == -1) {
-            BitSet r = null;
-            do {
-                index = peerPieces.nextSetBit(index + 1);
-                if (index != -1) {
-                    r = (BitSet) peer.getRequests(index);
-                    final BitSet x = torrent.getChunksSaved(index);
-                    if (r == null) {
-                        r = x;
+            if (torrent.countRemainingPieces() < 3) {
+                BitSet r = null;
+                do {
+                    index = peerPieces.nextSetBit(index + 1);
+                    if (index != -1) {
+                        r = (BitSet) peer.getRequests(index);
+                        final BitSet x = torrent.getChunksSaved(index);
+                        if (r == null) {
+                            r = x;
+                        } else {
+                            r = (BitSet) r.clone();
+                            r.or(x);
+                        }
                     } else {
-                        r = (BitSet) r.clone();
-                        r.or(x);
+                        break;
                     }
+                } while (r.cardinality() == torrent.computeChunksInPiece(index));
+                if (index != -1) {
+                    beginIndex = r.nextClearBit(0);
                 } else {
-                    break;
+                    return null;
                 }
-            } while (r.cardinality() == torrent.computeChunksInPiece(index));
-            if (index != -1) {
-                beginIndex = r.nextClearBit(0);
             } else {
                 return null;
             }

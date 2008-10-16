@@ -205,7 +205,7 @@ public class HPBTCW extends JFrame {
                 }
                 for (int j = 0; j < tabbed.getTabCount(); j++) {
                     t = torrents.get(j);
-                    if (t.isTorrentComplete()) {
+                    if (t.countRemainingPieces() == 0) {
                         tabbed.setTitleAt(j, rb.getString("label.seed"));
                     } else {
                         tabbed.setTitleAt(j, DesktopUtil.getETA(
