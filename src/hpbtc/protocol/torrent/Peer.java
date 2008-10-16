@@ -8,10 +8,11 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.Queue;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import util.IOUtil;
 import util.TorrentUtil;
@@ -41,8 +42,8 @@ public class Peer {
     private AtomicInteger totalRequests = new AtomicInteger();
     private TimerTask keepAliveRead;
     private TimerTask keepAliveWrite;
-    private Queue<LengthPrefixMessage> messagesToSend =
-            new ConcurrentLinkedQueue<LengthPrefixMessage>();
+    private List<LengthPrefixMessage> messagesToSend =
+            Collections.synchronizedList(new LinkedList<LengthPrefixMessage>());
     private Torrent torrent;
 
     public Peer(final InetSocketAddress address, final byte[] id) {
@@ -100,7 +101,7 @@ public class Peer {
         BitSet bs = requests[index];
         if (bs == null) {
             bs = new BitSet(torrent.computeChunksInPiece(index));
-            requests[index] =  bs;
+            requests[index] = bs;
         }
         bs.set(TorrentUtil.computeBeginIndex(begin, torrent.getChunkSize()));
         totalRequests.getAndIncrement();
@@ -241,9 +242,9 @@ public class Peer {
             for (int i = 0; i < requests.length; i++) {
                 requests[i] = null;
             }
-        }        
+        }
     }
-    
+
     public void setPeerChoking(final boolean choking) {
         peerChoking = choking;
         clearRequests();
@@ -292,11 +293,15 @@ public class Peer {
     }
 
     public LengthPrefixMessage getMessageToSend() {
-        return messagesToSend.poll();
+        return isMessagesToSendEmpty() ? null : messagesToSend.remove(0);
     }
 
     public void addMessageToSend(final LengthPrefixMessage message) {
-        messagesToSend.add(message);
+        if (message.isPriorityMessage()) {
+            messagesToSend.add(0, message);
+        } else {
+            messagesToSend.add(message);
+        }
     }
 
     public void resetCounters() {
@@ -326,28 +331,32 @@ public class Peer {
 
     public void cancelPieceMessage(final int begin, final int index,
             final int length) {
-        final Iterator<LengthPrefixMessage> i = messagesToSend.iterator();
-        while (i.hasNext()) {
-            final LengthPrefixMessage m = i.next();
-            if (m instanceof PieceMessage) {
-                final PieceMessage pm = (PieceMessage) m;
-                if (pm.getIndex() == index && pm.getBegin() == begin &&
-                        pm.getLength() == length) {
-                    i.remove();
-                    removeRequest(pm.getIndex(), pm.getBegin());
+        synchronized (messagesToSend) {
+            final Iterator<LengthPrefixMessage> i = messagesToSend.iterator();
+            while (i.hasNext()) {
+                final LengthPrefixMessage m = i.next();
+                if (m instanceof PieceMessage) {
+                    final PieceMessage pm = (PieceMessage) m;
+                    if (pm.getIndex() == index && pm.getBegin() == begin &&
+                            pm.getLength() == length) {
+                        i.remove();
+                        removeRequest(pm.getIndex(), pm.getBegin());
+                    }
                 }
             }
         }
     }
 
     public void cancelPieceMessage() {
-        final Iterator<LengthPrefixMessage> i = messagesToSend.iterator();
-        while (i.hasNext()) {
-            final LengthPrefixMessage m = i.next();
-            if (m instanceof PieceMessage) {
-                i.remove();
-                final PieceMessage pm = (PieceMessage) m;
-                removeRequest(pm.getIndex(), pm.getBegin());
+        synchronized (messagesToSend) {
+            final Iterator<LengthPrefixMessage> i = messagesToSend.iterator();
+            while (i.hasNext()) {
+                final LengthPrefixMessage m = i.next();
+                if (m instanceof PieceMessage) {
+                    i.remove();
+                    final PieceMessage pm = (PieceMessage) m;
+                    removeRequest(pm.getIndex(), pm.getBegin());
+                }
             }
         }
     }
