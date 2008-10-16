@@ -126,8 +126,7 @@ public class MessageWriterImpl implements MessageWriter {
         synchronized (peers) {
             prs = new ArrayList<Peer>(peers);
         }
-        final Comparator<Peer> comp = torrent.countRemainingPieces() == 0 ?
-            new Comparator<Peer>() {
+        final Comparator<Peer> comp = torrent.countRemainingPieces() == 0 ? new Comparator<Peer>() {
 
             public int compare(Peer p1, Peer p2) {
                 return p2.countUploaded() - p1.countUploaded();
@@ -178,12 +177,11 @@ public class MessageWriterImpl implements MessageWriter {
                 }
             }
         };
-        timer.schedule(tt, 90000);
+        timer.schedule(tt, 90000L);
         peer.setKeepAliveWrite(tt);
     }
 
     public void writeNext(final Peer peer) throws IOException {
-        keepAliveWrite(peer);
         if (currentWrite == null || currentWrite.remaining() == 0) {
             LengthPrefixMessage sm = peer.getMessageToSend();
             if (sm != null) {
@@ -198,10 +196,12 @@ public class MessageWriterImpl implements MessageWriter {
             }
         }
         if (currentWrite != null && currentWrite.remaining() > 0) {
+            keepAliveWrite(peer);
             peer.upload(currentWrite);
-            if (currentWrite.remaining() > 0 || peer.isMessagesToSendEmpty()) {
-                register.clearWrite(peer);
-            }
+        }
+        if (currentWrite != null && currentWrite.remaining() == 0 &&
+                peer.isMessagesToSendEmpty()) {
+            register.clearWrite(peer);
         }
     }
 
