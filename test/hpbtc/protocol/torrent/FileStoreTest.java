@@ -59,11 +59,9 @@ public class FileStoreTest {
         fs.loadPiece(16384, 0, bb);
         assert Arrays.equals(bb.array(), b2);
         assert fs.isPieceComplete(0);
-        assert fs.isTorrentComplete();
         fs = new FileStore(20481, dig,
                 f.getParentFile().getPath(), f.getName(), 20481);
         assert fs.isPieceComplete(0);
-        assert fs.isTorrentComplete();
         f.delete();
     }
     
@@ -116,7 +114,6 @@ public class FileStoreTest {
         fs.loadPiece(0, 0, bb);
         assert Arrays.equals(bb.array(), b);
         assert fs.isPieceComplete(0);
-        assert fs.isTorrentComplete();
         f1.delete();
         f2.delete();
     }

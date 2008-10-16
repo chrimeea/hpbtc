@@ -284,10 +284,6 @@ public class Torrent {
         return fileStore.savePiece(begin, index, piece);
     }
 
-    public boolean isTorrentComplete() {
-        return fileStore.isTorrentComplete();
-    }
-
     public ByteBuffer loadPiece(final int begin, final int index,
             final int length) throws IOException {
         ByteBuffer bb = ByteBuffer.allocate(length);
@@ -315,6 +311,10 @@ public class Torrent {
         return fileStore.getCompletePieces();
     }
 
+    public int countRemainingPieces() {
+        return getNrPieces() - getCompletePieces().cardinality();
+    }
+    
     public byte[] getInfoHash() {
         return infoHash;
     }

@@ -40,14 +40,16 @@ public class Register {
     }
 
     public void disconnect(final Peer peer) {
-        final SelectableChannel channel = peer.getChannel();
-        SelectionKey key = channel.keyFor(reader);
-        if (key != null) {
-            key.cancel();
-        }
-        key = channel.keyFor(writer);
-        if (key != null) {
-            key.cancel();
+        synchronized (peer) {
+            final SelectableChannel channel = peer.getChannel();
+            SelectionKey key = channel.keyFor(reader);
+            if (key != null) {
+                key.cancel();
+            }
+            key = channel.keyFor(writer);
+            if (key != null) {
+                key.cancel();
+            }
         }
     }
 
@@ -101,12 +103,15 @@ public class Register {
             final Queue<RegisterOp> registered) {
         RegisterOp ro = registered.poll();
         while (ro != null) {
-            final SelectableChannel q = ro.getPeer().getChannel();
-            if (q.isOpen()) {
-                try {
-                    q.register(selector, ro.getOperation(), ro.getPeer());
-                } catch (ClosedChannelException e) {
-                    logger.log(Level.FINE, e.getLocalizedMessage(), e);
+            final Peer peer = ro.getPeer();
+            synchronized (peer) {
+                final SelectableChannel q = peer.getChannel();
+                if (q != null && q.isOpen()) {
+                    try {
+                        q.register(selector, ro.getOperation(), ro.getPeer());
+                    } catch (ClosedChannelException e) {
+                        logger.log(Level.FINE, e.getLocalizedMessage(), e);
+                    }
                 }
             }
             ro = registered.poll();

@@ -173,10 +173,6 @@ public class FileStore {
         }
     }
 
-    public boolean isTorrentComplete() {
-        return completePieces.cardinality() == nrPieces;
-    }
-
     public boolean isPieceComplete(final int index) {
         return completePieces.get(index);
     }

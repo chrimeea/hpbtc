@@ -147,7 +147,7 @@ public class Peer {
         return downloaded;
     }
 
-    public int upload(final ByteBuffer bb) throws IOException {
+    public synchronized int upload(final ByteBuffer bb) throws IOException {
         final int i = IOUtil.writeToChannel(channel, bb);
         uploaded += i;
         torrent.incrementUploaded(i);
@@ -273,7 +273,7 @@ public class Peer {
         return pieces;
     }
 
-    public void disconnect() throws IOException {
+    public synchronized void disconnect() throws IOException {
         if (channel != null && channel.isOpen()) {
             channel.close();
         }
