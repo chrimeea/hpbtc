@@ -51,8 +51,7 @@ public class NetworkWriter {
         return 0;
     }
 
-    private void listen() throws IOException,
-            NoSuchAlgorithmException {
+    private void listen() throws IOException, NoSuchAlgorithmException {
         while (running) {
             if (selector.select() > 0) {
                 final Iterator<SelectionKey> i = selector.selectedKeys().iterator();

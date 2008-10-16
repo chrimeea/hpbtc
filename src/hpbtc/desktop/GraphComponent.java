@@ -21,6 +21,7 @@ public class GraphComponent extends JComponent {
         private short index;
         private long lastValue;
         private Color color;
+        private long total;
 
         public GraphComponent(final int h, final Color c) {
             history = new int[h];
@@ -28,19 +29,17 @@ public class GraphComponent extends JComponent {
         }
 
         public float getAverage() {
-            float i = history[0];
-            for (int j = 1; j < history.length; j++) {
-                i += history[j];
-            }
-            return i / history.length;
+            return total / history.length;
         }
         
         public void pushValueToHistory(final long value) {
             if (++index == history.length) {
                 index = 0;
             }
+            total -= history[index];
             history[index] = (int) (value - lastValue);
             lastValue = value;
+            total += history[index];
             repaint();
         }
 
