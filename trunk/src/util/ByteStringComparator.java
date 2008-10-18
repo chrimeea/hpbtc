@@ -1,4 +1,4 @@
-package hpbtc.bencoding;
+package util;
 
 import java.util.Comparator;
 

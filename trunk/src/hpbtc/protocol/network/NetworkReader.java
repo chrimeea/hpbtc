@@ -32,12 +32,9 @@ public class NetworkReader {
     private Selector selector;
     private boolean running;
     private MessageReader processor;
-    private Register register;
 
-    public NetworkReader(final MessageReader processor,
-            final Register register) {
+    public NetworkReader(final MessageReader processor) {
         this.processor = processor;
-        this.register = register;
     }
 
     private int findPort() throws IOException {
@@ -59,7 +56,7 @@ public class NetworkReader {
     }
 
     private void startListen() throws IOException {
-        selector = register.openReadSelector();
+        selector = processor.openReadSelector();
         serverCh.configureBlocking(false);
         serverCh.register(selector, SelectionKey.OP_ACCEPT);
         running = true;
@@ -86,7 +83,7 @@ public class NetworkReader {
         }).start();        
     }
     
-    public void connect(int port) throws IOException {
+    public void connect(final int port) throws IOException {
         serverCh = ServerSocketChannel.open();
         serverCh.socket().bind(new InetSocketAddress(
                         InetAddress.getLocalHost(), port));
@@ -105,8 +102,7 @@ public class NetworkReader {
         selector.wakeup();
     }
 
-    private void listen() throws IOException,
-            NoSuchAlgorithmException {
+    private void listen() throws IOException, NoSuchAlgorithmException {
         while (running) {
             if (selector.select() > 0) {
                 final Iterator<SelectionKey> i = selector.selectedKeys().
@@ -139,7 +135,7 @@ public class NetworkReader {
                     }
                 }
             }
-            register.performReadRegistration();
+            processor.performReadRegistration();
         }
     }
 }

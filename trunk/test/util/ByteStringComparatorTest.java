@@ -2,8 +2,9 @@
  * Created on 25.09.2008
  */
 
-package hpbtc.bencoding;
+package util;
 
+import util.ByteStringComparator;
 import java.io.UnsupportedEncodingException;
 import org.junit.Test;
 

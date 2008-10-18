@@ -1,6 +1,5 @@
 package util;
 
-import hpbtc.bencoding.ByteStringComparator;
 import hpbtc.protocol.torrent.Peer;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;

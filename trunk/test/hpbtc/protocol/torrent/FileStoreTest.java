@@ -3,7 +3,7 @@
  */
 package hpbtc.protocol.torrent;
 
-import hpbtc.bencoding.ByteStringComparator;
+import util.ByteStringComparator;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
