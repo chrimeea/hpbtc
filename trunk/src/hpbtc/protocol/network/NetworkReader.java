@@ -9,6 +9,7 @@ import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -24,8 +25,6 @@ import java.util.logging.Logger;
  */
 public class NetworkReader {
 
-    private static final int MIN_PORT = 6881;
-    private static final int MAX_PORT = 6999;
     private static Logger logger = Logger.getLogger(
             NetworkReader.class.getName());
     private ServerSocketChannel serverCh;
@@ -35,24 +34,6 @@ public class NetworkReader {
 
     public NetworkReader(final MessageReader processor) {
         this.processor = processor;
-    }
-
-    private int findPort() throws IOException {
-        int port = MIN_PORT;
-        while (port <= MAX_PORT) {
-            try {
-                serverCh.socket().bind(new InetSocketAddress(
-                        InetAddress.getLocalHost(), port));
-                break;
-            } catch (IOException e) {
-                port++;
-            }
-        }
-        if (port > MAX_PORT) {
-            throw new IOException("No ports available");
-        } else {
-            return port;
-        }
     }
 
     private void startListen() throws IOException {
@@ -92,9 +73,10 @@ public class NetworkReader {
     
     public int connect() throws IOException {
         serverCh = ServerSocketChannel.open();
-        int port = findPort();
+        ServerSocket s = serverCh.socket();
+        s.bind(null);
         startListen();
-        return port;
+        return s.getLocalPort();
     }
 
     public void disconnect() {
