@@ -22,15 +22,13 @@ public class NetworkWriter {
     private boolean running;
     private Selector selector;
     private MessageWriter writer;
-    private Register register;
 
-    public NetworkWriter(final MessageWriter writer, final Register register) {
+    public NetworkWriter(final MessageWriter writer) {
         this.writer = writer;
-        this.register = register;
     }
 
     public int connect() throws IOException {
-        selector = register.openWriteSelector();
+        selector = writer.openWriteSelector();
         running = true;
         new Thread(new Runnable() {
 
@@ -76,7 +74,7 @@ public class NetworkWriter {
                     }
                 }
             }
-            register.performWriteRegistration();
+            writer.performWriteRegistration();
         }
     }
 

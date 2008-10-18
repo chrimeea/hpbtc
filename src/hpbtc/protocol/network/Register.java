@@ -7,6 +7,8 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
@@ -19,50 +21,43 @@ import java.util.logging.Logger;
 public class Register {
 
     private static Logger logger = Logger.getLogger(Register.class.getName());
-    private Queue<RegisterOp> registeredRead;
-    private Queue<RegisterOp> registeredWrite;
-    private Selector reader;
-    private Selector writer;
+    private Map<Selector, Queue<RegisterOp>> reg;
 
     public Register() {
-        registeredRead = new ConcurrentLinkedQueue<RegisterOp>();
-        registeredWrite = new ConcurrentLinkedQueue<RegisterOp>();
+        reg = new HashMap<Selector, Queue<RegisterOp>>();
     }
 
-    Selector openReadSelector() throws IOException {
-        reader = Selector.open();
-        return reader;
-    }
-
-    Selector openWriteSelector() throws IOException {
-        writer = Selector.open();
-        return writer;
+    public Selector openSelector() throws IOException {
+        Selector s = Selector.open();
+        reg.put(s, new ConcurrentLinkedQueue<RegisterOp>());
+        return s;
     }
 
     public void disconnect(final Peer peer) {
         synchronized (peer) {
             final SelectableChannel channel = peer.getChannel();
-            SelectionKey key = channel.keyFor(reader);
-            if (key != null) {
-                key.cancel();
-            }
-            key = channel.keyFor(writer);
-            if (key != null) {
-                key.cancel();
+            for (Selector s : reg.keySet()) {
+                SelectionKey key = channel.keyFor(s);
+                if (key != null) {
+                    key.cancel();
+                }
             }
         }
     }
 
-    public void registerRead(final Peer peer) throws IOException {
-        registerNow(peer, SelectionKey.OP_READ, reader, registeredRead);
+    public void registerRead(final Peer peer, final Selector selector)
+            throws IOException {
+        registerNow(peer, SelectionKey.OP_READ, selector, reg.get(selector));
     }
 
-    public void registerWrite(final Peer peer) throws IOException {
-        registerNow(peer, SelectionKey.OP_WRITE, writer, registeredWrite);
+    public void registerWrite(final Peer peer, final Selector selector)
+            throws IOException {
+        registerNow(peer, SelectionKey.OP_WRITE, selector, reg.get(selector));
     }
 
-    public void clearWrite(final Peer peer) throws IOException {
-        registerNow(peer, 0, writer, registeredWrite);
+    public void clearWrite(final Peer peer, final Selector selector)
+            throws IOException {
+        registerNow(peer, 0, selector, reg.get(selector));
     }
 
     private void registerNow(final Peer peer, final int op,
@@ -91,16 +86,8 @@ public class Register {
         }
     }
 
-    void performReadRegistration() {
-        performRegistration(reader, registeredRead);
-    }
-
-    void performWriteRegistration() {
-        performRegistration(writer, registeredWrite);
-    }
-
-    private void performRegistration(final Selector selector,
-            final Queue<RegisterOp> registered) {
+    public void performRegistration(final Selector selector) {
+        Queue<RegisterOp> registered = reg.get(selector);
         RegisterOp ro = registered.poll();
         while (ro != null) {
             final Peer peer = ro.getPeer();

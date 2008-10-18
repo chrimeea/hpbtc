@@ -1,7 +1,6 @@
 package hpbtc.protocol.network;
 
 import hpbtc.processor.MessageReader;
-import hpbtc.protocol.message.LengthPrefixMessage;
 import hpbtc.processor.MessageWriter;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
@@ -16,7 +15,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
 import org.junit.Test;
-import util.IOUtil;
 
 /**
  *
@@ -29,33 +27,7 @@ public class NetworkTest {
     @Test
     public void testNetworkIncomingConnection() throws IOException,
             UnsupportedEncodingException {
-        final Register r = new Register();
-        r.openWriteSelector();
-        final NetworkReader c = new NetworkReader(new MessageReader() {
-
-            public void readMessage(Peer peer) throws IOException,
-                    NoSuchAlgorithmException {
-                peer.setNextDataExpectation(11);
-                assert peer.download();
-                final ByteBuffer bb = peer.getData();
-                final SocketChannel ch = peer.getChannel();
-                final Socket s = ch.socket();
-                final InetSocketAddress a = IOUtil.getAddress(ch);
-                final InetAddress remoteAddress = s.getLocalAddress();
-                int remotePort = s.getPort();
-                assert a.getAddress().equals(remoteAddress);
-                assert a.getPort() == remotePort;
-                bb.limit(11);
-                assert bb.equals(ByteBuffer.wrap("test client".getBytes()));
-            }
-
-            public void disconnect(Peer arg0) throws IOException {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
-            public void connect(Peer arg0) throws IOException {
-            }
-        }, r);
+        final NetworkReader c = new NetworkReader(new MessageReaderStub());
         int port = c.connect();
         final SocketChannel ch = SocketChannel.open(new InetSocketAddress(
                 InetAddress.getLocalHost(), port));
@@ -66,38 +38,9 @@ public class NetworkTest {
     @Test
     public void testNetworkConnect() throws IOException,
             NoSuchAlgorithmException {
-        final Register r = new Register();
-        r.openReadSelector();
         final ServerSocket ch = new ServerSocket(0);
-        final NetworkWriter c = new NetworkWriter(new MessageWriter() {
-
-            public void postMessage(LengthPrefixMessage arg0) throws IOException {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
-            public void writeNext(Peer p) throws IOException {
-                p.upload(ByteBuffer.wrap("bit torrent".getBytes("ISO-8859-1")));
-            }
-
-            public void disconnect(Peer arg0) throws IOException {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
-            public void connect(Peer arg0) {
-            }
-
-            public void download(Torrent arg0) {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
-            public void keepAliveRead(Peer arg0) {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
-            public void stopTorrent(Torrent arg0) throws IOException {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-        }, r);
+        final MessageWriter mws = new MessageWriterStub();
+        final NetworkWriter c = new NetworkWriter(mws);
         c.connect();
         final InetSocketAddress a = new InetSocketAddress(InetAddress.
                 getLocalHost(), ch.getLocalPort());
@@ -108,7 +51,7 @@ public class NetworkTest {
         final Torrent info = new Torrent(bai, ".", null, 0);
         bai.close();
         peer.setTorrent(info);
-        r.registerWrite(peer);
+        mws.connect(peer);
         final Socket s = ch.accept();
         byte[] b = new byte[11];
         int i = s.getInputStream().read(b);
