@@ -4,82 +4,43 @@ import hpbtc.processor.MessageWriter;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author Cristian Mocanu
  */
-public class NetworkWriter {
+public class NetworkWriter extends NetworkLoop {
 
-    private static Logger logger = Logger.getLogger(
-            NetworkWriter.class.getName());
-    private boolean running;
-    private Selector selector;
     private MessageWriter writer;
 
-    public NetworkWriter(final MessageWriter writer) {
+    public NetworkWriter(final MessageWriter writer, Register register) {
+        super(register);
         this.writer = writer;
     }
 
+    @Override
     public int connect() throws IOException {
-        selector = writer.openWriteSelector();
-        running = true;
-        new Thread(new Runnable() {
-
-            public void run() {
-                try {
-                    listen();
-                } catch (Exception e) {
-                    running = false;
-                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
-                }
-                try {
-                    selector.close();
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
-                }
-            }
-        }).start();
-        return 0;
+        final int port = super.connect();
+        writer.setWriteSelector(selector);
+        return port;
     }
 
-    private void listen() throws IOException, NoSuchAlgorithmException {
-        while (running) {
-            if (selector.select() > 0) {
-                final Iterator<SelectionKey> i = selector.selectedKeys().iterator();
-                while (i.hasNext()) {
-                    final SelectionKey key = i.next();
-                    i.remove();
-                    if (key.isValid()) {
-                        final Peer peer = (Peer) key.attachment();
-                        try {
-                            final SocketChannel ch = (SocketChannel) key.channel();
-                            if (key.isConnectable() && ch.finishConnect()) {
-                                writer.connect(peer);
-                                logger.info("Connected to " + peer);
-                            } else if (key.isWritable()) {
-                                writer.writeNext(peer);
-                            }
-                        } catch (IOException ioe) {
-                            logger.log(Level.FINE, ioe.getLocalizedMessage(),
-                                    ioe);
-                            writer.disconnect(peer);
-                        }
-                    }
-                }
-            }
-            writer.performWriteRegistration();
+    protected void processKey(SelectionKey key) throws IOException,
+            NoSuchAlgorithmException {
+        final SocketChannel ch = (SocketChannel) key.channel();
+        final Peer peer = (Peer) key.attachment();
+        if (key.isConnectable() && ch.finishConnect()) {
+            writer.connect(peer);
+            logger.info("Connected to " + peer);
+        } else if (key.isWritable()) {
+            writer.writeNext(peer);
         }
     }
 
-    public void disconnect() {
-        running = false;
-        selector.wakeup();
+    @Override
+    protected void disconnect(SelectionKey key) throws IOException {
+        writer.disconnect((Peer) key.attachment());
     }
 }

@@ -21,23 +21,22 @@ import util.IOUtil;
  */
 public class MessageReaderStub extends MessageReader {
     
-    public MessageReaderStub() {
-        super(new Register(), null, null, null, null);
+    public MessageReaderStub(final Register register) {
+        super(register, null, null, null, null);
     }
 
     @Override
-    public Selector openReadSelector() throws IOException {
-        selector = register.openSelector();
-        return selector;
+    public void setReadSelector(final Selector selector) {
+        this.selector = selector;
     }
 
     @Override
-    public void connect(Peer peer) throws IOException {
+    public void connect(final Peer peer) throws IOException {
         register.registerRead(peer, selector);
     }
     
     @Override
-    public void readMessage(Peer peer) throws IOException,
+    public void readMessage(final Peer peer) throws IOException,
             NoSuchAlgorithmException {
         peer.setNextDataExpectation(11);
         assert peer.download();

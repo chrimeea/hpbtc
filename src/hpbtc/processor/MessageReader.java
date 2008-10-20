@@ -404,12 +404,8 @@ public class MessageReader {
         writer.keepAliveRead(peer);
     }
 
-    public void performReadRegistration() {
-        register.performRegistration(selector);
-    }
-    
-    public Selector openReadSelector() throws IOException {
-        selector = writer.openReadSelector();
-        return selector;
+    public void setReadSelector(final Selector selector) {
+        this.selector = selector;
+        writer.setReadSelector(selector);
     }
 }
