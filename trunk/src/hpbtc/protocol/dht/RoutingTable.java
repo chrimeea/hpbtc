@@ -1,7 +1,7 @@
 /*
  * Created on 17.10.2008
  */
-package hpbtc.dht;
+package hpbtc.protocol.dht;
 
 import hpbtc.util.ByteStringComparator;
 import java.util.LinkedList;
