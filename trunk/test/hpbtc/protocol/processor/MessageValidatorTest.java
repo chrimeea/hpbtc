@@ -1,7 +1,7 @@
 /*
  * Created on 25.09.2008
  */
-package hpbtc.processor;
+package hpbtc.protocol.processor;
 
 import hpbtc.protocol.message.BitfieldMessage;
 import hpbtc.protocol.message.BlockMessage;

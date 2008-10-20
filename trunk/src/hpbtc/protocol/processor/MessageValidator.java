@@ -1,4 +1,4 @@
-package hpbtc.processor;
+package hpbtc.protocol.processor;
 
 import hpbtc.protocol.message.BitfieldMessage;
 import hpbtc.protocol.message.BlockMessage;

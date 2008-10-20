@@ -1,7 +1,7 @@
 /*
  * Created on 26.09.2008
  */
-package hpbtc.processor;
+package hpbtc.protocol.processor;
 
 import com.sun.net.httpserver.HttpServer;
 import hpbtc.bencoding.BencodingWriter;

@@ -3,7 +3,7 @@
  */
 package hpbtc.protocol.network;
 
-import hpbtc.processor.MessageReader;
+import hpbtc.protocol.processor.MessageReader;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.net.InetAddress;

@@ -1,4 +1,4 @@
-package hpbtc.processor;
+package hpbtc.protocol.processor;
 
 import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.LengthPrefixMessage;

@@ -3,7 +3,7 @@
  */
 package hpbtc.desktop;
 
-import hpbtc.processor.Client;
+import hpbtc.protocol.processor.Client;
 import hpbtc.protocol.torrent.Torrent;
 import java.awt.Color;
 import java.awt.Component;

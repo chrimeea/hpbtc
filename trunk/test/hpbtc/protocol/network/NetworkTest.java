@@ -1,7 +1,7 @@
 package hpbtc.protocol.network;
 
-import hpbtc.processor.MessageReader;
-import hpbtc.processor.MessageWriter;
+import hpbtc.protocol.processor.MessageReader;
+import hpbtc.protocol.processor.MessageWriter;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.ByteArrayInputStream;
