@@ -1,6 +1,6 @@
 package hpbtc.protocol.network;
 
-import hpbtc.processor.MessageWriter;
+import hpbtc.protocol.processor.MessageWriter;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;

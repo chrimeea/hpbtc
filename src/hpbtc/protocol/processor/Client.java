@@ -1,4 +1,4 @@
-package hpbtc.processor;
+package hpbtc.protocol.processor;
 
 import hpbtc.protocol.network.NetworkReader;
 import hpbtc.protocol.network.NetworkWriter;

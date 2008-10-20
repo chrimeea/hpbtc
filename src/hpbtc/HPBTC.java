@@ -5,7 +5,7 @@
 package hpbtc;
 
 import hpbtc.desktop.HPBTCW;
-import hpbtc.processor.Client;
+import hpbtc.protocol.processor.Client;
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.FileInputStream;
