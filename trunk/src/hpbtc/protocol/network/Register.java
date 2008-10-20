@@ -34,7 +34,7 @@ public class Register {
 
     public void disconnect(final Peer peer) {
         synchronized (peer) {
-            final SelectableChannel channel = peer.getChannel();
+            final SelectableChannel channel = (SelectableChannel) peer.getChannel();
             for (Selector s : reg.keySet()) {
                 SelectionKey key = channel.keyFor(s);
                 if (key != null) {
@@ -62,7 +62,7 @@ public class Register {
     private void registerNow(final Peer peer, final int op,
             final Selector selector, final Queue<RegisterOp> registered)
             throws IOException {
-        final SelectableChannel ch = peer.getChannel();
+        final SelectableChannel ch = (SelectableChannel) peer.getChannel();
         if (ch != null) {
             if (ch.isOpen()) {
                 final SelectionKey sk = ch.keyFor(selector);
@@ -88,7 +88,7 @@ public class Register {
         while (ro != null) {
             final Peer peer = ro.getPeer();
             synchronized (peer) {
-                final SelectableChannel q = peer.getChannel();
+                final SelectableChannel q = (SelectableChannel) peer.getChannel();
                 if (q != null && q.isOpen()) {
                     try {
                         q.register(selector, ro.getOperation(), ro.getPeer());

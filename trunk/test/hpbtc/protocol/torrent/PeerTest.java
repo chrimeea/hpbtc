@@ -125,7 +125,7 @@ public class PeerTest {
             }
         }.start();
         if (!p.connect()) {
-            SocketChannel c = p.getChannel();
+            SocketChannel c = (SocketChannel) p.getChannel();
             c.finishConnect();
             c.configureBlocking(false);
         }
