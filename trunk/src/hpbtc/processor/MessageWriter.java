@@ -256,13 +256,11 @@ public class MessageWriter {
         register.performRegistration(selector);
     }
     
-    public Selector openWriteSelector() throws IOException {
-        selector = register.openSelector();
-        return selector;
+    public void setWriteSelector(final Selector selector) {
+        this.selector = selector;
     }
     
-    public Selector openReadSelector() throws IOException {
-        selectorread = register.openSelector();
-        return selectorread;
+    public void setReadSelector(final Selector selector) {
+        selectorread = selector;
     }
 }

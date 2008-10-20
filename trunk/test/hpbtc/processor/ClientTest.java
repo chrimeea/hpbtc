@@ -55,8 +55,8 @@ public class ClientTest {
         c.stopProtocol();
         try {
             new Socket(InetAddress.getLocalHost(), port);
-            assert false;
         } catch (IOException e) {
+            assert false;
         }
     }
 

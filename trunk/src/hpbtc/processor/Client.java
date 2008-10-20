@@ -67,10 +67,10 @@ public class Client {
     private void initNetwork() {
         Register register = new Register();
         writer = new MessageWriter(register, fastTimer, peerId, protocol);
-        netWriter = new NetworkWriter(writer);
+        netWriter = new NetworkWriter(writer, register);
         processor = new MessageReader(register, protocol, writer, torrents,
                 peerId);
-        netReader = new NetworkReader(processor);        
+        netReader = new NetworkReader(processor, register);
     }
     
     public void startProtocol(int port) throws IOException {

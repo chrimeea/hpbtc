@@ -11,113 +11,63 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Cristian Mocanu
  *
  */
-public class NetworkReader {
+public class NetworkReader extends NetworkLoop {
 
-    private static Logger logger = Logger.getLogger(
-            NetworkReader.class.getName());
     private ServerSocketChannel serverCh;
-    private Selector selector;
-    private boolean running;
-    private MessageReader processor;
-
-    public NetworkReader(final MessageReader processor) {
-        this.processor = processor;
-    }
-
-    private void startListen() throws IOException {
-        selector = processor.openReadSelector();
-        serverCh.configureBlocking(false);
-        serverCh.register(selector, SelectionKey.OP_ACCEPT);
-        running = true;
-        new Thread(new Runnable() {
-
-            public void run() {
-                try {
-                    listen();
-                } catch (Exception e) {
-                    running = false;
-                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
-                }
-                try {
-                    selector.close();
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
-                }
-                try {
-                    serverCh.close();
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
-                }
-            }
-        }).start();        
-    }
+    private MessageReader reader;
     
+    public NetworkReader(MessageReader reader, Register register) {
+        super(register);
+        this.reader = reader;
+    }
+
     public void connect(final int port) throws IOException {
         serverCh = ServerSocketChannel.open();
         serverCh.socket().bind(new InetSocketAddress(
-                        InetAddress.getLocalHost(), port));
-        startListen();
+                InetAddress.getLocalHost(), port));
+        super.connect();
+        reader.setReadSelector(selector);
+        serverCh.configureBlocking(false);
+        serverCh.register(selector, SelectionKey.OP_ACCEPT);
     }
-    
+
+    @Override
     public int connect() throws IOException {
         serverCh = ServerSocketChannel.open();
         ServerSocket s = serverCh.socket();
         s.bind(null);
-        startListen();
+        super.connect();
+        reader.setReadSelector(selector);
+        serverCh.configureBlocking(false);
+        serverCh.register(selector, SelectionKey.OP_ACCEPT);
         return s.getLocalPort();
     }
 
-    public void disconnect() {
-        running = false;
-        selector.wakeup();
+    protected void processKey(SelectionKey key) throws IOException,
+            NoSuchAlgorithmException {
+        Peer peer;
+        if (key.isAcceptable()) {
+            final SocketChannel chan = serverCh.accept();
+            chan.configureBlocking(false);
+            peer = new Peer(chan);
+            reader.connect(peer);
+            logger.info("Accepted connection from " + peer);
+        } else if (key.isReadable()) {
+            peer = (Peer) key.attachment();
+            reader.readMessage(peer);
+        }
     }
 
-    private void listen() throws IOException, NoSuchAlgorithmException {
-        while (running) {
-            if (selector.select() > 0) {
-                final Iterator<SelectionKey> i = selector.selectedKeys().
-                        iterator();
-                while (i.hasNext()) {
-                    final SelectionKey key = i.next();
-                    i.remove();
-                    Peer peer = null;
-                    if (key.isValid()) {
-                        try {
-                            if (key.isAcceptable()) {
-                                final SocketChannel chan = serverCh.accept();
-                                chan.configureBlocking(false);
-                                peer = new Peer(chan);
-                                processor.connect(peer);
-                                logger.info("Accepted connection from " + peer);
-                            } else if (key.isReadable()) {
-                                peer = (Peer) key.attachment();
-                                processor.readMessage(peer);
-                            }
-                        } catch (IOException ioe) {
-                            logger.log(Level.FINE, peer == null ? ioe.
-                                    getLocalizedMessage() : peer.toString(), ioe);
-                            if (peer != null) {
-                                processor.disconnect(peer);
-                            } else {
-                                key.cancel();
-                            }
-                        }
-                    }
-                }
-            }
-            processor.performReadRegistration();
-        }
+    @Override
+    protected void disconnect(SelectionKey key) throws IOException {
+        reader.disconnect((Peer) key.attachment());
     }
 }

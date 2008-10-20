@@ -27,7 +27,8 @@ public class NetworkTest {
     @Test
     public void testNetworkIncomingConnection() throws IOException,
             UnsupportedEncodingException {
-        final NetworkReader c = new NetworkReader(new MessageReaderStub());
+        final Register r = new Register();
+        final NetworkReader c = new NetworkReader(new MessageReaderStub(r), r);
         int port = c.connect();
         final SocketChannel ch = SocketChannel.open(new InetSocketAddress(
                 InetAddress.getLocalHost(), port));
@@ -39,8 +40,9 @@ public class NetworkTest {
     public void testNetworkConnect() throws IOException,
             NoSuchAlgorithmException {
         final ServerSocket ch = new ServerSocket(0);
-        final MessageWriter mws = new MessageWriterStub();
-        final NetworkWriter c = new NetworkWriter(mws);
+        final Register r = new Register();
+        final MessageWriter mws = new MessageWriterStub(r);
+        final NetworkWriter c = new NetworkWriter(mws, r);
         c.connect();
         final InetSocketAddress a = new InetSocketAddress(InetAddress.
                 getLocalHost(), ch.getLocalPort());
