@@ -6,7 +6,6 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -63,7 +62,7 @@ public class Register {
     private void registerNow(final Peer peer, final int op,
             final Selector selector, final Queue<RegisterOp> registered)
             throws IOException {
-        SocketChannel ch = peer.getChannel();
+        SelectableChannel ch = peer.getChannel();
         if (ch != null) {
             if (ch.isOpen()) {
                 final SelectionKey sk = ch.keyFor(selector);
@@ -73,10 +72,7 @@ public class Register {
                 }
             }
         } else {
-            ch = SocketChannel.open();
-            ch.configureBlocking(false);
-            peer.setChannel(ch);
-            if (ch.connect(peer.getAddress())) {
+            if (peer.connect()) {
                 registered.add(new RegisterOp(op, peer));
             } else {
                 registered.add(
