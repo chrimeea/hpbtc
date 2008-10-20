@@ -16,6 +16,7 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import hpbtc.util.IOUtil;
 import hpbtc.util.TorrentUtil;
+import java.nio.channels.ByteChannel;
 
 /**
  *
@@ -23,7 +24,7 @@ import hpbtc.util.TorrentUtil;
  */
 public class Peer {
 
-    private SocketChannel channel;
+    private ByteChannel channel;
     private byte[] id;
     private boolean messagesReceived;
     private BitSet pieces = new BitSet();
@@ -50,7 +51,7 @@ public class Peer {
         this.address = address;
     }
 
-    public void setChannel(final SocketChannel chn) {
+    public void setChannel(final ByteChannel chn) {
         this.channel = chn;
     }
 
@@ -215,14 +216,15 @@ public class Peer {
         return handshakeReceived;
     }
 
-    public SocketChannel getChannel() {
+    public ByteChannel getChannel() {
         return channel;
     }
 
     public boolean connect() throws IOException {
-        channel = SocketChannel.open();
-        channel.configureBlocking(false);
-        return channel.connect(address);
+        SocketChannel c = SocketChannel.open();
+        channel = c;
+        c.configureBlocking(false);
+        return c.connect(address);
     }
 
     public void setId(final byte[] id) {

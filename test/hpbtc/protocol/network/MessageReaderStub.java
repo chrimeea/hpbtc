@@ -41,7 +41,7 @@ public class MessageReaderStub extends MessageReader {
         peer.setNextDataExpectation(11);
         assert peer.download();
         final ByteBuffer bb = peer.getData();
-        final SocketChannel ch = peer.getChannel();
+        final SocketChannel ch = (SocketChannel) peer.getChannel();
         final Socket s = ch.socket();
         final InetSocketAddress a = IOUtil.getAddress(ch);
         final InetAddress remoteAddress = s.getLocalAddress();
