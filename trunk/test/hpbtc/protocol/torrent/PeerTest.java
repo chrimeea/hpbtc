@@ -125,8 +125,9 @@ public class PeerTest {
                 }
             }
         }.start();
-        final SocketChannel s = SocketChannel.open(a);
-        p.setChannel(s);
+        if (!p.connect()) {
+            p.getChannel().finishConnect();
+        }
         assert p.countUploaded() == 0;
         int i = p.upload(ByteBuffer.wrap(b));
         assert i == 4;
@@ -136,7 +137,6 @@ public class PeerTest {
         assert p.download();
         assert p.countDownloaded() == 8;
         assert Arrays.equals(p.getData().array(), x);
-        s.close();
         ss.close();
     }
 }

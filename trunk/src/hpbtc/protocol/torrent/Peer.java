@@ -221,8 +221,10 @@ public class Peer {
         return channel;
     }
 
-    public void setChannel(final SocketChannel channel) {
-        this.channel = channel;
+    public boolean connect() throws IOException {
+        channel = SocketChannel.open();
+        channel.configureBlocking(false);
+        return channel.connect(address);
     }
 
     public void setId(final byte[] id) {
