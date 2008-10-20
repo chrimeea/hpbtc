@@ -2,7 +2,7 @@
  * Created on 18.10.2008
  */
 
-package hpbtc.dht;
+package hpbtc.protocol.dht;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
