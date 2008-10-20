@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
-import util.IOUtil;
+import hpbtc.util.IOUtil;
 
 /**
  *

@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
-import util.TorrentUtil;
+import hpbtc.util.TorrentUtil;
 
 /**
  *

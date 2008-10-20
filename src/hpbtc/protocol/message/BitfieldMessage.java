@@ -7,7 +7,7 @@ package hpbtc.protocol.message;
 import hpbtc.protocol.torrent.Peer;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
-import util.IOUtil;
+import hpbtc.util.IOUtil;
 
 /**
  * @author Cristian Mocanu

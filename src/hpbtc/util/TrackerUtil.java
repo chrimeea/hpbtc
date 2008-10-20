@@ -1,4 +1,4 @@
-package util;
+package hpbtc.util;
 
 import hpbtc.protocol.torrent.Peer;
 import java.io.UnsupportedEncodingException;

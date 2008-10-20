@@ -4,7 +4,7 @@
  */
 package hpbtc.bencoding;
 
-import util.ByteStringComparator;
+import hpbtc.util.ByteStringComparator;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;

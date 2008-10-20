@@ -10,7 +10,7 @@ import hpbtc.protocol.torrent.Torrent;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
-import util.TorrentUtil;
+import hpbtc.util.TorrentUtil;
 
 /**
  *

@@ -3,7 +3,7 @@
  */
 package hpbtc.dht;
 
-import util.ByteStringComparator;
+import hpbtc.util.ByteStringComparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;

@@ -1,4 +1,4 @@
-package util;
+package hpbtc.util;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;

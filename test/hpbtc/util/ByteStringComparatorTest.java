@@ -2,9 +2,8 @@
  * Created on 25.09.2008
  */
 
-package util;
+package hpbtc.util;
 
-import util.ByteStringComparator;
 import java.io.UnsupportedEncodingException;
 import org.junit.Test;
 
