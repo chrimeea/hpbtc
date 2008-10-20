@@ -315,9 +315,9 @@ public class Peer {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         try {
-            Peer other = (Peer) obj;
+            final Peer other = (Peer) obj;
             return address.equals(other.address);
         } catch (ClassCastException e) {
             return false;

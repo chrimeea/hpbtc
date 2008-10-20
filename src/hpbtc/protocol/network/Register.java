@@ -27,7 +27,7 @@ public class Register {
     }
 
     public Selector openSelector() throws IOException {
-        Selector s = Selector.open();
+        final Selector s = Selector.open();
         reg.put(s, new ConcurrentLinkedQueue<RegisterOp>());
         return s;
     }
@@ -62,7 +62,7 @@ public class Register {
     private void registerNow(final Peer peer, final int op,
             final Selector selector, final Queue<RegisterOp> registered)
             throws IOException {
-        SelectableChannel ch = peer.getChannel();
+        final SelectableChannel ch = peer.getChannel();
         if (ch != null) {
             if (ch.isOpen()) {
                 final SelectionKey sk = ch.keyFor(selector);
@@ -83,7 +83,7 @@ public class Register {
     }
 
     public void performRegistration(final Selector selector) {
-        Queue<RegisterOp> registered = reg.get(selector);
+        final Queue<RegisterOp> registered = reg.get(selector);
         RegisterOp ro = registered.poll();
         while (ro != null) {
             final Peer peer = ro.getPeer();
