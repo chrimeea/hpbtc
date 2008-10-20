@@ -24,7 +24,7 @@ public class NetworkReader extends NetworkLoop {
     private ServerSocketChannel serverCh;
     private MessageReader reader;
     
-    public NetworkReader(MessageReader reader, Register register) {
+    public NetworkReader(final MessageReader reader, final Register register) {
         super(register);
         this.reader = reader;
     }
@@ -51,7 +51,7 @@ public class NetworkReader extends NetworkLoop {
         return s.getLocalPort();
     }
 
-    protected void processKey(SelectionKey key) throws IOException,
+    protected void processKey(final SelectionKey key) throws IOException,
             NoSuchAlgorithmException {
         Peer peer;
         if (key.isAcceptable()) {
@@ -67,7 +67,7 @@ public class NetworkReader extends NetworkLoop {
     }
 
     @Override
-    protected void disconnect(SelectionKey key) throws IOException {
+    protected void disconnect(final SelectionKey key) throws IOException {
         reader.disconnect((Peer) key.attachment());
     }
 }

@@ -3,8 +3,6 @@
  */
 package hpbtc.protocol.network;
 
-import hpbtc.protocol.network.Register;
-import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
