@@ -14,8 +14,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
-import util.IOUtil;
-import util.TorrentUtil;
+import hpbtc.util.IOUtil;
+import hpbtc.util.TorrentUtil;
 
 /**
  *

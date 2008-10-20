@@ -2,7 +2,7 @@
  * Created on Jan 24, 2006
  *
  */
-package util;
+package hpbtc.util;
 
 import java.io.File;
 import java.io.IOException;

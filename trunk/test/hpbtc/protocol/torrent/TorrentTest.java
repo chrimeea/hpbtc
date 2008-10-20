@@ -11,7 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.List;
 import org.junit.Test;
-import util.IOUtil;
+import hpbtc.util.IOUtil;
 import java.util.Arrays;
 import java.util.BitSet;
 

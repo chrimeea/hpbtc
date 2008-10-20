@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Timer;
 import java.util.Vector;
-import util.TorrentUtil;
+import hpbtc.util.TorrentUtil;
 
 /**
  *
