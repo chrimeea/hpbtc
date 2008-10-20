@@ -46,14 +46,12 @@ public class Peer {
             Collections.synchronizedList(new LinkedList<LengthPrefixMessage>());
     private Torrent torrent;
 
-    public Peer(final InetSocketAddress address, final byte[] id) {
+    public Peer(final InetSocketAddress address) {
         this.address = address;
-        this.id = id;
     }
 
-    public Peer(final SocketChannel chn) {
+    public void setChannel(final SocketChannel chn) {
         this.channel = chn;
-        this.address = IOUtil.getAddress(chn);
     }
 
     public void setTorrent(final Torrent torrent) {

@@ -6,6 +6,7 @@ package hpbtc.protocol.network;
 
 import hpbtc.processor.MessageReader;
 import hpbtc.protocol.torrent.Peer;
+import hpbtc.util.IOUtil;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -57,7 +58,8 @@ public class NetworkReader extends NetworkLoop {
         if (key.isAcceptable()) {
             final SocketChannel chan = serverCh.accept();
             chan.configureBlocking(false);
-            peer = new Peer(chan);
+            peer = new Peer(IOUtil.getAddress(chan));
+            peer.setChannel(chan);
             reader.connect(peer);
             logger.info("Accepted connection from " + peer);
         } else if (key.isReadable()) {

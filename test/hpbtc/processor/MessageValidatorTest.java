@@ -44,7 +44,7 @@ public class MessageValidatorTest {
     public void testValidateHandshakeMessage() throws
             UnsupportedEncodingException, IOException, NoSuchAlgorithmException {
         final Peer peer = new Peer(InetSocketAddress.createUnresolved(
-                "localhost", 6000), null);
+                "localhost", 6000));
         final ByteArrayInputStream b =
                 new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".
                 getBytes(encoding));
@@ -63,7 +63,7 @@ public class MessageValidatorTest {
     public void testValidateBitfieldMessage() throws
             UnsupportedEncodingException, IOException, NoSuchAlgorithmException {
         final Peer peer = new Peer(InetSocketAddress.createUnresolved(
-                "localhost", 6000), null);
+                "localhost", 6000));
         final ByteArrayInputStream b =
                 new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".
                 getBytes(encoding));
@@ -82,7 +82,7 @@ public class MessageValidatorTest {
     public void testValidateCancelMessage() throws
             UnsupportedEncodingException, IOException, NoSuchAlgorithmException {
         final Peer peer = new Peer(InetSocketAddress.createUnresolved(
-                "localhost", 6000), null);
+                "localhost", 6000));
         final ByteArrayInputStream b =
                 new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".
                 getBytes(encoding));
@@ -102,7 +102,7 @@ public class MessageValidatorTest {
     public void testValidateHaveMessage() throws
             UnsupportedEncodingException, IOException, NoSuchAlgorithmException {
         final Peer peer = new Peer(InetSocketAddress.createUnresolved(
-                "localhost", 6000), null);
+                "localhost", 6000));
         final ByteArrayInputStream b =
                 new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".
                 getBytes(encoding));
@@ -120,8 +120,7 @@ public class MessageValidatorTest {
     public void testValidatePieceMessage() throws
             UnsupportedEncodingException, IOException, NoSuchAlgorithmException {
         final Peer peer = new Peer(InetSocketAddress.createUnresolved(
-                "localhost",
-                6000), null);
+                "localhost", 6000));
         final ByteArrayInputStream b =
                 new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".
                 getBytes(encoding));
@@ -140,8 +139,7 @@ public class MessageValidatorTest {
     public void testValidateRequestMessage() throws
             UnsupportedEncodingException, IOException, NoSuchAlgorithmException {
         final Peer peer = new Peer(InetSocketAddress.createUnresolved(
-                "localhost",
-                6000), null);
+                "localhost", 6000));
         final ByteArrayInputStream b =
                 new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".
                 getBytes(encoding));
