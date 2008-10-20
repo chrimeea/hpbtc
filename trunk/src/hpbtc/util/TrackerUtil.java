@@ -27,7 +27,7 @@ public class TrackerUtil {
             k += 6;
             final int peerPort = getUnsigned(prs[k - 2]) * 256 + getUnsigned(
                     prs[k - 1]);
-            peers.add(new Peer(new InetSocketAddress(peerIp, peerPort), null));
+            peers.add(new Peer(new InetSocketAddress(peerIp, peerPort)));
         }
         return peers;
     }
@@ -37,10 +37,12 @@ public class TrackerUtil {
             UnsupportedEncodingException {
         final Set<Peer> peers = new HashSet<Peer>();
         for (Map<byte[], Object> d : prs) {
-            peers.add(new Peer(new InetSocketAddress(new String((byte[]) d.get("ip".
-                    getBytes(byteEncoding)), byteEncoding), ((Long) d.get("port".
-                    getBytes(byteEncoding))).intValue()), ((byte[]) d.
-                    get("peer id".getBytes(byteEncoding)))));
+            final Peer peer = new Peer(new InetSocketAddress(
+                    new String((byte[]) d.get("ip".getBytes(byteEncoding)),
+                    byteEncoding),
+                    ((Long) d.get("port".getBytes(byteEncoding))).intValue()));
+            peer.setId((byte[]) d.get("peer id".getBytes(byteEncoding)));
+            peers.add(peer);
         }
         return peers;
     }

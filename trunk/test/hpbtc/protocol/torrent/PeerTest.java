@@ -28,8 +28,7 @@ public class PeerTest {
     public void testRequests() throws IOException,
             NoSuchAlgorithmException {
         final Peer p = new Peer(InetSocketAddress.createUnresolved("localhost",
-                6000),
-                null);
+                6000));
         final ByteArrayInputStream b =
                 new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi10240e4:name11:manifest.mf12:piece lengthi256e6:pieces20:12345678901234567890ee".
                 getBytes(byteEncoding));
@@ -56,13 +55,13 @@ public class PeerTest {
     @Test
     public void testEquals() {
         final Peer p1 = new Peer(InetSocketAddress.createUnresolved("localhost",
-                6000), null);
+                6000));
         final Peer p2 = new Peer(InetSocketAddress.createUnresolved("localhost",
-                6000), null);
+                6000));
         assert p1.equals(p2);
         assert p2.equals(p1);
         final Peer p3 = new Peer(InetSocketAddress.createUnresolved("localhost",
-                7000), null);
+                7000));
         assert !p1.equals(p3);
         assert !p3.equals(p1);
     }
@@ -71,7 +70,7 @@ public class PeerTest {
     public void testMessagesToSend() throws UnsupportedEncodingException,
             IOException, NoSuchAlgorithmException {
         final Peer p = new Peer(InetSocketAddress.createUnresolved("localhost",
-                6000), null);
+                6000));
         final ByteArrayInputStream b =
                 new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi10240e4:name11:manifest.mf12:piece lengthi256e6:pieces20:12345678901234567890ee".
                 getBytes(byteEncoding));
@@ -99,7 +98,7 @@ public class PeerTest {
             NoSuchAlgorithmException {
         final InetSocketAddress a = new InetSocketAddress(
                 InetAddress.getByName("127.0.0.1"), 6001);
-        final Peer p = new Peer(a, null);
+        final Peer p = new Peer(a);
         final ByteArrayInputStream bai =
                 new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".
                 getBytes(byteEncoding));
@@ -126,7 +125,9 @@ public class PeerTest {
             }
         }.start();
         if (!p.connect()) {
-            p.getChannel().finishConnect();
+            SocketChannel c = p.getChannel();
+            c.finishConnect();
+            c.configureBlocking(false);
         }
         assert p.countUploaded() == 0;
         int i = p.upload(ByteBuffer.wrap(b));

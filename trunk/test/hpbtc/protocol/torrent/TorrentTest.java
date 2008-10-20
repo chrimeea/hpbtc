@@ -124,7 +124,7 @@ public class TorrentTest {
         info.updateAvailability(bs);
         assert info.getAvailability(10) == 2;
         final Peer p = new Peer(InetSocketAddress.createUnresolved("localhost",
-                6000), null);
+                6000));
         p.setPiece(10);
         info.addPeer(p, false);
         info.updateAvailability(10);
@@ -142,7 +142,7 @@ public class TorrentTest {
         final Torrent info = new Torrent(b, ".", null, 0);
         b.close();
         final Peer p = new Peer(InetSocketAddress.createUnresolved("localhost",
-                6000), null);
+                6000));
         BitSet bs = info.getOtherPieces(p);
         assert bs.isEmpty();
         p.setPiece(6);
@@ -162,7 +162,7 @@ public class TorrentTest {
         final Torrent info = new Torrent(b, ".", null, 0);
         b.close();
         final Peer p = new Peer(InetSocketAddress.createUnresolved("localhost",
-                6000), null);
+                6000));
         p.setTorrent(info);
         p.addRequest(10, info.getChunkSize() + 1);
         info.addPeer(p, true);
