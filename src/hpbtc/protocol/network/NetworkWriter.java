@@ -15,7 +15,7 @@ public class NetworkWriter extends NetworkLoop {
 
     private MessageWriter writer;
 
-    public NetworkWriter(final MessageWriter writer, Register register) {
+    public NetworkWriter(final MessageWriter writer, final Register register) {
         super(register);
         this.writer = writer;
     }
@@ -27,7 +27,7 @@ public class NetworkWriter extends NetworkLoop {
         return port;
     }
 
-    protected void processKey(SelectionKey key) throws IOException,
+    protected void processKey(final SelectionKey key) throws IOException,
             NoSuchAlgorithmException {
         final SocketChannel ch = (SocketChannel) key.channel();
         final Peer peer = (Peer) key.attachment();
@@ -40,7 +40,7 @@ public class NetworkWriter extends NetworkLoop {
     }
 
     @Override
-    protected void disconnect(SelectionKey key) throws IOException {
+    protected void disconnect(final SelectionKey key) throws IOException {
         writer.disconnect((Peer) key.attachment());
     }
 }
