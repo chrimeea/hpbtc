@@ -30,7 +30,7 @@ public class RoutingTable {
         int s = table.size();
         int pos = s / 2;
         Bucket b = table.get(pos);
-        byte[] nid = node.getNodeID();
+        byte[] nid = node.getId();
         int r = bsc.compare(b.getMax(), nid);
         while (r >= 0 || bsc.compare(b.getMin(), nid) < 0) {
             if (r < 0) {
@@ -47,7 +47,7 @@ public class RoutingTable {
             t[0] = new Bucket(b.getMin(), d);
             t[1] = new Bucket(d, b.getMax());
             for (Node i : b.getNodes()) {
-                if (bsc.compare(i.getNodeID(), d) < 0) {
+                if (bsc.compare(i.getId(), d) < 0) {
                     t[0].insertNode(i);
                 } else {
                     t[1].insertNode(i);

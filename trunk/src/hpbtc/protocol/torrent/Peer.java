@@ -2,9 +2,8 @@ package hpbtc.protocol.torrent;
 
 import hpbtc.protocol.message.LengthPrefixMessage;
 import hpbtc.protocol.message.PieceMessage;
-import java.io.EOFException;
+import hpbtc.protocol.network.NetworkComponent;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.BitSet;
@@ -14,30 +13,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
-import hpbtc.util.IOUtil;
 import hpbtc.util.TorrentUtil;
-import java.nio.channels.ByteChannel;
+import java.net.SocketAddress;
 
 /**
  *
  * @author Cristian Mocanu
  */
-public class Peer {
+public class Peer extends NetworkComponent {
 
-    private ByteChannel channel;
-    private byte[] id;
     private boolean messagesReceived;
     private BitSet pieces = new BitSet();
     private boolean peerChoking = true;
     private boolean peerInterested;
     private boolean clientInterested;
     private boolean clientChoking = true;
-    private InetSocketAddress address;
     private boolean handshakeReceived;
     private boolean handshakeSent;
-    private int uploaded;
-    private int downloaded;
-    private ByteBuffer data;
     private boolean expectBody;
     private BitSet[] requests;
     private AtomicInteger totalRequests = new AtomicInteger();
@@ -47,14 +39,10 @@ public class Peer {
             Collections.synchronizedList(new LinkedList<LengthPrefixMessage>());
     private Torrent torrent;
 
-    public Peer(final InetSocketAddress address) {
-        this.address = address;
+    public Peer(final SocketAddress address) {
+        super(address);
     }
-
-    public void setChannel(final ByteChannel chn) {
-        this.channel = chn;
-    }
-
+    
     public void setTorrent(final Torrent torrent) {
         this.torrent = torrent;
         requests = new BitSet[torrent.getNrPieces()];
@@ -139,45 +127,22 @@ public class Peer {
         handshakeSent = true;
     }
 
-    public int countUploaded() {
-        return uploaded;
-    }
-
-    public int countDownloaded() {
-        return downloaded;
-    }
-
+    @Override
     public synchronized int upload(final ByteBuffer bb) throws IOException {
-        final int i = IOUtil.writeToChannel(channel, bb);
-        uploaded += i;
+        final int i = super.upload(bb);
         torrent.incrementUploaded(i);
         return i;
     }
 
-    public void setNextDataExpectation(final int i) {
-        if (data == null || data.capacity() < i) {
-            data = ByteBuffer.allocate(i);
-        }
-    }
 
+    @Override
     public boolean download() throws IOException {
-        final int i = IOUtil.readFromChannel(channel, data);
-        if (i >= 0) {
-            downloaded += i;
-            if (torrent != null) {
-                torrent.incrementDownloaded(i);
-            }
-        } else {
-            throw new EOFException();
+        final int i = downloaded;
+        final boolean b = super.download();
+        if (torrent != null) {
+            torrent.incrementDownloaded(downloaded - i);
         }
-        return !data.hasRemaining();
-    }
-
-    public ByteBuffer getData() {
-        final ByteBuffer result = data;
-        data = null;
-        result.rewind();
-        return result;
+        return b;
     }
 
     public boolean isClientChoking() {
@@ -204,31 +169,16 @@ public class Peer {
         this.handshakeReceived = true;
     }
 
-    public byte[] getId() {
-        return id;
-    }
-
-    public InetSocketAddress getAddress() {
-        return address;
-    }
-
     public boolean isConnected() {
         return handshakeReceived;
     }
 
-    public ByteChannel getChannel() {
-        return channel;
-    }
-
+    @Override
     public boolean connect() throws IOException {
         SocketChannel c = SocketChannel.open();
         channel = c;
         c.configureBlocking(false);
         return c.connect(address);
-    }
-
-    public void setId(final byte[] id) {
-        this.id = id;
     }
 
     public void setPeerInterested(final boolean interested) {
@@ -276,10 +226,9 @@ public class Peer {
         return pieces;
     }
 
+    @Override
     public synchronized void disconnect() throws IOException {
-        if (channel != null && channel.isOpen()) {
-            channel.close();
-        }
+        super.disconnect();
         clearRequests();
         messagesToSend.clear();
         if (torrent != null) {
@@ -304,31 +253,6 @@ public class Peer {
         } else {
             messagesToSend.add(message);
         }
-    }
-
-    public void resetCounters() {
-        uploaded = 0;
-        downloaded = 0;
-    }
-
-    @Override
-    public String toString() {
-        return address.toString();
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        try {
-            final Peer other = (Peer) obj;
-            return address.equals(other.address);
-        } catch (ClassCastException e) {
-            return false;
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        return this.address.hashCode();
     }
 
     public void cancelPieceMessage(final int begin, final int index,
