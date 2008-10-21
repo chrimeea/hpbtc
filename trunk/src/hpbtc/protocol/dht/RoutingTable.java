@@ -3,6 +3,7 @@
  */
 package hpbtc.protocol.dht;
 
+import hpbtc.util.DHTUtil;
 import hpbtc.util.ByteStringComparator;
 import java.util.LinkedList;
 import java.util.List;
