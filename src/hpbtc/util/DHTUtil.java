@@ -2,7 +2,7 @@
  * Created on 17.10.2008
  */
 
-package hpbtc.protocol.dht;
+package hpbtc.util;
 
 /**
  *
