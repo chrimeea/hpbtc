@@ -3,6 +3,7 @@ package hpbtc.util;
 import hpbtc.protocol.torrent.Peer;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class TrackerUtilTest {
         Set<Peer> p = TrackerUtil.doCompactPeer(peers);
         assert p.size() == 2;
         for (Peer pr: p) {
-            InetSocketAddress a = pr.getAddress();
+            InetSocketAddress a = (InetSocketAddress) pr.getAddress();
             assert a.getHostName().equals("127.0.0.1");
             assert a.getPort() == 1281 || a.getPort() == 1282;
             assert pr.getId() == null;
@@ -62,7 +63,7 @@ public class TrackerUtilTest {
         Set<Peer> p = TrackerUtil.doCompactPeer(peers);
         assert p.size() == 1;
         Peer pr = p.iterator().next();
-        InetSocketAddress a = pr.getAddress();
+        InetSocketAddress a = (InetSocketAddress) pr.getAddress();
         assert a.getHostName().equals("127.0.0.1");
         assert a.getPort() == 3000;
         assert pr.getId() == null;
@@ -88,7 +89,7 @@ public class TrackerUtilTest {
         Set<Peer> prs = TrackerUtil.doLoosePeer(peers, byteEncoding);
         assert prs.size() == 2;
         for (Peer pr: prs) {
-            InetSocketAddress a = pr.getAddress();
+            InetSocketAddress a = (InetSocketAddress) pr.getAddress();
             if (Arrays.equals(pr.getId(), id1)) {
                 assert a.getHostName().equals("localhost");
                 assert a.getPort() == 6515;

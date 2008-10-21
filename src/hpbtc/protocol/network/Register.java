@@ -1,6 +1,5 @@
 package hpbtc.protocol.network;
 
-import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
@@ -32,7 +31,7 @@ public class Register {
         return s;
     }
 
-    public void disconnect(final Peer peer) {
+    public void disconnect(final NetworkComponent peer) {
         synchronized (peer) {
             final SelectableChannel channel = (SelectableChannel) peer.getChannel();
             for (Selector s : reg.keySet()) {
@@ -44,22 +43,22 @@ public class Register {
         }
     }
 
-    public void registerRead(final Peer peer, final Selector selector)
-            throws IOException {
+    public void registerRead(final NetworkComponent peer,
+            final Selector selector) throws IOException {
         registerNow(peer, SelectionKey.OP_READ, selector, reg.get(selector));
     }
 
-    public void registerWrite(final Peer peer, final Selector selector)
-            throws IOException {
+    public void registerWrite(final NetworkComponent peer,
+            final Selector selector) throws IOException {
         registerNow(peer, SelectionKey.OP_WRITE, selector, reg.get(selector));
     }
 
-    public void clearWrite(final Peer peer, final Selector selector)
+    public void clearWrite(final NetworkComponent peer, final Selector selector)
             throws IOException {
         registerNow(peer, 0, selector, reg.get(selector));
     }
 
-    private void registerNow(final Peer peer, final int op,
+    private void registerNow(final NetworkComponent peer, final int op,
             final Selector selector, final Queue<RegisterOp> registered)
             throws IOException {
         final SelectableChannel ch = (SelectableChannel) peer.getChannel();
@@ -86,7 +85,7 @@ public class Register {
         final Queue<RegisterOp> registered = reg.get(selector);
         RegisterOp ro = registered.poll();
         while (ro != null) {
-            final Peer peer = ro.getPeer();
+            final NetworkComponent peer = ro.getPeer();
             synchronized (peer) {
                 final SelectableChannel q = (SelectableChannel) peer.getChannel();
                 if (q != null && q.isOpen()) {
@@ -103,10 +102,10 @@ public class Register {
 
     private class RegisterOp {
 
-        private Peer peer;
+        private NetworkComponent peer;
         private int operation;
 
-        private RegisterOp(final int op, final Peer peer) {
+        private RegisterOp(final int op, final NetworkComponent peer) {
             this.operation = op;
             this.peer = peer;
         }
@@ -115,7 +114,7 @@ public class Register {
             return operation;
         }
 
-        private Peer getPeer() {
+        private NetworkComponent getPeer() {
             return peer;
         }
     }
