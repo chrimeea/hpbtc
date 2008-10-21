@@ -4,86 +4,52 @@
 
 package hpbtc.protocol.dht;
 
+import hpbtc.protocol.network.NetworkLoop;
+import hpbtc.protocol.network.Register;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.security.NoSuchAlgorithmException;
 
 /**
  *
  * @author Cristian Mocanu <chrimeea@yahoo.com>
  */
-public class Network {
+public class Network extends NetworkLoop {
 
-    private static Logger logger = Logger.getLogger(Network.class.getName());
     private DatagramChannel channel;
-    private boolean running;
-    private Selector selector;
 
-    public Network() {
+    public Network(final Register register) {
+        super(register);
     }
 
     public void connect(final int port) throws IOException {
         channel = DatagramChannel.open();
-        channel.socket().bind(new InetSocketAddress(
-                        InetAddress.getLocalHost(), port));
-        startListen();
+        channel.socket().bind(new InetSocketAddress(InetAddress.getLocalHost(),
+                port));
+        super.connect();
     }
 
+    @Override
     public int connect() throws IOException {
         channel = DatagramChannel.open();
-        DatagramSocket s = channel.socket();
+        final DatagramSocket s = channel.socket();
         s.bind(null);
-        startListen();
+        super.connect();
         return s.getPort();
     }
-    
-    public void disconnect() {
-        running = false;
-        selector.wakeup();
-    }
-    
-    private void startListen() {
-        running = true;
-        new Thread(new Runnable() {
 
-            public void run() {
-                try {
-                    listen();
-                } catch (Exception e) {
-                    running = false;
-                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
-                }
-                try {
-                    selector.close();
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
-                }
-                try {
-                    channel.close();
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
-                }
-            }
-        }).start();
+    @Override
+    protected void disconnect(SelectionKey key) throws IOException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
-    
-    private void listen() throws IOException {
-        while (running) {
-            if (selector.select() > 0) {
-                final Iterator<SelectionKey> i = selector.selectedKeys().
-                        iterator();
-                while (i.hasNext()) {
-                    final SelectionKey key = i.next();
-                    i.remove();
-                }
-            }
-        }
+
+    @Override
+    protected void processKey(SelectionKey key) throws IOException,
+            NoSuchAlgorithmException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }
