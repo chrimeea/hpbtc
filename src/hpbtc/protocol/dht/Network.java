@@ -44,12 +44,16 @@ public class Network extends NetworkLoop {
 
     @Override
     protected void disconnect(SelectionKey key) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        key.cancel();
     }
 
     @Override
     protected void processKey(SelectionKey key) throws IOException,
             NoSuchAlgorithmException {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (key.isReadable()) {
+            //TODO: read
+        } else if (key.isWritable()) {
+            //TODO: write
+        }
     }
 }
