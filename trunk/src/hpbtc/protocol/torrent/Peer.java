@@ -47,7 +47,7 @@ public class Peer extends NetworkComponent {
     public Peer(final SocketAddress address) {
         super(address);
     }
-    
+
     public void setTorrent(final Torrent torrent) {
         this.torrent = torrent;
         requests = new BitSet[torrent.getNrPieces()];
@@ -143,11 +143,11 @@ public class Peer extends NetworkComponent {
         uploaded = 0;
         downloaded = 0;
     }
-    
+
     public int countUploaded() {
         return uploaded;
     }
-    
+
     public int countDownloaded() {
         return downloaded;
     }
@@ -157,14 +157,14 @@ public class Peer extends NetworkComponent {
             data = ByteBuffer.allocate(i);
         }
     }
-    
+
     public ByteBuffer getData() {
         final ByteBuffer result = data;
         data = null;
         result.rewind();
         return result;
     }
-    
+
     public boolean download() throws IOException {
         final int i = IOUtil.readFromChannel(channel, data);
         if (i < 0) {
@@ -205,7 +205,6 @@ public class Peer extends NetworkComponent {
         return handshakeReceived;
     }
 
-    @Override
     public boolean connect() throws IOException {
         SocketChannel c = SocketChannel.open();
         channel = c;

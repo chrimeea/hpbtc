@@ -31,9 +31,8 @@ public class Register {
         return s;
     }
 
-    public void disconnect(final NetworkComponent peer) {
-        synchronized (peer) {
-            final SelectableChannel channel = (SelectableChannel) peer.getChannel();
+    public void disconnect(final SelectableChannel channel) {
+        synchronized (channel) {
             for (Selector s : reg.keySet()) {
                 SelectionKey key = channel.keyFor(s);
                 if (key != null) {
@@ -43,41 +42,21 @@ public class Register {
         }
     }
 
-    public void registerRead(final NetworkComponent peer,
-            final Selector selector) throws IOException {
-        registerNow(peer, SelectionKey.OP_READ, selector, reg.get(selector));
-    }
-
-    public void registerWrite(final NetworkComponent peer,
-            final Selector selector) throws IOException {
-        registerNow(peer, SelectionKey.OP_WRITE, selector, reg.get(selector));
-    }
-
-    public void clearWrite(final NetworkComponent peer, final Selector selector)
+    public void registerNow(final SelectableChannel channel,
+            final Selector selector, final int op, final Object peer)
             throws IOException {
-        registerNow(peer, 0, selector, reg.get(selector));
+        registerNow(peer, op, selector, reg.get(selector), channel);
     }
 
-    private void registerNow(final NetworkComponent peer, final int op,
-            final Selector selector, final Queue<RegisterOp> registered)
-            throws IOException {
-        final SelectableChannel ch = (SelectableChannel) peer.getChannel();
-        if (ch != null) {
-            if (ch.isOpen()) {
-                final SelectionKey sk = ch.keyFor(selector);
-                if (sk == null || (sk.isValid() && (sk.interestOps() & op) == 0)) {
-                    registered.add(new RegisterOp(op, peer));
-                    selector.wakeup();
-                }
+    private void registerNow(final Object peer, final int op,
+            final Selector selector, final Queue<RegisterOp> registered,
+            final SelectableChannel channel) throws IOException {
+        if (channel != null && channel.isOpen()) {
+            final SelectionKey sk = channel.keyFor(selector);
+            if (sk == null || (sk.isValid() && (sk.interestOps() & op) == 0)) {
+                registered.add(new RegisterOp(op, channel, peer));
+                selector.wakeup();
             }
-        } else {
-            if (peer.connect()) {
-                registered.add(new RegisterOp(op, peer));
-            } else {
-                registered.add(
-                        new RegisterOp(SelectionKey.OP_CONNECT | op, peer));
-            }
-            selector.wakeup();
         }
     }
 
@@ -85,14 +64,16 @@ public class Register {
         final Queue<RegisterOp> registered = reg.get(selector);
         RegisterOp ro = registered.poll();
         while (ro != null) {
-            final NetworkComponent peer = ro.getPeer();
-            synchronized (peer) {
-                final SelectableChannel q = (SelectableChannel) peer.getChannel();
-                if (q != null && q.isOpen()) {
-                    try {
-                        q.register(selector, ro.getOperation(), ro.getPeer());
-                    } catch (ClosedChannelException e) {
-                        logger.log(Level.FINE, e.getLocalizedMessage(), e);
+            final SelectableChannel channel = ro.getChannel();
+            if (channel != null) {
+                synchronized (channel) {
+                    if (channel.isOpen()) {
+                        try {
+                            channel.register(selector, ro.getOperation(), ro.
+                                    getPeer());
+                        } catch (ClosedChannelException e) {
+                            logger.log(Level.FINE, e.getLocalizedMessage(), e);
+                        }
                     }
                 }
             }
@@ -102,10 +83,13 @@ public class Register {
 
     private class RegisterOp {
 
-        private NetworkComponent peer;
+        private SelectableChannel channel;
+        private Object peer;
         private int operation;
 
-        private RegisterOp(final int op, final NetworkComponent peer) {
+        private RegisterOp(final int op, final SelectableChannel channel,
+                final Object peer) {
+            this.channel = channel;
             this.operation = op;
             this.peer = peer;
         }
@@ -114,7 +98,11 @@ public class Register {
             return operation;
         }
 
-        private NetworkComponent getPeer() {
+        private SelectableChannel getChannel() {
+            return channel;
+        }
+
+        private Object getPeer() {
             return peer;
         }
     }

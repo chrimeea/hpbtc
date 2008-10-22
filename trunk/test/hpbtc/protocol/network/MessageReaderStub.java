@@ -14,6 +14,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
 import hpbtc.util.IOUtil;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
 
 /**
  *
@@ -32,7 +34,8 @@ public class MessageReaderStub extends MessageReader {
 
     @Override
     public void connect(final Peer peer) throws IOException {
-        register.registerRead(peer, selector);
+        register.registerNow((SelectableChannel) peer.getChannel(), selector,
+                SelectionKey.OP_READ, peer);
     }
     
     @Override

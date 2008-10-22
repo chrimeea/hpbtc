@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import hpbtc.util.TorrentUtil;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
 
 /**
  *
@@ -400,7 +402,8 @@ public class MessageReader {
     }
 
     public void connect(final Peer peer) throws IOException {
-        register.registerRead(peer, selector);
+        register.registerNow((SelectableChannel) peer.getChannel(), selector,
+                SelectionKey.OP_READ, peer);
         writer.keepAliveRead(peer);
     }
 
