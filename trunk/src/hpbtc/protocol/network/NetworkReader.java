@@ -34,10 +34,11 @@ public class NetworkReader extends NetworkLoop {
         serverCh = ServerSocketChannel.open();
         serverCh.socket().bind(new InetSocketAddress(
                 InetAddress.getLocalHost(), port));
-        super.connect();
+        selector = register.openSelector();
         reader.setReadSelector(selector);
         serverCh.configureBlocking(false);
         serverCh.register(selector, SelectionKey.OP_ACCEPT);
+        super.connect();
     }
 
     @Override
@@ -45,10 +46,11 @@ public class NetworkReader extends NetworkLoop {
         serverCh = ServerSocketChannel.open();
         ServerSocket s = serverCh.socket();
         s.bind(null);
-        super.connect();
+        selector = register.openSelector();
         reader.setReadSelector(selector);
         serverCh.configureBlocking(false);
         serverCh.register(selector, SelectionKey.OP_ACCEPT);
+        super.connect();
         return s.getLocalPort();
     }
 

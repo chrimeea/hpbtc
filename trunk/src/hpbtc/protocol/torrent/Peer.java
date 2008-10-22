@@ -3,6 +3,7 @@ package hpbtc.protocol.torrent;
 import hpbtc.protocol.message.LengthPrefixMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.network.NetworkComponent;
+import hpbtc.util.IOUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import hpbtc.util.TorrentUtil;
+import java.io.EOFException;
 import java.net.SocketAddress;
 
 /**
@@ -22,6 +24,9 @@ import java.net.SocketAddress;
  */
 public class Peer extends NetworkComponent {
 
+    private ByteBuffer data;
+    private int uploaded;
+    private int downloaded;
     private boolean messagesReceived;
     private BitSet pieces = new BitSet();
     private boolean peerChoking = true;
@@ -127,22 +132,49 @@ public class Peer extends NetworkComponent {
         handshakeSent = true;
     }
 
-    @Override
     public synchronized int upload(final ByteBuffer bb) throws IOException {
-        final int i = super.upload(bb);
+        final int i = IOUtil.writeToChannel(channel, bb);
+        uploaded += i;
         torrent.incrementUploaded(i);
         return i;
     }
 
+    public void resetCounters() {
+        uploaded = 0;
+        downloaded = 0;
+    }
+    
+    public int countUploaded() {
+        return uploaded;
+    }
+    
+    public int countDownloaded() {
+        return downloaded;
+    }
 
-    @Override
-    public boolean download() throws IOException {
-        final int i = downloaded;
-        final boolean b = super.download();
-        if (torrent != null) {
-            torrent.incrementDownloaded(downloaded - i);
+    public void setNextDataExpectation(final int i) {
+        if (data == null || data.capacity() < i) {
+            data = ByteBuffer.allocate(i);
         }
-        return b;
+    }
+    
+    public ByteBuffer getData() {
+        final ByteBuffer result = data;
+        data = null;
+        result.rewind();
+        return result;
+    }
+    
+    public boolean download() throws IOException {
+        final int i = IOUtil.readFromChannel(channel, data);
+        if (i < 0) {
+            throw new EOFException();
+        }
+        downloaded += i;
+        if (torrent != null) {
+            torrent.incrementDownloaded(i);
+        }
+        return !data.hasRemaining();
     }
 
     public boolean isClientChoking() {
