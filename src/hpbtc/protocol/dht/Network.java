@@ -93,10 +93,18 @@ public class Network extends NetworkLoop {
                 (char)((byte[]) message.get("y".getBytes(byteEncoding)))[0];
         switch (mtype) {
             case 'q':
+                final byte[] mquery =
+                        (byte[]) message.get("q".getBytes(byteEncoding));
+                final Map<byte[], Object> margs = (Map<byte[], Object>)
+                        message.get("a".getBytes(byteEncoding));
                 break;
             case 'r':
+                final Map<byte[], Object> mret = (Map<byte[], Object>)
+                        message.get("r".getBytes(byteEncoding));
                 break;
             case 'e':
+                final List<Object> merr = (List<Object>)
+                        message.get("e".getBytes(byteEncoding));
                 break;
             default:
                 nodes.remove(node);
