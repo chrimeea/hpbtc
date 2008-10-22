@@ -53,7 +53,7 @@ public class Register {
             final SelectableChannel channel) throws IOException {
         if (channel != null && channel.isOpen()) {
             final SelectionKey sk = channel.keyFor(selector);
-            if (sk == null || (sk.isValid() && (sk.interestOps() & op) == 0)) {
+            if (sk == null || (sk.isValid() && (sk.interestOps() != op))) {
                 registered.add(new RegisterOp(op, channel, peer));
                 selector.wakeup();
             }
