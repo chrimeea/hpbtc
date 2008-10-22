@@ -7,6 +7,9 @@ import hpbtc.protocol.processor.MessageWriter;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.SocketChannel;
 
 /**
  *
@@ -20,7 +23,11 @@ public class MessageWriterStub extends MessageWriter {
 
     @Override
     public void connect(final Peer peer) throws IOException {
-        register.registerWrite(peer, selector);
+        if (peer.getChannel() == null && !peer.connect()) {
+            ((SocketChannel) peer.getChannel()).finishConnect();
+        }
+        register.registerNow((SelectableChannel) peer.getChannel(), selector,
+                SelectionKey.OP_WRITE, peer);
     }
 
     @Override

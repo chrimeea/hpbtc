@@ -10,6 +10,8 @@ import hpbtc.protocol.torrent.Torrent;
 import hpbtc.protocol.torrent.Tracker;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,7 +32,8 @@ import java.util.logging.Logger;
  */
 public class MessageWriter {
 
-    private static Logger logger = Logger.getLogger(MessageWriter.class.getName());
+    private static Logger logger = Logger.getLogger(
+            MessageWriter.class.getName());
     private ByteBuffer currentWrite;
     protected Register register;
     private Timer timer;
@@ -53,13 +56,13 @@ public class MessageWriter {
         torrent.cancelTrackerTask();
         Set<Peer> peers = new HashSet<Peer>(torrent.getConnectedPeers());
         for (Peer peer : peers) {
-            register.disconnect(peer);
+            register.disconnect((SelectableChannel) peer.getChannel());
             peer.disconnect();
         }
     }
 
     public void disconnect(final Peer peer) throws IOException {
-        register.disconnect(peer);
+        register.disconnect((SelectableChannel) peer.getChannel());
         Torrent torrent = peer.getTorrent();
         peer.disconnect();
         logger.info("Disconnected " + peer);
@@ -203,14 +206,21 @@ public class MessageWriter {
         }
         if (currentWrite != null && currentWrite.remaining() == 0 &&
                 peer.isMessagesToSendEmpty()) {
-            register.clearWrite(peer, selector);
+            register.registerNow((SelectableChannel) peer.getChannel(), selector,
+                    0, peer);
         }
     }
 
     public void postMessage(final LengthPrefixMessage message) throws
             IOException {
-        message.getDestination().addMessageToSend(message);
-        register.registerWrite(message.getDestination(), selector);
+        final Peer peer = message.getDestination();
+        peer.addMessageToSend(message);
+        int op = SelectionKey.OP_WRITE;
+        if (peer.getChannel() == null && !peer.connect()) {
+            op = SelectionKey.OP_CONNECT | op;
+        }
+        register.registerNow((SelectableChannel) peer.getChannel(), selector,
+                op, peer);
     }
 
     private void contactFreshPeers(final Torrent torrent) {
@@ -229,8 +239,10 @@ public class MessageWriter {
     }
 
     public void connect(final Peer peer) throws IOException {
-        register.registerRead(peer, selectorread);
-        register.registerWrite(peer, selector);
+        register.registerNow((SelectableChannel) peer.getChannel(), selectorread,
+                SelectionKey.OP_READ, peer);
+        register.registerNow((SelectableChannel) peer.getChannel(), selector,
+                SelectionKey.OP_WRITE, peer);
         keepAliveRead(peer);
     }
 
@@ -251,15 +263,15 @@ public class MessageWriter {
             peer.setKeepAliveRead(tt);
         }
     }
-    
+
     public void performWriteRegistration() {
         register.performRegistration(selector);
     }
-    
+
     public void setWriteSelector(final Selector selector) {
         this.selector = selector;
     }
-    
+
     public void setReadSelector(final Selector selector) {
         selectorread = selector;
     }

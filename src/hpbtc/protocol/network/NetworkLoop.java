@@ -28,6 +28,7 @@ public abstract class NetworkLoop {
     }
 
     public int connect() throws IOException {
+        selector = register.openSelector();
         running = true;
         new Thread(new Runnable() {
 

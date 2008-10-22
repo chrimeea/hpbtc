@@ -62,10 +62,6 @@ public class NetworkComponent {
         this.channel = channel;
     }
     
-    public boolean connect() throws IOException {
-        return true;
-    }
-    
     public void disconnect() throws IOException {
         if (channel != null && channel.isOpen()) {
             channel.close();
