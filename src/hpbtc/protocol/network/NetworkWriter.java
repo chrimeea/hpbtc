@@ -22,6 +22,7 @@ public class NetworkWriter extends NetworkLoop {
 
     @Override
     public int connect() throws IOException {
+        selector = register.openSelector();
         final int port = super.connect();
         writer.setWriteSelector(selector);
         return port;

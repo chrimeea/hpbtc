@@ -28,7 +28,7 @@ public class BencodingReader {
             this.is = new BufferedInputStream(is);
         }
     }
-
+    
     private long readNextNumber(final char terminator) throws IOException {
         int c = is.read();
         if (c == terminator) {

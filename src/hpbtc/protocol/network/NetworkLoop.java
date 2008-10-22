@@ -28,7 +28,6 @@ public abstract class NetworkLoop {
     }
 
     public int connect() throws IOException {
-        selector = register.openSelector();
         running = true;
         new Thread(new Runnable() {
 
@@ -77,7 +76,9 @@ public abstract class NetworkLoop {
         selector.wakeup();
     }
 
-    protected abstract void disconnect(SelectionKey key) throws IOException;
+    protected void disconnect(SelectionKey key) throws IOException {
+        key.cancel();
+    }
 
     protected abstract void processKey(SelectionKey key) throws IOException,
             NoSuchAlgorithmException;

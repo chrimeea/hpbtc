@@ -4,11 +4,8 @@
 
 package hpbtc.protocol.network;
 
-import hpbtc.util.IOUtil;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.SocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 
 /**
@@ -18,9 +15,6 @@ import java.nio.channels.ByteChannel;
 public class NetworkComponent {
 
     protected ByteChannel channel;
-    protected ByteBuffer data;
-    protected int uploaded;
-    protected int downloaded;
     protected SocketAddress address;
     protected byte[] id;
 
@@ -70,47 +64,6 @@ public class NetworkComponent {
     
     public boolean connect() throws IOException {
         return true;
-    }
-    
-    public int upload(final ByteBuffer bb) throws IOException {
-        final int i = IOUtil.writeToChannel(channel, bb);
-        uploaded += i;
-        return i;
-    }
-    
-    public boolean download() throws IOException {
-        final int i = IOUtil.readFromChannel(channel, data);
-        if (i < 0) {
-            throw new EOFException();
-        }
-        downloaded += i;
-        return !data.hasRemaining();
-    }
-    
-    public ByteBuffer getData() {
-        final ByteBuffer result = data;
-        data = null;
-        result.rewind();
-        return result;
-    }
-    
-    public void setNextDataExpectation(final int i) {
-        if (data == null || data.capacity() < i) {
-            data = ByteBuffer.allocate(i);
-        }
-    }
-    
-    public void resetCounters() {
-        uploaded = 0;
-        downloaded = 0;
-    }
-    
-    public int countUploaded() {
-        return uploaded;
-    }
-    
-    public int countDownloaded() {
-        return downloaded;
     }
     
     public void disconnect() throws IOException {
