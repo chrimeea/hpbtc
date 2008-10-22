@@ -15,7 +15,7 @@ import java.util.List;
 class Bucket {
 
     private long lastChanged = System.currentTimeMillis();
-    private List<Node> nodes = new LinkedList<Node>();
+    private List<DHTNode> nodes = new LinkedList<DHTNode>();
     private byte[] min;
     private byte[] max;
 
@@ -38,13 +38,13 @@ class Bucket {
         return max;
     }
     
-    boolean insertNode(Node node) {
+    boolean insertNode(DHTNode node) {
         if (nodes.size() == 8) {
-            Iterator<Node> it = nodes.iterator();
+            Iterator<DHTNode> it = nodes.iterator();
             boolean hasBad = false;
             while (it.hasNext()) {
-                Node n = it.next();
-                if (n.getStatus() == Node.Status.BAD) {
+                DHTNode n = it.next();
+                if (n.getStatus() == DHTNode.Status.BAD) {
                     it.remove();
                     hasBad = true;
                     break;
@@ -59,7 +59,7 @@ class Bucket {
         return true;
     }
 
-    List<Node> getNodes() {
+    List<DHTNode> getNodes() {
         return nodes;
     }
 }

@@ -2,7 +2,6 @@ package hpbtc.protocol.torrent;
 
 import hpbtc.protocol.message.LengthPrefixMessage;
 import hpbtc.protocol.message.PieceMessage;
-import hpbtc.protocol.network.NetworkComponent;
 import hpbtc.util.IOUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -17,12 +16,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import hpbtc.util.TorrentUtil;
 import java.io.EOFException;
 import java.net.SocketAddress;
+import java.nio.channels.ByteChannel;
 
 /**
  *
  * @author Cristian Mocanu
  */
-public class Peer extends NetworkComponent {
+public class Peer {
 
     private ByteBuffer data;
     private int uploaded;
@@ -43,9 +43,12 @@ public class Peer extends NetworkComponent {
     private List<LengthPrefixMessage> messagesToSend =
             Collections.synchronizedList(new LinkedList<LengthPrefixMessage>());
     private Torrent torrent;
+    private ByteChannel channel;
+    private SocketAddress address;
+    private byte[] id;
 
     public Peer(final SocketAddress address) {
-        super(address);
+        this.address = address;
     }
 
     public void setTorrent(final Torrent torrent) {
@@ -257,9 +260,10 @@ public class Peer extends NetworkComponent {
         return pieces;
     }
 
-    @Override
     public synchronized void disconnect() throws IOException {
-        super.disconnect();
+        if (channel != null && channel.isOpen()) {
+            channel.close();
+        }
         clearRequests();
         messagesToSend.clear();
         if (torrent != null) {
@@ -316,5 +320,45 @@ public class Peer extends NetworkComponent {
                 }
             }
         }
+    }
+    
+    public void setId(final byte[] id) {
+        this.id = id;
+    }
+    
+    public byte[] getId() {
+        return id;
+    }
+    
+    @Override
+    public int hashCode() {
+        return this.address.hashCode();
+    }
+    
+    @Override
+    public boolean equals(final Object obj) {
+        try {
+            final Peer other = (Peer) obj;
+            return address.equals(other.address);
+        } catch (ClassCastException e) {
+            return false;
+        }
+    }
+    
+    @Override
+    public String toString() {
+        return address.toString();
+    }
+    
+    public SocketAddress getAddress() {
+        return address;
+    }
+    
+    public ByteChannel getChannel() {
+        return channel;
+    }
+
+    public void setChannel(ByteChannel channel) {
+        this.channel = channel;
     }
 }

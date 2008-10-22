@@ -15,16 +15,16 @@ import java.util.Map;
  *
  * @author Cristian Mocanu <chrimeea@yahoo.com>
  */
-public class Processor {
+public class KRPCProcessor {
     
     private String byteEncoding = "US-ASCII";
     private RoutingTable table = new RoutingTable();
-    private Map<InetAddress, Node> nodes = new HashMap<InetAddress, Node>();
+    private Map<InetAddress, DHTNode> nodes = new HashMap<InetAddress, DHTNode>();
     
     public void processMessage(final Map<byte[], Object> message,
             final InetAddress address) throws UnsupportedEncodingException,
             IOException {
-        final Node node = nodes.get(address);
+        final DHTNode node = nodes.get(address);
         final byte[] mid = (byte[]) message.get("t".getBytes(byteEncoding));
         final char mtype =
                 (char)((byte[]) message.get("y".getBytes(byteEncoding)))[0];
@@ -45,7 +45,6 @@ public class Processor {
                 break;
             default:
                 nodes.remove(node);
-                node.disconnect();
         }
     }
 }

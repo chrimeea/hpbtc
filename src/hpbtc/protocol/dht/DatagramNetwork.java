@@ -18,24 +18,22 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  *
  * @author Cristian Mocanu <chrimeea@yahoo.com>
  */
-public class Network extends NetworkLoop {
+public class DatagramNetwork extends NetworkLoop {
 
     private DatagramSocket socket;
     private DatagramPacket packet = new DatagramPacket(new byte[16384], 16384);
     private List<DatagramPacket> messagesToSend = Collections.synchronizedList(
             new LinkedList<DatagramPacket>());
-    private Processor processor;
+    private KRPCProcessor processor;
 
-    public Network(final Register register, final Processor processor) {
+    public DatagramNetwork(final Register register, final KRPCProcessor processor) {
         super(register);
         this.processor = processor;
     }

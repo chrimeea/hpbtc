@@ -27,7 +27,7 @@ public class RoutingTable {
         r.nextBytes(nodeID);
     }
 
-    public void insertNode(Node node) {
+    public void insertNode(DHTNode node) {
         int s = table.size();
         int pos = s / 2;
         Bucket b = table.get(pos);
@@ -47,7 +47,7 @@ public class RoutingTable {
             byte[] d = DHTUtil.divideByTwo(b.getMax());
             t[0] = new Bucket(b.getMin(), d);
             t[1] = new Bucket(d, b.getMax());
-            for (Node i : b.getNodes()) {
+            for (DHTNode i : b.getNodes()) {
                 if (bsc.compare(i.getId(), d) < 0) {
                     t[0].insertNode(i);
                 } else {
