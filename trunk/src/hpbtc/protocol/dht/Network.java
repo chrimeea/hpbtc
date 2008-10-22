@@ -41,8 +41,7 @@ public class Network extends NetworkLoop {
     public void connect(final int port) throws IOException {
         DatagramChannel channel = DatagramChannel.open();
         socket = channel.socket();
-        socket.bind(new InetSocketAddress(InetAddress.getLocalHost(),
-                port));
+        socket.bind(new InetSocketAddress(InetAddress.getLocalHost(), port));
         super.connect();
     }
 
@@ -52,14 +51,15 @@ public class Network extends NetworkLoop {
         socket = channel.socket();
         socket.bind(null);
         super.connect();
-        channel.register(selector, SelectionKey.OP_READ);
+        register.registerNow(channel, selector, SelectionKey.OP_READ, null);
         return socket.getPort();
     }
 
     public void postMessage(byte[] message, SocketAddress address)
-            throws SocketException {
+            throws SocketException, IOException {
         messagesToSend.add(new DatagramPacket(message, message.length, address));
-        //TODO add write register
+        register.registerNow(socket.getChannel(), selector,
+                SelectionKey.OP_WRITE, null);
     }
 
     @Override
@@ -68,14 +68,16 @@ public class Network extends NetworkLoop {
         if (key.isReadable()) {
             socket.receive(packet);
             BencodingReader reader = new BencodingReader(
-                    new ByteArrayInputStream(packet.getData()));
+                    new ByteArrayInputStream(packet.getData(),
+                    packet.getOffset(), packet.getLength()));
             Map<byte[], Object> message = reader.readNextDictionary();
             //TODO process message from packet.address
         } else if (key.isWritable()) {
             if (!messagesToSend.isEmpty()) {
                 socket.send(messagesToSend.get(0));
             } else {
-                //TODO remove write register
+                register.registerNow(socket.getChannel(), selector,
+                        SelectionKey.OP_READ, null);
             }
         }
     }
