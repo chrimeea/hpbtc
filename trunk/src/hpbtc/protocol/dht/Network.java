@@ -8,6 +8,7 @@ import hpbtc.protocol.network.NetworkLoop;
 import hpbtc.protocol.network.Register;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -18,6 +19,7 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,8 @@ public class Network extends NetworkLoop {
     private RoutingTable table = new RoutingTable();
     private List<DatagramPacket> messagesToSend = Collections.synchronizedList(
             new LinkedList<DatagramPacket>());
+    private String byteEncoding = "US-ASCII";
+    private Map<SocketAddress, Node> nodes = new HashMap<SocketAddress, Node>();
 
     public Network(final Register register) {
         super(register);
@@ -70,8 +74,8 @@ public class Network extends NetworkLoop {
             BencodingReader reader = new BencodingReader(
                     new ByteArrayInputStream(packet.getData(),
                     packet.getOffset(), packet.getLength()));
-            Map<byte[], Object> message = reader.readNextDictionary();
-            //TODO process message from packet.address
+            processMessage(reader.readNextDictionary(),
+                    nodes.get(packet.getAddress()));
         } else if (key.isWritable()) {
             if (!messagesToSend.isEmpty()) {
                 socket.send(messagesToSend.get(0));
@@ -79,6 +83,24 @@ public class Network extends NetworkLoop {
                 register.registerNow(socket.getChannel(), selector,
                         SelectionKey.OP_READ, null);
             }
+        }
+    }
+    
+    private void processMessage(final Map<byte[], Object> message,
+            final Node node) throws UnsupportedEncodingException, IOException {
+        final byte[] mid = (byte[]) message.get("t".getBytes(byteEncoding));
+        final char mtype =
+                (char)((byte[]) message.get("y".getBytes(byteEncoding)))[0];
+        switch (mtype) {
+            case 'q':
+                break;
+            case 'r':
+                break;
+            case 'e':
+                break;
+            default:
+                nodes.remove(node);
+                node.disconnect();
         }
     }
 }
