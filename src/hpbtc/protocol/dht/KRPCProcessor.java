@@ -7,6 +7,7 @@ package hpbtc.protocol.dht;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,18 @@ public class KRPCProcessor {
                         (byte[]) message.get("q".getBytes(byteEncoding));
                 final Map<byte[], Object> margs = (Map<byte[], Object>)
                         message.get("a".getBytes(byteEncoding));
+                if (Arrays.equals(mquery, "ping".getBytes(byteEncoding))) {
+                    //PING
+                } else if (Arrays.equals(mquery,
+                        "find_node".getBytes(byteEncoding))) {
+                    //FIND NODE
+                } else if (Arrays.equals(mquery,
+                        "get_peers".getBytes(byteEncoding))) {
+                    //GET PEERS
+                } else if (Arrays.equals(mquery,
+                        "announce_peer".getBytes(byteEncoding))) {
+                    //ANNOUNCE PEER
+                }
                 break;
             case 'r':
                 final Map<byte[], Object> mret = (Map<byte[], Object>)
