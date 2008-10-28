@@ -41,7 +41,7 @@ public class KRPCProcessor {
     public KRPCProcessor(final Register register) {
         this.register = register;
     }
-    
+
     public void processMessage(final Map<byte[], Object> message,
             final SocketAddress address) throws UnsupportedEncodingException,
             IOException {
@@ -55,11 +55,10 @@ public class KRPCProcessor {
                         (byte[]) message.get("q".getBytes(byteEncoding));
                 final Map<byte[], Object> margs = (Map<byte[], Object>) message.
                         get("a".getBytes(byteEncoding));
+                byte[] remoteId = (byte[]) margs.get("id".getBytes(byteEncoding));
                 final Map<byte[], Object> resp = new HashMap<byte[], Object>();
                 resp.put("t".getBytes(byteEncoding), mid);
                 if (Arrays.equals(mquery, "ping".getBytes(byteEncoding))) {
-                    byte[] remoteId = (byte[]) margs.get(
-                            "id".getBytes(byteEncoding));
                     resp.put("y".getBytes(byteEncoding), "r".getBytes(
                             byteEncoding));
                     final Map<byte[], Object> respargs =
@@ -67,15 +66,28 @@ public class KRPCProcessor {
                     respargs.put("id".getBytes(byteEncoding), table.getNodeID());
                     resp.put("r".getBytes(byteEncoding), respargs);
                     postMessage(resp, address);
+                    //TODO: routing
                 } else if (Arrays.equals(mquery,
                         "find_node".getBytes(byteEncoding))) {
-                    //FIND NODE
+                    byte[] targetId = (byte[]) margs.get(
+                            "target".getBytes(byteEncoding));
+                    //TODO: routing
                 } else if (Arrays.equals(mquery,
                         "get_peers".getBytes(byteEncoding))) {
-                    //GET PEERS
+                    byte[] infohash = (byte[]) margs.get(
+                            "info_hash".getBytes(byteEncoding));
+                    //TODO: routing
                 } else if (Arrays.equals(mquery,
                         "announce_peer".getBytes(byteEncoding))) {
-                    //ANNOUNCE PEER
+                    byte[] infohash = (byte[]) margs.get(
+                            "info_hash".getBytes(byteEncoding));
+                    int port = ((Long) margs.get(
+                            "port".getBytes(byteEncoding))).intValue();
+                    byte[] token = (byte[]) margs.get(
+                            "token".getBytes(byteEncoding));                    
+                    //TODO: routing
+                } else {
+                    throw new IOException();
                 }
                 break;
             case 'r':
@@ -110,11 +122,11 @@ public class KRPCProcessor {
                     SelectionKey.OP_READ, null);
         }
     }
-    
+
     public void setSelector(Selector selector) {
         this.selector = selector;
     }
-    
+
     public void setSocket(DatagramSocket socket) {
         this.socket = socket;
     }
