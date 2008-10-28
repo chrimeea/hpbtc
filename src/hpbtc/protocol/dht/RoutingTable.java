@@ -27,6 +27,10 @@ public class RoutingTable {
         r.nextBytes(nodeID);
     }
 
+    public byte[] getNodeID() {
+        return nodeID;
+    }
+    
     public void insertNode(DHTNode node) {
         int s = table.size();
         int pos = s / 2;
