@@ -4,9 +4,11 @@
 package hpbtc.protocol.dht;
 
 import hpbtc.bencoding.BencodingReader;
+import hpbtc.bencoding.BencodingWriter;
 import hpbtc.protocol.network.NetworkLoop;
 import hpbtc.protocol.network.Register;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -20,6 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -39,7 +42,7 @@ public class DatagramNetwork extends NetworkLoop {
     }
 
     public void connect(final int port) throws IOException {
-        DatagramChannel channel = DatagramChannel.open();
+        final DatagramChannel channel = DatagramChannel.open();
         socket = channel.socket();
         socket.bind(new InetSocketAddress(InetAddress.getLocalHost(), port));
         super.connect();
@@ -55,8 +58,12 @@ public class DatagramNetwork extends NetworkLoop {
         return socket.getPort();
     }
 
-    public void postMessage(byte[] message, SocketAddress address)
-            throws SocketException, IOException {
+    public void postMessage(final Map<byte[], Object> dict,
+            final SocketAddress address) throws SocketException, IOException {
+        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        final BencodingWriter writer = new BencodingWriter(bos);
+        writer.write(dict);
+        final byte[] message = bos.toByteArray();
         messagesToSend.add(new DatagramPacket(message, message.length, address));
         register.registerNow(socket.getChannel(), selector,
                 SelectionKey.OP_WRITE, null);
@@ -67,7 +74,7 @@ public class DatagramNetwork extends NetworkLoop {
             NoSuchAlgorithmException {
         if (key.isReadable()) {
             socket.receive(packet);
-            BencodingReader reader = new BencodingReader(
+            final BencodingReader reader = new BencodingReader(
                     new ByteArrayInputStream(packet.getData(),
                     packet.getOffset(), packet.getLength()));
             processor.processMessage(reader.readNextDictionary(),
