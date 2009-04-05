@@ -108,22 +108,6 @@ public class PeerTest {
         final ServerSocket ss = new ServerSocket(6001);
         final byte[] b = "test".getBytes("US-ASCII");
         final byte[] x = "response".getBytes("US-ASCII");
-        new Thread() {
-
-            @Override
-            public void run() {
-                try {
-                    final Socket socket = ss.accept();
-                    byte[] r = new byte[4];
-                    socket.getInputStream().read(r);
-                    assert Arrays.equals(b, r);
-                    socket.getOutputStream().write(x);
-                    socket.close();
-                } catch (IOException ex) {
-                    assert false;
-                }
-            }
-        }.start();
         if (!p.connect()) {
             SocketChannel c = (SocketChannel) p.getChannel();
             c.finishConnect();
@@ -135,6 +119,16 @@ public class PeerTest {
         assert p.countUploaded() == 4;
         p.setNextDataExpectation(8);
         assert p.countDownloaded() == 0;
+        try {
+            final Socket socket = ss.accept();
+            byte[] r = new byte[4];
+            socket.getInputStream().read(r);
+            assert Arrays.equals(b, r);
+            socket.getOutputStream().write(x);
+            socket.close();
+        } catch (IOException ex) {
+            assert false;
+        }
         assert p.download();
         assert p.countDownloaded() == 8;
         assert Arrays.equals(p.getData().array(), x);
