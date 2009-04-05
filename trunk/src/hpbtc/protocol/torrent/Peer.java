@@ -40,7 +40,7 @@ public class Peer {
     private AtomicInteger totalRequests = new AtomicInteger();
     private TimerTask keepAliveRead;
     private TimerTask keepAliveWrite;
-    private List<LengthPrefixMessage> messagesToSend =
+    private final List<LengthPrefixMessage> messagesToSend =
             Collections.synchronizedList(new LinkedList<LengthPrefixMessage>());
     private Torrent torrent;
     private ByteChannel channel;
