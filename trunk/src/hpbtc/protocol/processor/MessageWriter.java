@@ -23,6 +23,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,6 +43,10 @@ public class MessageWriter {
     private Random random;
     protected Selector selector;
     private Selector selectorread;
+    private long uploaded;
+    private AtomicLong limit;
+    private long timestamp;
+    private long lastUploaded;
 
     public MessageWriter(final Register register, final Timer timer,
             final byte[] peerId, final byte[] protocol) {
@@ -50,6 +55,8 @@ public class MessageWriter {
         this.protocol = protocol;
         this.register = register;
         this.timer = timer;
+        this.timestamp = System.currentTimeMillis();
+        this.limit = new AtomicLong(Long.MAX_VALUE);
     }
 
     public void stopTorrent(final Torrent torrent) throws IOException {
@@ -186,28 +193,44 @@ public class MessageWriter {
         peer.setKeepAliveWrite(tt);
     }
 
+    public void setLimit(long l) {
+        limit.set(2 * l);
+    }
+
     public void writeNext(final Peer peer) throws IOException {
-        if (currentWrite == null || currentWrite.remaining() == 0) {
-            LengthPrefixMessage sm = peer.getMessageToSend();
-            if (sm != null) {
-                if (sm instanceof PieceMessage) {
-                    PieceMessage pm = (PieceMessage) sm;
-                    pm.setPiece(peer.getTorrent().loadPiece(pm.getBegin(),
-                            pm.getIndex(), pm.getLength()));
+        long t = System.currentTimeMillis();
+        if (t - timestamp > 2000L) {
+            lastUploaded = uploaded;
+            timestamp = t;
+        }
+        long l = limit.get() - uploaded + lastUploaded;
+        if (l > 0) {
+            if (currentWrite == null || currentWrite.remaining() == 0) {
+                LengthPrefixMessage sm = peer.getMessageToSend();
+                if (sm != null) {
+                    if (sm instanceof PieceMessage) {
+                        PieceMessage pm = (PieceMessage) sm;
+                        pm.setPiece(peer.getTorrent().loadPiece(pm.getBegin(),
+                                pm.getIndex(), pm.getLength()));
+                    }
+                    currentWrite = sm.send();
+                    currentWrite.rewind();
+                    logger.fine("Sending: " + sm);
                 }
-                currentWrite = sm.send();
-                currentWrite.rewind();
-                logger.fine("Sending: " + sm);
             }
-        }
-        if (currentWrite != null && currentWrite.remaining() > 0) {
-            keepAliveWrite(peer);
-            peer.upload(currentWrite);
-        }
-        if (currentWrite != null && currentWrite.remaining() == 0 &&
-                peer.isMessagesToSendEmpty()) {
-            register.registerNow((SelectableChannel) peer.getChannel(), selector,
-                    0, peer);
+            if (currentWrite != null && currentWrite.remaining() > 0) {
+                keepAliveWrite(peer);
+                if (currentWrite.remaining() > l) {
+                    currentWrite.limit(currentWrite.position() + (int) l);
+                }
+                uploaded += peer.upload(currentWrite);
+                currentWrite.limit(currentWrite.capacity() - 1);
+            }
+            if (currentWrite != null && currentWrite.remaining() == 0 &&
+                    peer.isMessagesToSendEmpty()) {
+                register.registerNow((SelectableChannel) peer.getChannel(), selector,
+                        0, peer);
+            }
         }
     }
 
