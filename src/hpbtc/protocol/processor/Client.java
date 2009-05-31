@@ -86,4 +86,10 @@ public class Client {
         return port;
     }
 
+    /**
+     * Set the upload max limit in bytes / second
+     */
+    public void setUploadLimit(long limit) {
+        writer.setLimit(limit);
+    }
 }
