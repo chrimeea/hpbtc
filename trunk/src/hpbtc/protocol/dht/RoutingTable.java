@@ -3,11 +3,12 @@
  */
 package hpbtc.protocol.dht;
 
-import hpbtc.util.DHTUtil;
 import hpbtc.util.ByteStringComparator;
+import hpbtc.util.DHTUtil;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Timer;
 
 /**
  *
@@ -15,11 +16,13 @@ import java.util.Random;
  */
 public class RoutingTable {
 
-    private static ByteStringComparator bsc = new ByteStringComparator();
+    private static final ByteStringComparator bsc = new ByteStringComparator();
     private List<Bucket> table;
     private byte[] nodeID;
+    private Timer timer;
 
-    public RoutingTable() {
+    public RoutingTable(final Timer timer) {
+        this.timer = timer;
         table = new LinkedList<Bucket>();
         table.add(new Bucket());
         nodeID = new byte[20];
@@ -31,7 +34,7 @@ public class RoutingTable {
         return nodeID;
     }
     
-    public void insertNode(DHTNode node) {
+    private Bucket[] insertNode(final DHTNode node) {
         int s = table.size();
         int pos = s / 2;
         Bucket b = table.get(pos);
@@ -66,11 +69,13 @@ public class RoutingTable {
             table.remove(pos);
             table.add(pos, t[1]);
             table.add(pos, t[0]);
-
+            return t;
+        } else {
+            return new Bucket[] {b};
         }
     }
 
-    private static boolean shouldContain(Bucket b, byte[] n) {
+    private static boolean shouldContain(final Bucket b, final byte[] n) {
         return bsc.compare(b.getMin(), n) <= 0 && bsc.compare(b.getMax(), n) > 0;
     }
 }

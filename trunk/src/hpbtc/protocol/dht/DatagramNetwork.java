@@ -24,11 +24,13 @@ public class DatagramNetwork extends NetworkLoop {
 
     private DatagramSocket socket;
     private DatagramPacket packet = new DatagramPacket(new byte[16384], 16384);
-    private KRPCProcessor processor;
+    private KRPCReader processor;
+    private KRPCWriter writer;
 
-    public DatagramNetwork(final Register register) {
+    public DatagramNetwork(final KRPCWriter writer, final Register register) {
         super(register);
-        this.processor = new KRPCProcessor(register);
+        this.writer = writer;
+        this.processor = new KRPCReader(register, writer);
     }
 
     public void connect(final int port) throws IOException {
@@ -63,7 +65,7 @@ public class DatagramNetwork extends NetworkLoop {
             processor.processMessage(reader.readNextDictionary(),
                     packet.getSocketAddress());
         } else if (key.isWritable()) {
-            processor.writeNext();
+            writer.writeNext();
         }
     }
 }
