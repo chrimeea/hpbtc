@@ -20,20 +20,16 @@ public class DHTNode {
 
     private long lastSeen;
     private Status status;
-    private Peer peer;
+    private InetSocketAddress peer;
     private byte[] id;
     private Timer timer;
     private TimerTask refreshTask;
 
-    public DHTNode(final byte[] id, final Peer peer, final Timer timer) {
+    public DHTNode(final byte[] id, final InetSocketAddress peer, final Timer timer) {
         this.status = Status.GOOD;
         this.id = id;
         this.peer = peer;
         updateLastSeen();
-    }
-
-    public Peer getPeer() {
-        return peer;
     }
 
     public synchronized Status getStatus() {
@@ -46,13 +42,12 @@ public class DHTNode {
 
     public String getCompactNodeInfo() {
         byte[] compact = Arrays.copyOf(id, 26);
-        InetSocketAddress inet = ((InetSocketAddress) peer.getAddress());
-        byte[] ip = inet.getAddress().getAddress();
+        byte[] ip = peer.getAddress().getAddress();
         compact[20] = ip[0];
         compact[21] = ip[1];
         compact[22] = ip[2];
         compact[23] = ip[3];
-        int port = inet.getPort();
+        int port = peer.getPort();
         compact[24] = (byte) (port % 256);
         compact[25] = (byte) ((port / 256) % 256);
         return new String(compact);
