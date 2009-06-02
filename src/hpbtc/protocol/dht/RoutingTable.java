@@ -23,7 +23,7 @@ public class RoutingTable {
     private byte[] nodeID;
     private Timer timer;
 
-    public RoutingTable(final Timer timer) {
+    RoutingTable(final Timer timer) {
         this.timer = timer;
         table = new LinkedList<Bucket>();
         table.add(new Bucket());
@@ -32,25 +32,25 @@ public class RoutingTable {
         r.nextBytes(nodeID);
     }
 
-    public byte[] getNodeID() {
+    byte[] getNodeID() {
         return nodeID;
     }
 
-    private Bucket findBucket(final DHTNode node, int minpos, int maxpos) {
+    Bucket findBucket(final byte[] nid, final int minpos, final int maxpos) {
         int pos = minpos + (maxpos - minpos) / 2;
         Bucket b = table.get(pos);
-        byte[] id = node.getId();
-        if (bsc.compare(b.getMin(), id) > 0) {
-            return findBucket(node, minpos, pos - 1);
-        } else if (bsc.compare(b.getMax(), id) <= 0) {
-            return findBucket(node, pos + 1, maxpos);
+        if (bsc.compare(b.getMin(), nid) > 0) {
+            return findBucket(nid, minpos, pos - 1);
+        } else if (bsc.compare(b.getMax(), nid) <= 0) {
+            return findBucket(nid, pos + 1, maxpos);
         } else {
             return b;
         }
     }
 
     private void insertNode(final DHTNode node) {
-        Bucket b = findBucket(node, 0, table.size());
+        byte[] nid = node.getId();
+        Bucket b = findBucket(nid, 0, table.size());
         if (!b.insertNode(node)) {
             byte[] d = DHTUtil.divideByTwo(b.getMax());
             Bucket b1 = new Bucket(b.getMin(), d);
@@ -62,7 +62,7 @@ public class RoutingTable {
                     b2.insertNode(i);
                 }
             }
-            if (bsc.compare(b1.getMax(), node.getId()) < 0) {
+            if (bsc.compare(b1.getMax(), nid) < 0) {
                 b1.insertNode(node);
             } else {
                 b2.insertNode(node);
