@@ -5,7 +5,8 @@
 package hpbtc.protocol.dht;
 
 import hpbtc.protocol.torrent.Peer;
-import java.util.BitSet;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -44,8 +45,17 @@ public class DHTNode {
     }
 
     public String getCompactNodeInfo() {
-        //TODO: implement
-        return null;
+        byte[] compact = Arrays.copyOf(id, 26);
+        InetSocketAddress inet = ((InetSocketAddress) peer.getAddress());
+        byte[] ip = inet.getAddress().getAddress();
+        compact[20] = ip[0];
+        compact[21] = ip[1];
+        compact[22] = ip[2];
+        compact[23] = ip[3];
+        int port = inet.getPort();
+        compact[24] = (byte) (port % 256);
+        compact[25] = (byte) ((port / 256) % 256);
+        return new String(compact);
     }
 
     public long getLastSeen() {
