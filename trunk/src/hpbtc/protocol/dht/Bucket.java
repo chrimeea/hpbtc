@@ -3,6 +3,7 @@
  */
 package hpbtc.protocol.dht;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,7 +49,18 @@ public class Bucket {
     byte[] getMax() {
         return max;
     }
-    
+
+    DHTNode getNode(final byte[] nid) {
+        Iterator<DHTNode> it = nodes.iterator();
+        while (it.hasNext()) {
+            DHTNode n = it.next();
+            if (Arrays.equals(n.getId(), nid)) {
+                return n;
+            }
+        }
+        return null;
+    }
+
     boolean insertNode(final DHTNode node) {
         if (nodes.size() == 8) {
             Iterator<DHTNode> it = nodes.iterator();
