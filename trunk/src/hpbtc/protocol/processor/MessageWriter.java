@@ -193,18 +193,39 @@ public class MessageWriter {
         peer.setKeepAliveWrite(tt);
     }
 
+    /**
+     * Set the maximum number of uploaded bytes per second
+     */
     public void setLimit(long l) {
-        limit.set(2 * l);
+        limit.set(l);
     }
 
+    /**
+     *
+     */
     public void writeNext(final Peer peer) throws IOException {
         long t = System.currentTimeMillis();
-        if (t - timestamp > 2000L) {
+
+        //check if more than 1 second passed since we measured
+        // the bytes uploaded
+        if (t - timestamp > 1000L) {
+
+            //memorize the bytes uploaded so far
             lastUploaded = uploaded;
             timestamp = t;
         }
+
+        // limit - (uploaded - lastUploaded)
+        // computes how many bytes we can still upload this second without
+        // going over the limit
         long l = limit.get() - uploaded + lastUploaded;
+
+        // ignore the call to writeNext if the bytes uploaded in this second
+        // are more than the upload limit
+        // we will continue to ignore the writeNext calls until
+        // a second has passed and we can upload again
         if (l > 0) {
+            //we still may upload maximum l bytes until we reach the limit
             if (currentWrite == null || currentWrite.remaining() == 0) {
                 LengthPrefixMessage sm = peer.getMessageToSend();
                 if (sm != null) {
@@ -220,10 +241,16 @@ public class MessageWriter {
             }
             if (currentWrite != null && currentWrite.remaining() > 0) {
                 keepAliveWrite(peer);
+
+                //limit the message so that we don't go over the upload limit
                 if (currentWrite.remaining() > l) {
                     currentWrite.limit(currentWrite.position() + (int) l);
                 }
+
+                //upload the message
                 uploaded += peer.upload(currentWrite);
+
+                //clear the limit
                 currentWrite.limit(currentWrite.capacity() - 1);
             }
             if (currentWrite != null && currentWrite.remaining() == 0 &&

@@ -25,7 +25,8 @@ public class DHTNode {
     private Timer timer;
     private TimerTask refreshTask;
 
-    public DHTNode(final byte[] id, final InetSocketAddress peer, final Timer timer) {
+    public DHTNode(final byte[] id, final InetSocketAddress peer,
+            final Timer timer) {
         this.status = Status.GOOD;
         this.id = id;
         this.peer = peer;

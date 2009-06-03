@@ -36,7 +36,11 @@ public class RoutingTable {
         return nodeID;
     }
 
-    Bucket findBucket(final byte[] nid, final int minpos, final int maxpos) {
+    Bucket findBucket(final byte[] nid) {
+        return findBucket(nid, 0, table.size());
+    }
+
+    private Bucket findBucket(final byte[] nid, final int minpos, final int maxpos) {
         int pos = minpos + (maxpos - minpos) / 2;
         Bucket b = table.get(pos);
         if (bsc.compare(b.getMin(), nid) > 0) {
@@ -48,9 +52,9 @@ public class RoutingTable {
         }
     }
 
-    private void insertNode(final DHTNode node) {
+    private void insertNode(final DHTNode node, byte[] infohash) {
         byte[] nid = node.getId();
-        Bucket b = findBucket(nid, 0, table.size());
+        Bucket b = findBucket(nid);
         if (!b.insertNode(node)) {
             byte[] d = DHTUtil.divideByTwo(b.getMax());
             Bucket b1 = new Bucket(b.getMin(), d);
