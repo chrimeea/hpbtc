@@ -10,7 +10,6 @@ import hpbtc.protocol.network.Register;
 import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
-import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
@@ -29,8 +28,7 @@ import java.nio.channels.SelectionKey;
  */
 public class MessageReader {
 
-    private static Logger logger = Logger.getLogger(MessageReader.class.
-            getName());
+    private static Logger logger = Logger.getLogger(MessageReader.class.getName());
     private MessageValidator validator;
     protected Register register;
     private MessageWriter writer;
@@ -73,8 +71,9 @@ public class MessageReader {
                     peer.setNextDataExpectation(4);
                     if (peer.download()) {
                         int len = peer.getData().getInt();
-                        if (len < 0) {
-                            throw new EOFException();
+                        if (len < 0 ||
+                                len > peer.getTorrent().getChunkSize() + 9) {
+                            throw new IOException();
                         } else if (len > 0) {
                             peer.setExpectBody(true);
                             peer.setNextDataExpectation(len);
