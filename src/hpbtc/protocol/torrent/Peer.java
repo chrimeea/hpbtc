@@ -299,6 +299,7 @@ public class Peer {
         messagesToSend.clear();
         cancelKeepAliveRead();
         cancelKeepAliveWrite();
+        data = null;
     }
 
     public boolean isMessagesToSendEmpty() {
