@@ -311,7 +311,7 @@ public class MessageWriter {
                     }
                 }
             };
-            timer.schedule(tt, 120000);
+            timer.schedule(tt, 120000L);
             peer.setKeepAliveRead(tt);
         }
     }

@@ -68,9 +68,16 @@ public class GraphComponent extends JComponent {
             int jf = jc == history.length - 1 ? 0 : jc + 1;
             g2d.setColor(color);
             for (int i = 0; i < history.length - 1; i++) {
-                g2d.drawLine((int) (kw * i), (int) (d.height - (history[jc] -
-                        min) * k - 1), (int) (kw * (i + 1)), (int) (d.height -
-                        (history[jf] - min) * k - 1));
+                int x1 = Math.round(kw * i);
+                int x2 = Math.round(x1 + kw);
+                g2d.fillPolygon(new int[] {x1, x1, x2, x2},
+                    new int[] {d.height - 1,
+                        Math.round(d.height - (history[jc] - min) * k - 1),
+                        Math.round(d.height - (history[jf] - min) * k - 1),
+                        d.height - 1}, 4);
+//                g2d.drawLine((int) (kw * i), (int) (d.height - (history[jc] -
+//                        min) * k - 1), (int) (kw * (i + 1)), (int) (d.height -
+//                        (history[jf] - min) * k - 1));
                 jc = jf;
                 jf = jc == history.length - 1 ? 0 : jc + 1;
             }
