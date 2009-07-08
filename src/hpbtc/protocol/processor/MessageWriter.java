@@ -5,6 +5,7 @@ import hpbtc.protocol.message.LengthPrefixMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Register;
+import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import hpbtc.protocol.torrent.Tracker;
@@ -68,19 +69,19 @@ public class MessageWriter {
         }
     }
 
-    public void disconnect(final Peer peer) throws IOException {
+    public void disconnect(final Peer peer)
+            throws IOException, InvalidPeerException {
         register.disconnect((SelectableChannel) peer.getChannel());
-        Torrent torrent = peer.getTorrent();
+        final Torrent torrent = peer.getTorrent();
         peer.disconnect();
         logger.info("Disconnected " + peer);
-        if (torrent != null && torrent.getRemainingPeers() == 5) {
-            if (torrent.cancelTrackerTask()) {
-                Tracker tracker = torrent.getTracker();
-                long delay = tracker.getMinInterval() * 1000 -
-                        System.currentTimeMillis() +
-                        tracker.getLastTrackerContact();
-                scheduleTrackerTask(torrent, delay < 0L ? 0L : delay);
-            }
+        if (torrent != null && torrent.getRemainingPeers() < 20 &&
+                !torrent.hasTrackerTask()) {
+            Tracker tracker = torrent.getTracker();
+            long delay = tracker.getMinInterval() * 1000L -
+                    System.currentTimeMillis() +
+                    tracker.getLastTrackerContact();
+            scheduleTrackerTask(torrent, delay < 0L ? 0L : delay);
         }
     }
 
@@ -91,10 +92,11 @@ public class MessageWriter {
             public void run() {
                 torrent.updateTracker();
                 contactFreshPeers(torrent);
+                torrent.setTrackerTask(null);
             }
         };
-        timer.schedule(tt, delay, torrent.getTracker().getInterval() * 1000);
         torrent.setTrackerTask(tt);
+        timer.schedule(tt, delay);
     }
 
     public void download(final Torrent torrent) {
@@ -124,8 +126,6 @@ public class MessageWriter {
             @Override
             public void run() {
                 torrent.beginTracker();
-                scheduleTrackerTask(torrent,
-                        torrent.getTracker().getInterval() * 1000L);
                 contactFreshPeers(torrent);
             }
         };
@@ -176,7 +176,7 @@ public class MessageWriter {
         return result;
     }
 
-    private void keepAliveWrite(final Peer peer) {
+    private void keepAliveWrite(final Peer peer) throws InvalidPeerException {
         peer.cancelKeepAliveWrite();
         final TimerTask tt = new TimerTask() {
 
@@ -203,7 +203,8 @@ public class MessageWriter {
     /**
      *
      */
-    public void writeNext(final Peer peer) throws IOException {
+    public void writeNext(final Peer peer)
+            throws IOException, InvalidPeerException {
         long t = System.currentTimeMillis();
 
         //check if more than 1 second passed since we measured
@@ -227,10 +228,10 @@ public class MessageWriter {
         if (l > 0) {
             //we still may upload maximum l bytes until we reach the limit
             if (currentWrite == null || currentWrite.remaining() == 0) {
-                LengthPrefixMessage sm = peer.getMessageToSend();
+                final LengthPrefixMessage sm = peer.getMessageToSend();
                 if (sm != null) {
                     if (sm instanceof PieceMessage) {
-                        PieceMessage pm = (PieceMessage) sm;
+                        final PieceMessage pm = (PieceMessage) sm;
                         pm.setPiece(peer.getTorrent().loadPiece(pm.getBegin(),
                                 pm.getIndex(), pm.getLength()));
                     }
@@ -293,10 +294,14 @@ public class MessageWriter {
                 SelectionKey.OP_READ, peer);
         register.registerNow((SelectableChannel) peer.getChannel(), selector,
                 SelectionKey.OP_WRITE, peer);
-        keepAliveRead(peer);
+        try {
+            keepAliveRead(peer);
+        } catch (InvalidPeerException ex) {
+            throw new IOException();
+        }
     }
 
-    public void keepAliveRead(final Peer peer) {
+    public void keepAliveRead(final Peer peer) throws InvalidPeerException {
         if (peer.cancelKeepAliveRead()) {
             final TimerTask tt = new TimerTask() {
 
@@ -304,7 +309,7 @@ public class MessageWriter {
                 public void run() {
                     try {
                         disconnect(peer);
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         logger.log(Level.FINE, e.getLocalizedMessage(), e);
                     }
                 }

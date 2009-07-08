@@ -63,7 +63,13 @@ public abstract class NetworkLoop {
                         } catch (IOException ioe) {
                             logger.log(Level.FINE, ioe.getLocalizedMessage(),
                                     ioe);
-                            disconnect(key);
+                            try {
+                                disconnect(key);
+                            } catch (IOException iOException) {
+                                logger.log(Level.FINE,
+                                        iOException.getLocalizedMessage(),
+                                        iOException);
+                            }
                         }
                     }
                 }

@@ -7,6 +7,7 @@ import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Register;
+import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.EOFException;
@@ -49,7 +50,8 @@ public class MessageReader {
         validator = new MessageValidator(torrents, protocol);
     }
 
-    public void disconnect(final Peer peer) throws IOException {
+    public void disconnect(final Peer peer)
+            throws IOException, InvalidPeerException {
         writer.disconnect(peer);
     }
 
@@ -61,7 +63,7 @@ public class MessageReader {
     }
 
     public void readMessage(final Peer peer) throws IOException,
-            NoSuchAlgorithmException {
+            NoSuchAlgorithmException, InvalidPeerException {
         writer.keepAliveRead(peer);
         if (peer.isHandshakeReceived()) {
             if (peer.getId() == null) {
@@ -159,7 +161,7 @@ public class MessageReader {
     }
 
     private void processHandshake(final HandshakeMessage message) throws
-            IOException {
+            IOException, InvalidPeerException {
         final Peer peer = message.getDestination();
         if (validator.validateHandshakeMessage(message)) {
             peer.setHandshakeReceived();
@@ -194,9 +196,9 @@ public class MessageReader {
     }
 
     private void processBitfield(final BitfieldMessage message) throws
-            IOException {
+            IOException, InvalidPeerException {
+        final Peer peer = message.getDestination();
         if (validator.validateBitfieldMessage(message)) {
-            final Peer peer = message.getDestination();
             BitSet b = message.getBitfield();
             peer.setPieces(b);
             final Torrent t = peer.getTorrent();
@@ -211,27 +213,32 @@ public class MessageReader {
             }
         } else {
             logger.warning("Invalid message: " + message);
+            disconnect(peer);
         }
     }
 
-    private void processCancel(final BlockMessage message) {
+    private void processCancel(final BlockMessage message)
+            throws InvalidPeerException, IOException {
         if (validator.validateCancelMessage(message)) {
             message.getDestination().cancelPieceMessage(message.getBegin(),
                     message.getIndex(), message.getLength());
         } else {
             logger.warning("Invalid message: " + message);
+            disconnect(message.getDestination());
         }
     }
 
-    private void processChoke(final SimpleMessage message) {
+    private void processChoke(final SimpleMessage message)
+            throws InvalidPeerException {
         final Peer peer = message.getDestination();
         peer.setPeerChoking(true);
         peer.cancelPieceMessage();
     }
 
-    private void processHave(final HaveMessage message) throws IOException {
+    private void processHave(final HaveMessage message)
+            throws IOException, InvalidPeerException {
+        final Peer peer = message.getDestination();
         if (validator.validateHaveMessage(message)) {
-            final Peer peer = message.getDestination();
             final int index = message.getIndex();
             peer.setPiece(index);
             final Torrent t = peer.getTorrent();
@@ -246,6 +253,7 @@ public class MessageReader {
             }
         } else {
             logger.warning("Invalid message: " + message);
+            disconnect(peer);
         }
     }
 
@@ -258,7 +266,7 @@ public class MessageReader {
     }
 
     private void processPiece(final PieceMessage message)
-            throws NoSuchAlgorithmException, IOException {
+            throws NoSuchAlgorithmException, IOException, InvalidPeerException {
         final Peer peer = message.getDestination();
         final Torrent t = peer.getTorrent();
         final int index = message.getIndex();
@@ -296,11 +304,12 @@ public class MessageReader {
             }
         } else {
             logger.warning("Invalid message: " + message);
+            disconnect(peer);
         }
     }
 
     private void processRequest(final BlockMessage message) throws
-            IOException {
+            IOException, InvalidPeerException {
         final Peer peer = message.getDestination();
         if (validator.validateRequestMessage(message) &&
                 !peer.isClientChoking() && peer.isPeerInterested()) {
@@ -309,10 +318,12 @@ public class MessageReader {
             writer.postMessage(pm);
         } else {
             logger.warning("Invalid message: " + message);
+            disconnect(peer);
         }
     }
 
-    private void processUnchoke(final SimpleMessage message) throws IOException {
+    private void processUnchoke(final SimpleMessage message)
+            throws IOException, InvalidPeerException {
         final Peer peer = message.getDestination();
         peer.setPeerChoking(false);
         if (peer.isClientInterested()) {
@@ -321,7 +332,7 @@ public class MessageReader {
     }
 
     private void decideNextPieces(final Peer peer)
-            throws IOException {
+            throws IOException, InvalidPeerException {
         for (int i = peer.countTotalRequests(); i < 5; i++) {
             final BlockMessage bm = decideNextPiece(peer);
             if (bm != null) {
@@ -333,7 +344,8 @@ public class MessageReader {
         }
     }
 
-    private BlockMessage decideNextPiece(final Peer peer) {
+    private BlockMessage decideNextPiece(final Peer peer)
+            throws InvalidPeerException {
         final Torrent torrent = peer.getTorrent();
         final BitSet peerPieces = (BitSet) peer.getPieces().clone();
         peerPieces.andNot(torrent.getCompletePieces());
@@ -393,8 +405,8 @@ public class MessageReader {
     }
 
     private BlockMessage createBlockMessage(final int begin, final int index,
-            final Peer peer, final byte disc) {
-        Torrent torrent = peer.getTorrent();
+            final Peer peer, final byte disc) throws InvalidPeerException {
+        final Torrent torrent = peer.getTorrent();
         return new BlockMessage(begin, index,
                 TorrentUtil.computeChunkSize(index, begin,
                 torrent.getChunkSize(),
@@ -404,7 +416,11 @@ public class MessageReader {
     public void connect(final Peer peer) throws IOException {
         register.registerNow((SelectableChannel) peer.getChannel(), selector,
                 SelectionKey.OP_READ, peer);
-        writer.keepAliveRead(peer);
+        try {
+            writer.keepAliveRead(peer);
+        } catch (InvalidPeerException ex) {
+            throw new IOException();
+        }
     }
 
     public void setReadSelector(final Selector selector) {

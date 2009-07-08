@@ -5,6 +5,7 @@
 package hpbtc.protocol.network;
 
 import hpbtc.protocol.processor.MessageReader;
+import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.util.IOUtil;
 import java.io.IOException;
@@ -64,12 +65,21 @@ public class NetworkReader extends NetworkLoop {
             logger.info("Accepted connection from " + peer);
         } else if (key.isReadable()) {
             peer = (Peer) key.attachment();
-            reader.readMessage(peer);
+            try {
+                reader.readMessage(peer);
+            } catch (InvalidPeerException ex) {
+                throw new IOException();
+            }
         }
     }
 
     @Override
     protected void disconnect(final SelectionKey key) throws IOException {
-        reader.disconnect((Peer) key.attachment());
+        final Peer peer = (Peer) key.attachment();
+        try {
+            reader.disconnect(peer);
+        } catch (InvalidPeerException ex) {
+            throw new IOException("Invalid peer " + peer);
+        }
     }
 }

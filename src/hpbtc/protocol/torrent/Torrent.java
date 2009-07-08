@@ -120,6 +120,10 @@ public class Torrent {
         this.trackerTask = trackerTask;
     }
 
+    public boolean hasTrackerTask() {
+        return trackerTask != null;
+    }
+
     public boolean cancelTrackerTask() {
         if (trackerTask != null) {
             return trackerTask.cancel();
