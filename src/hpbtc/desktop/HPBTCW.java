@@ -215,7 +215,7 @@ public class HPBTCW extends JFrame {
                 }
             }
         };
-        timer.schedule(tt, 2000L, 2000L);
+        timer.schedule(tt, 1000L, 1000L);
         addWindowListener(new WindowAdapter() {
 
             @Override

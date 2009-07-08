@@ -30,11 +30,11 @@ public class DesktopUtil {
 
     public static String getRepresentation(final int value) {
         if (value < 1024) {
-            return String.format("%1$db", value);
+            return String.format("%1$db/s", value);
         } else if (value < 1048576) {
-            return String.format("%1$.1fKb", value / 1024f);
+            return String.format("%1$.1fKb/s", value / 1024f);
         } else {
-            return String.format("%1$.1fMb", value / 1048576f);
+            return String.format("%1$.1fMb/s", value / 1048576f);
         }
     }
 }
