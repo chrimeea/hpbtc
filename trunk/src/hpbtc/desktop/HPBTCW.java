@@ -56,6 +56,7 @@ public class HPBTCW extends JFrame {
     private List<Torrent> torrents = new LinkedList<Torrent>();
     private List<GraphComponent> upload = new LinkedList<GraphComponent>();
     private List<GraphComponent> download = new LinkedList<GraphComponent>();
+    private List<JLabel> peers = new LinkedList<JLabel>();
     private File filetarget;
     private File filetorrent;
     private Timer timer = new Timer();
@@ -163,6 +164,7 @@ public class HPBTCW extends JFrame {
                 progress.remove(i);
                 upload.remove(i);
                 download.remove(i);
+                peers.remove(i);
                 final Component c = tabbed.getSelectedComponent();
                 tabbed.remove(c);
                 if (tabbed.getTabCount() == 0) {
@@ -198,6 +200,7 @@ public class HPBTCW extends JFrame {
                 Torrent t;
                 if (i > -1) {
                     t = torrents.get(i);
+                    peers.get(i).setText(String.valueOf(t.getRemainingPeers()));
                     progress.get(i).setValue(
                             t.getCompletePieces().cardinality());
                     download.get(i).pushValueToHistory(t.getDownloaded());
@@ -252,34 +255,32 @@ public class HPBTCW extends JFrame {
             GridBagConstraints c = new GridBagConstraints();
             panel.add(l, c);
             l = new JLabel(ftorrent.getAbsolutePath());
-            c.gridx = 1;
-            c.weightx = 1;
+            c.gridx = 1; c.weightx = 1;
             panel.add(l, c);
             l = new JLabel(rb.getString("label.target"));
-            c.weightx = 0;
-            c.gridx = 0;
-            c.gridy = 1;
+            c.weightx = 0; c.gridx = 0; c.gridy = 1;
             panel.add(l, c);
             l = new JLabel(ftarget.getAbsolutePath());
-            c.weightx = 1;
-            c.gridx = 1;
+            c.weightx = 1; c.gridx = 1;
+            panel.add(l, c);
+            l = new JLabel(rb.getString("label.peers"));
+            c.weightx = 0; c.gridx = 0; c.gridy = 2;
+            panel.add(l, c);
+            l = new JLabel(String.valueOf(t.getRemainingPeers()));
+            peers.add(l);
+            c.weightx = 1; c.gridx = 1;
             panel.add(l, c);
             l = new JLabel();
             l.setText(rb.getString("label.progress"));
-            c.weightx = 0;
-            c.gridx = 0;
-            c.gridy = 2;
+            c.weightx = 0; c.gridx = 0; c.gridy = 3;
             panel.add(l, c);
             JProgressBar p = new JProgressBar(0, t.getNrPieces());
             p.setStringPainted(true);
-            c.weightx = 1;
-            c.gridx = 1;
+            c.weightx = 1; c.gridx = 1;
             c.fill = GridBagConstraints.HORIZONTAL;
             panel.add(p, c);
-            c.gridwidth = 2;
-            c.weighty = 1;
-            c.gridx = 0;
-            c.gridy = 3;
+            c.gridwidth = 2; c.weighty = 1;
+            c.gridx = 0; c.gridy = 4;
             c.fill = GridBagConstraints.BOTH;
             GraphComponent g1 = new GraphComponent(100, Color.BLUE);
             download.add(g1);
