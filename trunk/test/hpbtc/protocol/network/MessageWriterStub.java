@@ -4,6 +4,7 @@
 package hpbtc.protocol.network;
 
 import hpbtc.protocol.processor.MessageWriter;
+import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -31,7 +32,8 @@ public class MessageWriterStub extends MessageWriter {
     }
 
     @Override
-    public void writeNext(final Peer p) throws IOException {
+    public void writeNext(final Peer p)
+            throws IOException, InvalidPeerException {
         p.upload(ByteBuffer.wrap("bit torrent".getBytes("ISO-8859-1")));
     }
 }

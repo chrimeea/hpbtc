@@ -5,6 +5,7 @@ import hpbtc.protocol.message.BlockMessage;
 import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.PieceMessage;
+import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.UnsupportedEncodingException;
@@ -42,7 +43,8 @@ public class MessageValidator {
         return false;        
     }
 
-    public boolean validateBitfieldMessage(final BitfieldMessage message) {
+    public boolean validateBitfieldMessage(final BitfieldMessage message)
+            throws InvalidPeerException {
         final Peer peer = message.getDestination();
         if (peer.isMessagesReceived()) {
             return false;
@@ -56,18 +58,21 @@ public class MessageValidator {
         return true;
     }
 
-    public boolean validateCancelMessage(final BlockMessage message) {
+    public boolean validateCancelMessage(final BlockMessage message)
+            throws InvalidPeerException {
         final Torrent t = message.getDestination().getTorrent();
         return t != null && message.getIndex() < t.getNrPieces() &&
                 message.getBegin() < t.getPieceLength();
     }
 
-    public boolean validateHaveMessage(final HaveMessage message) {
+    public boolean validateHaveMessage(final HaveMessage message)
+            throws InvalidPeerException {
         final Torrent t = message.getDestination().getTorrent();
         return t != null && message.getIndex() < t.getNrPieces();
     }
 
-    public boolean validatePieceMessage(final PieceMessage message) {
+    public boolean validatePieceMessage(final PieceMessage message)
+            throws InvalidPeerException {
         final Torrent t = message.getDestination().getTorrent();
         final int i = message.getIndex();
         final int b = message.getBegin();
@@ -77,7 +82,8 @@ public class MessageValidator {
                 t.getChunkSize(), t.getFileLength(), t.getPieceLength());
     }
 
-    public boolean validateRequestMessage(final BlockMessage message) {
+    public boolean validateRequestMessage(final BlockMessage message)
+            throws InvalidPeerException {
         final Torrent t = message.getDestination().getTorrent();
         final int i = message.getIndex();
         final int b = message.getBegin();

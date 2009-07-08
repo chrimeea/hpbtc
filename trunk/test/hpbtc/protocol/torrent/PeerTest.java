@@ -26,7 +26,7 @@ public class PeerTest {
 
     @Test
     public void testRequests() throws IOException,
-            NoSuchAlgorithmException {
+            NoSuchAlgorithmException, InvalidPeerException {
         final Peer p = new Peer(InetSocketAddress.createUnresolved("localhost",
                 6000));
         final ByteArrayInputStream b =
@@ -68,7 +68,7 @@ public class PeerTest {
 
     @Test
     public void testMessagesToSend() throws UnsupportedEncodingException,
-            IOException, NoSuchAlgorithmException {
+            IOException, NoSuchAlgorithmException, InvalidPeerException {
         final Peer p = new Peer(InetSocketAddress.createUnresolved("localhost",
                 6000));
         final ByteArrayInputStream b =
@@ -95,7 +95,7 @@ public class PeerTest {
 
     @Test
     public void testUploadDownload() throws IOException,
-            NoSuchAlgorithmException {
+            NoSuchAlgorithmException, InvalidPeerException {
         final InetSocketAddress a = new InetSocketAddress(
                 InetAddress.getByName("127.0.0.1"), 6001);
         final Peer p = new Peer(a);

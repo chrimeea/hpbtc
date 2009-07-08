@@ -17,6 +17,8 @@ import hpbtc.util.TorrentUtil;
 import java.io.EOFException;
 import java.net.SocketAddress;
 import java.nio.channels.ByteChannel;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  *
@@ -42,22 +44,26 @@ public class Peer {
     private TimerTask keepAliveWrite;
     private final List<LengthPrefixMessage> messagesToSend =
             Collections.synchronizedList(new LinkedList<LengthPrefixMessage>());
-    private Torrent torrent;
+    private AtomicReference<Torrent> torrent = new AtomicReference<Torrent>();
     private ByteChannel channel;
     private SocketAddress address;
     private byte[] id;
+    private AtomicBoolean valid = new AtomicBoolean(true);
 
     public Peer(final SocketAddress address) {
         this.address = address;
     }
 
     public void setTorrent(final Torrent torrent) {
-        this.torrent = torrent;
+        this.torrent.set(torrent);
         requests = new BitSet[torrent.getNrPieces()];
     }
 
-    public Torrent getTorrent() {
-        return torrent;
+    public Torrent getTorrent() throws InvalidPeerException {
+        if (!valid.get()) {
+            throw new InvalidPeerException();
+        }
+        return torrent.get();
     }
 
     public boolean cancelKeepAliveWrite() {
@@ -68,7 +74,11 @@ public class Peer {
         }
     }
 
-    public void setKeepAliveWrite(TimerTask keepAlive) {
+    public void setKeepAliveWrite(TimerTask keepAlive)
+            throws InvalidPeerException {
+        if (!valid.get()) {
+            throw new InvalidPeerException();
+        }
         this.keepAliveWrite = keepAlive;
     }
 
@@ -80,7 +90,11 @@ public class Peer {
         }
     }
 
-    public void setKeepAliveRead(TimerTask keepAlive) {
+    public void setKeepAliveRead(TimerTask keepAlive)
+            throws InvalidPeerException {
+        if (!valid.get()) {
+            throw new InvalidPeerException();
+        }
         this.keepAliveRead = keepAlive;
     }
 
@@ -92,21 +106,27 @@ public class Peer {
         return requests[index];
     }
 
-    public void addRequest(final int index, final int begin) {
+    public void addRequest(final int index, final int begin)
+            throws InvalidPeerException {
+        if (!valid.get()) {
+            throw new InvalidPeerException();
+        }
+        Torrent t = getTorrent();
         BitSet bs = requests[index];
         if (bs == null) {
-            bs = new BitSet(torrent.computeChunksInPiece(index));
+            bs = new BitSet(t.computeChunksInPiece(index));
             requests[index] = bs;
         }
-        bs.set(TorrentUtil.computeBeginIndex(begin, torrent.getChunkSize()));
+        bs.set(TorrentUtil.computeBeginIndex(begin, t.getChunkSize()));
         totalRequests.getAndIncrement();
     }
 
-    public boolean removeRequest(final int index, final int begin) {
+    public boolean removeRequest(final int index, final int begin)
+            throws InvalidPeerException {
         final BitSet bs = requests[index];
         if (bs != null) {
             final int i = TorrentUtil.computeBeginIndex(begin,
-                    torrent.getChunkSize());
+                    getTorrent().getChunkSize());
             if (bs.get(i)) {
                 bs.clear(i);
                 if (bs.isEmpty()) {
@@ -135,10 +155,14 @@ public class Peer {
         handshakeSent = true;
     }
 
-    public synchronized int upload(final ByteBuffer bb) throws IOException {
+    public synchronized int upload(final ByteBuffer bb)
+            throws IOException, InvalidPeerException {
+        if (!valid.get()) {
+            throw new InvalidPeerException();
+        }
         final int i = IOUtil.writeToChannel(channel, bb);
         uploaded += i;
-        torrent.incrementUploaded(i);
+        getTorrent().incrementUploaded(i);
         return i;
     }
 
@@ -174,8 +198,9 @@ public class Peer {
             throw new EOFException();
         }
         downloaded += i;
-        if (torrent != null) {
-            torrent.incrementDownloaded(i);
+        Torrent t = torrent.get();
+        if (t != null) {
+            t.incrementDownloaded(i);
         }
         return !data.hasRemaining();
     }
@@ -261,15 +286,17 @@ public class Peer {
     }
 
     public synchronized void disconnect() throws IOException {
+        valid.set(false);
         if (channel != null && channel.isOpen()) {
             channel.close();
         }
+        Torrent t = torrent.get();
+        if (t != null) {
+            t.removePeer(this);
+            torrent.set(null);
+        }
         clearRequests();
         messagesToSend.clear();
-        if (torrent != null) {
-            torrent.removePeer(this);
-        }
-        this.torrent = null;
         cancelKeepAliveRead();
         cancelKeepAliveWrite();
     }
@@ -291,7 +318,7 @@ public class Peer {
     }
 
     public void cancelPieceMessage(final int begin, final int index,
-            final int length) {
+            final int length) throws InvalidPeerException {
         synchronized (messagesToSend) {
             final Iterator<LengthPrefixMessage> i = messagesToSend.iterator();
             while (i.hasNext()) {
@@ -308,7 +335,7 @@ public class Peer {
         }
     }
 
-    public void cancelPieceMessage() {
+    public void cancelPieceMessage() throws InvalidPeerException {
         synchronized (messagesToSend) {
             final Iterator<LengthPrefixMessage> i = messagesToSend.iterator();
             while (i.hasNext()) {

@@ -9,6 +9,7 @@ import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
+import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.ByteArrayInputStream;
@@ -61,7 +62,8 @@ public class MessageValidatorTest {
 
     @Test
     public void testValidateBitfieldMessage() throws
-            UnsupportedEncodingException, IOException, NoSuchAlgorithmException {
+            UnsupportedEncodingException, IOException, NoSuchAlgorithmException,
+            InvalidPeerException {
         final Peer peer = new Peer(InetSocketAddress.createUnresolved(
                 "localhost", 6000));
         final ByteArrayInputStream b =
@@ -80,7 +82,8 @@ public class MessageValidatorTest {
 
     @Test
     public void testValidateCancelMessage() throws
-            UnsupportedEncodingException, IOException, NoSuchAlgorithmException {
+            UnsupportedEncodingException, IOException, NoSuchAlgorithmException,
+            InvalidPeerException {
         final Peer peer = new Peer(InetSocketAddress.createUnresolved(
                 "localhost", 6000));
         final ByteArrayInputStream b =
@@ -100,7 +103,8 @@ public class MessageValidatorTest {
 
     @Test
     public void testValidateHaveMessage() throws
-            UnsupportedEncodingException, IOException, NoSuchAlgorithmException {
+            UnsupportedEncodingException, IOException, NoSuchAlgorithmException,
+            InvalidPeerException {
         final Peer peer = new Peer(InetSocketAddress.createUnresolved(
                 "localhost", 6000));
         final ByteArrayInputStream b =
@@ -118,7 +122,8 @@ public class MessageValidatorTest {
 
     @Test
     public void testValidatePieceMessage() throws
-            UnsupportedEncodingException, IOException, NoSuchAlgorithmException {
+            UnsupportedEncodingException, IOException, NoSuchAlgorithmException,
+            InvalidPeerException {
         final Peer peer = new Peer(InetSocketAddress.createUnresolved(
                 "localhost", 6000));
         final ByteArrayInputStream b =
@@ -137,7 +142,8 @@ public class MessageValidatorTest {
 
     @Test
     public void testValidateRequestMessage() throws
-            UnsupportedEncodingException, IOException, NoSuchAlgorithmException {
+            UnsupportedEncodingException, IOException, NoSuchAlgorithmException,
+            InvalidPeerException {
         final Peer peer = new Peer(InetSocketAddress.createUnresolved(
                 "localhost", 6000));
         final ByteArrayInputStream b =

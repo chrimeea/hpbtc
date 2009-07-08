@@ -1,6 +1,7 @@
 package hpbtc.protocol.network;
 
 import hpbtc.protocol.processor.MessageWriter;
+import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
@@ -35,12 +36,21 @@ public class NetworkWriter extends NetworkLoop {
             writer.connect(peer);
             logger.info("Connected to " + peer);
         } else if (key.isWritable()) {
-            writer.writeNext(peer);
+            try {
+                writer.writeNext(peer);
+            } catch (InvalidPeerException ex) {
+                throw new IOException();
+            }
         }
     }
 
     @Override
     protected void disconnect(final SelectionKey key) throws IOException {
-        writer.disconnect((Peer) key.attachment());
+        Peer peer = (Peer) key.attachment();
+        try {
+            writer.disconnect(peer);
+        } catch (InvalidPeerException ex) {
+            throw new IOException("Invalid peer " + peer);
+        }
     }
 }
