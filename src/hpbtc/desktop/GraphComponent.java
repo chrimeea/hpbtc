@@ -75,9 +75,6 @@ public class GraphComponent extends JComponent {
                         Math.round(d.height - (history[jc] - min) * k - 1),
                         Math.round(d.height - (history[jf] - min) * k - 1),
                         d.height - 1}, 4);
-//                g2d.drawLine((int) (kw * i), (int) (d.height - (history[jc] -
-//                        min) * k - 1), (int) (kw * (i + 1)), (int) (d.height -
-//                        (history[jf] - min) * k - 1));
                 jc = jf;
                 jf = jc == history.length - 1 ? 0 : jc + 1;
             }
