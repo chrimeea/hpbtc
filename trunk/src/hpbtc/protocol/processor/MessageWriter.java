@@ -200,9 +200,6 @@ public class MessageWriter {
         limit.set(l);
     }
 
-    /**
-     *
-     */
     public void writeNext(final Peer peer)
             throws IOException, InvalidPeerException {
         long t = System.currentTimeMillis();

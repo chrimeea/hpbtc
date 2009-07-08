@@ -247,6 +247,11 @@ public class Torrent {
         return remainingPeers.get();
     }
 
+    /**
+     * Do not call this method twice for the same peer because
+     * it will damage the remaining peers count
+     * @param peer
+     */
     public void removePeer(final Peer peer) {
         if (peers.remove(peer)) {
             final BitSet bs = peer.getPieces();
