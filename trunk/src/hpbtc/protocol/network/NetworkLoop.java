@@ -20,15 +20,16 @@ public abstract class NetworkLoop {
     protected static Logger logger = Logger.getLogger(
             NetworkLoop.class.getName());
     protected boolean running;
-    protected Selector selector;
     protected Register register;
+    protected Register.SELECTOR_TYPE stype;
+    protected Selector selector;
 
     public NetworkLoop(Register register) {
         this.register = register;
     }
 
     public int connect() throws IOException {
-        selector = register.openSelector();
+        selector = register.openSelector(stype);
         running = true;
         new Thread(new Runnable() {
 
@@ -40,7 +41,7 @@ public abstract class NetworkLoop {
                     logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
                 }
                 try {
-                    selector.close();
+                    register.closeSelector(stype);
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
                 }
@@ -74,7 +75,7 @@ public abstract class NetworkLoop {
                     }
                 }
             }
-            register.performRegistration(selector);
+            register.performRegistration(stype);
         }
     }
 

@@ -27,8 +27,8 @@ public class MessageWriterStub extends MessageWriter {
         if (peer.getChannel() == null && !peer.connect()) {
             ((SocketChannel) peer.getChannel()).finishConnect();
         }
-        register.registerNow((SelectableChannel) peer.getChannel(), selector,
-                SelectionKey.OP_WRITE, peer);
+        register.registerNow((SelectableChannel) peer.getChannel(),
+                Register.SELECTOR_TYPE.TCP_WRITE, SelectionKey.OP_WRITE, peer);
     }
 
     @Override

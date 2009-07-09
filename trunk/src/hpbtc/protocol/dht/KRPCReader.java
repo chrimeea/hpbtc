@@ -30,7 +30,6 @@ public class KRPCReader {
             new HashMap<InetAddress, DHTNode>();
     private Register register;
     private DatagramSocket socket;
-    private Selector selector;
     private KRPCWriter writer;
 
     public KRPCReader(final Register register, final KRPCWriter writer) {
@@ -110,10 +109,6 @@ public class KRPCReader {
             default:
                 nodes.remove(node);
         }
-    }
-
-    public void setSelector(Selector selector) {
-        this.selector = selector;
     }
 
     public void setSocket(DatagramSocket socket) {

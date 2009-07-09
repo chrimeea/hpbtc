@@ -29,6 +29,7 @@ public class DatagramNetwork extends NetworkLoop {
 
     public DatagramNetwork(final KRPCWriter writer, final Register register) {
         super(register);
+        this.stype = Register.SELECTOR_TYPE.UDP;
         this.writer = writer;
         this.processor = new KRPCReader(register, writer);
     }
@@ -38,7 +39,6 @@ public class DatagramNetwork extends NetworkLoop {
         socket = channel.socket();
         socket.bind(new InetSocketAddress(InetAddress.getLocalHost(), port));
         super.connect();
-        processor.setSelector(selector);
         processor.setSocket(socket);
     }
 
@@ -48,9 +48,9 @@ public class DatagramNetwork extends NetworkLoop {
         socket = channel.socket();
         socket.bind(null);
         super.connect();
-        processor.setSelector(selector);
         processor.setSocket(socket);
-        register.registerNow(channel, selector, SelectionKey.OP_READ, null);
+        register.registerNow(channel, Register.SELECTOR_TYPE.UDP,
+                SelectionKey.OP_READ, null);
         return socket.getPort();
     }
 

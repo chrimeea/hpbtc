@@ -18,15 +18,24 @@ import java.util.logging.Logger;
  */
 public class Register {
 
+    public static enum SELECTOR_TYPE {TCP_READ, TCP_WRITE, UDP}
+
     private static Logger logger = Logger.getLogger(Register.class.getName());
     private Map<Selector, Queue<RegisterOp>> reg;
+    private Map<SELECTOR_TYPE, Selector> selectors;
 
     public Register() {
         reg = new HashMap<Selector, Queue<RegisterOp>>();
+        selectors = new HashMap<SELECTOR_TYPE, Selector>();
     }
 
-    public Selector openSelector() throws IOException {
+    public void closeSelector(SELECTOR_TYPE stype) throws IOException {
+        selectors.remove(stype).close();
+    }
+
+    public Selector openSelector(SELECTOR_TYPE stype) throws IOException {
         final Selector s = Selector.open();
+        selectors.put(stype, s);
         reg.put(s, new ConcurrentLinkedQueue<RegisterOp>());
         return s;
     }
@@ -43,8 +52,9 @@ public class Register {
     }
 
     public void registerNow(final SelectableChannel channel,
-            final Selector selector, final int op, final Object peer)
+            final SELECTOR_TYPE stype, final int op, final Object peer)
             throws IOException {
+        Selector selector = selectors.get(stype);
         registerNow(peer, op, selector, reg.get(selector), channel);
     }
 
@@ -60,7 +70,8 @@ public class Register {
         }
     }
 
-    public void performRegistration(final Selector selector) {
+    public void performRegistration(final SELECTOR_TYPE stype) {
+        final Selector selector = selectors.get(stype);
         final Queue<RegisterOp> registered = reg.get(selector);
         RegisterOp ro = registered.poll();
         while (ro != null) {
