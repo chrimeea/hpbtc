@@ -284,10 +284,6 @@ public class MessageWriter {
     }
 
     public void connect(final Peer peer) throws IOException {
-        register.registerNow((SelectableChannel) peer.getChannel(),
-                Register.SELECTOR_TYPE.TCP_READ, SelectionKey.OP_READ, peer);
-        register.registerNow((SelectableChannel) peer.getChannel(),
-                Register.SELECTOR_TYPE.TCP_WRITE, SelectionKey.OP_WRITE, peer);
         try {
             keepAliveRead(peer);
         } catch (InvalidPeerException ex) {
