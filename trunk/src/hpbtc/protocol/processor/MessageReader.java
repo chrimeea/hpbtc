@@ -31,9 +31,8 @@ public class MessageReader {
     private byte[] peerId;
     private byte[] protocol;
 
-    public MessageReader(final byte[] protocol,
-            final MessageWriter writer, final List<Torrent> torrents,
-            final byte[] peerId) {
+    public MessageReader(final byte[] protocol, final MessageWriter writer,
+            final List<Torrent> torrents, final byte[] peerId) {
         this.peerId = peerId;
         this.writer = writer;
         this.torrents = torrents;
@@ -44,6 +43,10 @@ public class MessageReader {
     public void disconnect(final Peer peer)
             throws IOException, InvalidPeerException {
         writer.disconnect(peer);
+    }
+    
+    public void connect(final Peer peer) throws IOException {
+        writer.connect(peer);
     }
 
     private void checkPeerId(final Peer peer) throws IOException {
@@ -397,13 +400,5 @@ public class MessageReader {
                 TorrentUtil.computeChunkSize(index, begin,
                 torrent.getChunkSize(),
                 torrent.getFileLength(), torrent.getPieceLength()), disc, peer);
-    }
-
-    public void connect(final Peer peer) throws IOException {
-        try {
-            writer.keepAliveRead(peer);
-        } catch (InvalidPeerException ex) {
-            throw new IOException();
-        }
     }
 }
