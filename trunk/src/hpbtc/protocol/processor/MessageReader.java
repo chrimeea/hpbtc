@@ -6,7 +6,6 @@ import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.HaveMessage;
 import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
-import hpbtc.protocol.network.Register;
 import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
@@ -18,8 +17,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import hpbtc.util.TorrentUtil;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.SelectionKey;
 
 /**
  *
@@ -29,18 +26,16 @@ public class MessageReader {
 
     private static Logger logger = Logger.getLogger(MessageReader.class.getName());
     private MessageValidator validator;
-    protected Register register;
     private MessageWriter writer;
     private List<Torrent> torrents;
     private byte[] peerId;
     private byte[] protocol;
 
-    public MessageReader(final Register register, final byte[] protocol,
+    public MessageReader(final byte[] protocol,
             final MessageWriter writer, final List<Torrent> torrents,
             final byte[] peerId) {
         this.peerId = peerId;
         this.writer = writer;
-        this.register = register;
         this.torrents = torrents;
         this.protocol = protocol;
         validator = new MessageValidator(torrents, protocol);
@@ -405,8 +400,6 @@ public class MessageReader {
     }
 
     public void connect(final Peer peer) throws IOException {
-        register.registerNow((SelectableChannel) peer.getChannel(),
-                Register.SELECTOR_TYPE.TCP_READ, SelectionKey.OP_READ, peer);
         try {
             writer.keepAliveRead(peer);
         } catch (InvalidPeerException ex) {

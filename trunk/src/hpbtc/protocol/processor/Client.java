@@ -68,8 +68,7 @@ public class Client {
         Register register = new Register();
         writer = new MessageWriter(register, fastTimer, peerId, protocol);
         netWriter = new NetworkWriter(writer, register);
-        processor = new MessageReader(register, protocol, writer, torrents,
-                peerId);
+        processor = new MessageReader(protocol, writer, torrents, peerId);
         netReader = new NetworkReader(processor, register);
     }
     
