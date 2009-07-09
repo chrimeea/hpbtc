@@ -12,7 +12,6 @@ import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.Selector;
 import java.security.NoSuchAlgorithmException;
 import java.util.BitSet;
 import java.util.List;
@@ -35,7 +34,6 @@ public class MessageReader {
     private List<Torrent> torrents;
     private byte[] peerId;
     private byte[] protocol;
-    protected Selector selector;
 
     public MessageReader(final Register register, final byte[] protocol,
             final MessageWriter writer, final List<Torrent> torrents,
@@ -407,17 +405,12 @@ public class MessageReader {
     }
 
     public void connect(final Peer peer) throws IOException {
-        register.registerNow((SelectableChannel) peer.getChannel(), selector,
-                SelectionKey.OP_READ, peer);
+        register.registerNow((SelectableChannel) peer.getChannel(),
+                Register.SELECTOR_TYPE.TCP_READ, SelectionKey.OP_READ, peer);
         try {
             writer.keepAliveRead(peer);
         } catch (InvalidPeerException ex) {
             throw new IOException();
         }
-    }
-
-    public void setReadSelector(final Selector selector) {
-        this.selector = selector;
-        writer.setReadSelector(selector);
     }
 }

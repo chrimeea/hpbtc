@@ -28,6 +28,7 @@ public class NetworkReader extends NetworkLoop {
     
     public NetworkReader(final MessageReader reader, final Register register) {
         super(register);
+        this.stype = Register.SELECTOR_TYPE.TCP_READ;
         this.reader = reader;
     }
 
@@ -36,9 +37,8 @@ public class NetworkReader extends NetworkLoop {
         serverCh.socket().bind(new InetSocketAddress(
                 InetAddress.getLocalHost(), port));
         super.connect();
-        reader.setReadSelector(selector);
         serverCh.configureBlocking(false);
-        register.registerNow(serverCh, selector, SelectionKey.OP_ACCEPT, null);
+        register.registerNow(serverCh, stype, SelectionKey.OP_ACCEPT, null);
     }
 
     @Override
@@ -47,9 +47,8 @@ public class NetworkReader extends NetworkLoop {
         ServerSocket s = serverCh.socket();
         s.bind(null);
         super.connect();
-        reader.setReadSelector(selector);
         serverCh.configureBlocking(false);
-        register.registerNow(serverCh, selector, SelectionKey.OP_ACCEPT, null);
+        register.registerNow(serverCh, stype, SelectionKey.OP_ACCEPT, null);
         return s.getLocalPort();
     }
 

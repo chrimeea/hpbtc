@@ -10,7 +10,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
 import hpbtc.util.IOUtil;
@@ -28,14 +27,9 @@ public class MessageReaderStub extends MessageReader {
     }
 
     @Override
-    public void setReadSelector(final Selector selector) {
-        this.selector = selector;
-    }
-
-    @Override
     public void connect(final Peer peer) throws IOException {
-        register.registerNow((SelectableChannel) peer.getChannel(), selector,
-                SelectionKey.OP_READ, peer);
+        register.registerNow((SelectableChannel) peer.getChannel(),
+                Register.SELECTOR_TYPE.TCP_READ, SelectionKey.OP_READ, peer);
     }
     
     @Override

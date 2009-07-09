@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -42,8 +41,6 @@ public class MessageWriter {
     private byte[] peerId;
     private byte[] protocol;
     private Random random;
-    protected Selector selector;
-    private Selector selectorread;
     private long uploaded;
     private AtomicLong limit;
     private long timestamp;
@@ -253,8 +250,8 @@ public class MessageWriter {
             }
             if (currentWrite != null && currentWrite.remaining() == 0 &&
                     peer.isMessagesToSendEmpty()) {
-                register.registerNow((SelectableChannel) peer.getChannel(), selector,
-                        0, peer);
+                register.registerNow((SelectableChannel) peer.getChannel(),
+                        Register.SELECTOR_TYPE.TCP_WRITE, 0, peer);
             }
         }
     }
@@ -267,8 +264,8 @@ public class MessageWriter {
         if (peer.getChannel() == null && !peer.connect()) {
             op = SelectionKey.OP_CONNECT | op;
         }
-        register.registerNow((SelectableChannel) peer.getChannel(), selector,
-                op, peer);
+        register.registerNow((SelectableChannel) peer.getChannel(),
+                Register.SELECTOR_TYPE.TCP_WRITE, op, peer);
     }
 
     private void contactFreshPeers(final Torrent torrent) {
@@ -287,10 +284,10 @@ public class MessageWriter {
     }
 
     public void connect(final Peer peer) throws IOException {
-        register.registerNow((SelectableChannel) peer.getChannel(), selectorread,
-                SelectionKey.OP_READ, peer);
-        register.registerNow((SelectableChannel) peer.getChannel(), selector,
-                SelectionKey.OP_WRITE, peer);
+        register.registerNow((SelectableChannel) peer.getChannel(),
+                Register.SELECTOR_TYPE.TCP_READ, SelectionKey.OP_READ, peer);
+        register.registerNow((SelectableChannel) peer.getChannel(),
+                Register.SELECTOR_TYPE.TCP_WRITE, SelectionKey.OP_WRITE, peer);
         try {
             keepAliveRead(peer);
         } catch (InvalidPeerException ex) {
@@ -314,17 +311,5 @@ public class MessageWriter {
             timer.schedule(tt, 120000L);
             peer.setKeepAliveRead(tt);
         }
-    }
-
-    public void performWriteRegistration() {
-        register.performRegistration(selector);
-    }
-
-    public void setWriteSelector(final Selector selector) {
-        this.selector = selector;
-    }
-
-    public void setReadSelector(final Selector selector) {
-        selectorread = selector;
     }
 }

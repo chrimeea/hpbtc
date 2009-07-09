@@ -18,14 +18,8 @@ public class NetworkWriter extends NetworkLoop {
 
     public NetworkWriter(final MessageWriter writer, final Register register) {
         super(register);
+        this.stype = Register.SELECTOR_TYPE.TCP_WRITE;
         this.writer = writer;
-    }
-
-    @Override
-    public int connect() throws IOException {
-        final int port = super.connect();
-        writer.setWriteSelector(selector);
-        return port;
     }
 
     protected void processKey(final SelectionKey key) throws IOException,

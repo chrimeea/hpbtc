@@ -9,7 +9,6 @@ import java.net.DatagramSocket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,7 +24,6 @@ public class KRPCWriter {
             new LinkedList<DatagramPacket>());
     private Register register;
     private DatagramSocket socket;
-    private Selector selector;
 
     public KRPCWriter(final Register register) {
         this.register = register;
@@ -38,7 +36,7 @@ public class KRPCWriter {
         writer.write(dict);
         final byte[] message = bos.toByteArray();
         messagesToSend.add(new DatagramPacket(message, message.length, address));
-        register.registerNow(socket.getChannel(), selector,
+        register.registerNow(socket.getChannel(), Register.SELECTOR_TYPE.UDP,
                 SelectionKey.OP_WRITE, null);
     }
 
@@ -46,13 +44,9 @@ public class KRPCWriter {
         if (!messagesToSend.isEmpty()) {
             socket.send(messagesToSend.get(0));
         } else {
-            register.registerNow(socket.getChannel(), selector,
-                    SelectionKey.OP_READ, null);
+            register.registerNow(socket.getChannel(),
+                    Register.SELECTOR_TYPE.UDP, SelectionKey.OP_READ, null);
         }
-    }
-
-    public void setSelector(Selector selector) {
-        this.selector = selector;
     }
 
     public void setSocket(DatagramSocket socket) {
