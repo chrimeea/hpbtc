@@ -26,7 +26,7 @@ public class MessageReaderTest {
             throws IOException, NoSuchAlgorithmException, InvalidPeerException {
         final Timer timer = new Timer();
         final MessageWriter writer = new MessageWriter(null, timer, null, null);
-        final MessageReader reader = new MessageReader(null, null, writer, null, null);
+        final MessageReader reader = new MessageReader(null, writer, null, null);
         final Peer peer = new Peer(null);
         final ByteArrayInputStream b =
                 new ByteArrayInputStream("d8:announce27:http://www.test.ro/announce7:comment12:test comment10:created by13:uTorrent/177013:creation datei1209116668e8:encoding5:UTF-84:infod6:lengthi85e4:name11:manifest.mf12:piece lengthi65536e6:pieces20:12345678901234567890ee".

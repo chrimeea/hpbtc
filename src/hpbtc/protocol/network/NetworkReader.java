@@ -60,6 +60,7 @@ public class NetworkReader extends NetworkLoop {
             chan.configureBlocking(false);
             peer = new Peer(IOUtil.getAddress(chan));
             peer.setChannel(chan);
+            register.registerNow(chan, stype, SelectionKey.OP_READ, peer);
             reader.connect(peer);
             logger.info("Accepted connection from " + peer);
         } else if (key.isReadable()) {
