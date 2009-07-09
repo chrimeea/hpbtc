@@ -12,7 +12,12 @@ public class ChannelStub implements ByteChannel {
 
     private ByteBuffer ch;
     private boolean closed;
-    
+
+    public ChannelStub(ByteBuffer bb, boolean closed) {
+        ch = bb;
+        this.closed = closed;
+    }
+
     public ChannelStub(int size, boolean closed) {
         ch = ByteBuffer.allocate(size);
         this.closed = closed;
@@ -29,7 +34,7 @@ public class ChannelStub implements ByteChannel {
         }
         return s;
     }
-
+    
     public int write(ByteBuffer source) throws IOException {
         if (closed) {
             return -1;

@@ -161,8 +161,8 @@ public class MessageReader {
 
     private void processHandshake(final HandshakeMessage message) throws
             IOException, InvalidPeerException {
-        final Peer peer = message.getDestination();
         if (validator.validateHandshakeMessage(message)) {
+            final Peer peer = message.getDestination();
             peer.setHandshakeReceived();
             final byte[] infoHash = message.getInfoHash();
             Torrent t = peer.getTorrent();
@@ -189,15 +189,14 @@ public class MessageReader {
                         peer));
             }
         } else {
-            logger.warning("Invalid message: " + message);
-            disconnect(peer);
+            throw new IOException("Invalid message " + message);
         }
     }
 
     private void processBitfield(final BitfieldMessage message) throws
             IOException, InvalidPeerException {
-        final Peer peer = message.getDestination();
         if (validator.validateBitfieldMessage(message)) {
+            final Peer peer = message.getDestination();
             BitSet b = message.getBitfield();
             peer.setPieces(b);
             final Torrent t = peer.getTorrent();
@@ -211,8 +210,7 @@ public class MessageReader {
                         SimpleMessage.TYPE_INTERESTED, peer));
             }
         } else {
-            logger.warning("Invalid message: " + message);
-            disconnect(peer);
+            throw new IOException("Invalid message " + message);
         }
     }
 
@@ -222,8 +220,7 @@ public class MessageReader {
             message.getDestination().cancelPieceMessage(message.getBegin(),
                     message.getIndex(), message.getLength());
         } else {
-            logger.warning("Invalid message: " + message);
-            disconnect(message.getDestination());
+            throw new IOException("Invalid message " + message);
         }
     }
 
@@ -236,8 +233,8 @@ public class MessageReader {
 
     private void processHave(final HaveMessage message)
             throws IOException, InvalidPeerException {
-        final Peer peer = message.getDestination();
         if (validator.validateHaveMessage(message)) {
+            final Peer peer = message.getDestination();
             final int index = message.getIndex();
             peer.setPiece(index);
             final Torrent t = peer.getTorrent();
@@ -251,8 +248,7 @@ public class MessageReader {
                         SimpleMessage.TYPE_INTERESTED, peer));
             }
         } else {
-            logger.warning("Invalid message: " + message);
-            disconnect(peer);
+            throw new IOException("Invalid message " + message);
         }
     }
 
@@ -302,8 +298,7 @@ public class MessageReader {
                 decideNextPieces(peer);
             }
         } else {
-            logger.warning("Invalid message: " + message);
-            disconnect(peer);
+            throw new IOException("Invalid message " + message);
         }
     }
 
@@ -316,8 +311,7 @@ public class MessageReader {
                     message.getIndex(), message.getLength(), peer);
             writer.postMessage(pm);
         } else {
-            logger.warning("Invalid message: " + message);
-            disconnect(peer);
+            throw new IOException("Invalid message " + message);
         }
     }
 
