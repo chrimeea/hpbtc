@@ -2,6 +2,7 @@ package hpbtc.protocol.torrent;
 
 import hpbtc.bencoding.BencodingReader;
 import hpbtc.bencoding.BencodingWriter;
+import hpbtc.util.TorrentUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -149,10 +150,6 @@ public class Torrent {
         return tracker;
     }
 
-    public void endTracker() {
-        tracker.endTracker(uploaded.get(), downloaded.get());
-    }
-
     public void updateAvailability(int index) {
         availability.getAndIncrement(index);
     }
@@ -173,26 +170,34 @@ public class Torrent {
         return peers;
     }
 
-    public void beginTracker() {
-        final Set<Peer> pr = tracker.beginTracker(getFileLength());
+    private void completeFreshPeers(Set<Peer> pr) {
         for (Peer p : pr) {
             p.setTorrent(this);
         }
-        synchronized(freshPeers) {
-            freshPeers = pr;
+        if (!pr.isEmpty()) {
+            synchronized(freshPeers) {
+                freshPeers = pr;
+            }
         }
     }
 
+    public void endTracker() {
+        completeFreshPeers(tracker.endTracker(uploaded.get(), downloaded.get()));
+    }
+    
+    public void beginTracker() {
+        completeFreshPeers(tracker.beginTracker(
+                TorrentUtil.computeRemainingBytes(getFileLength(),
+                getPieceLength(), getCompletePieces().cardinality(),
+                isPieceComplete(getNrPieces() - 1))));
+    }
+
     public void updateTracker() {
-        final long d = downloaded.get();
-        final Set<Peer> pr = tracker.updateTracker(null, uploaded.get(),
-                d, getFileLength() - d, true);
-        for (Peer p : pr) {
-            p.setTorrent(this);
-        }
-        synchronized(freshPeers) {
-            freshPeers = pr;
-        }
+        completeFreshPeers(tracker.updateTracker(null, uploaded.get(),
+                downloaded.get(), TorrentUtil.computeRemainingBytes(
+                getFileLength(), getPieceLength(),
+                getCompletePieces().cardinality(),
+                isPieceComplete(getNrPieces() - 1)), true));
     }
 
     public Set<Peer> getFreshPeers() {
