@@ -4,13 +4,11 @@
  */
 package hpbtc.protocol.dht;
 
-import hpbtc.protocol.network.Register;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketAddress;
-import java.nio.channels.Selector;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -28,12 +26,10 @@ public class KRPCReader {
     private RoutingTable table = new RoutingTable(new Timer());
     private Map<InetAddress, DHTNode> nodes =
             new HashMap<InetAddress, DHTNode>();
-    private Register register;
     private DatagramSocket socket;
     private KRPCWriter writer;
 
-    public KRPCReader(final Register register, final KRPCWriter writer) {
-        this.register = register;
+    public KRPCReader(final KRPCWriter writer) {
         this.writer = writer;
     }
 

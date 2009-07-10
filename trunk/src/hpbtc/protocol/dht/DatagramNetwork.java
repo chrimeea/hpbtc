@@ -31,7 +31,7 @@ public class DatagramNetwork extends NetworkLoop {
         super(register);
         this.stype = Register.SELECTOR_TYPE.UDP;
         this.writer = writer;
-        this.processor = new KRPCReader(register, writer);
+        this.processor = new KRPCReader(writer);
     }
 
     public void connect(final int port) throws IOException {
