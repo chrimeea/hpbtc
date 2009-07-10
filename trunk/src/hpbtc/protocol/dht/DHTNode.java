@@ -4,7 +4,6 @@
 
 package hpbtc.protocol.dht;
 
-import hpbtc.protocol.torrent.Peer;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.Timer;
@@ -69,7 +68,7 @@ public class DHTNode {
                 public void run() {
                     setStatus(Status.UNKNOWN);
         }};
-        timer.schedule(refreshTask, 900000);
+        timer.schedule(refreshTask, 900000L);
     }
 
     public synchronized void setStatus(final Status status) {

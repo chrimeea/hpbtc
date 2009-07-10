@@ -46,7 +46,7 @@ public class KRPCReader {
                         (byte[]) message.get("q".getBytes(byteEncoding));
                 final Map<byte[], Object> margs = (Map<byte[], Object>) message.
                         get("a".getBytes(byteEncoding));
-                byte[] remoteId = (byte[]) margs.get("id".getBytes(byteEncoding));
+                final byte[] remoteId = (byte[]) margs.get("id".getBytes(byteEncoding));
                 final Map<byte[], Object> resp = new HashMap<byte[], Object>();
                 resp.put("t".getBytes(byteEncoding), mid);
                 resp.put("y".getBytes(byteEncoding), "r".getBytes(
@@ -60,12 +60,12 @@ public class KRPCReader {
                         "find_node".getBytes(byteEncoding))) {
                     byte[] targetID = (byte[]) margs.get(
                             "target".getBytes(byteEncoding));
-                    Bucket b = table.findBucket(targetID);
+                    final Bucket b = table.findBucket(targetID);
                     if (b != null) {
                         respargs.put("nodes".getBytes(byteEncoding),
                                 b.getNode(targetID).getCompactNodeInfo());
                     } else {
-                        List<String> sb = new LinkedList<String>();
+                        final List<String> sb = new LinkedList<String>();
                         for(DHTNode n: b.getNodes()) {
                             sb.add(n.getCompactNodeInfo());
                         }

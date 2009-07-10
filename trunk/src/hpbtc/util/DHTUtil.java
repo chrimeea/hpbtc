@@ -10,7 +10,7 @@ package hpbtc.util;
  */
 public class DHTUtil {
 
-    public static byte[] divideByTwo(byte[] n) {
+    public static byte[] divideByTwo(final byte[] n) {
         int j = n.length;
         byte[] b = new byte[j];
         for (int i = 0; i < j; i++) {
@@ -18,5 +18,13 @@ public class DHTUtil {
             b[i] = (byte) (n[i] >>> 1 | rem);
         }
         return b;
+    }
+
+    public static byte[] computeDistance(final byte[] n1, final byte[] n2) {
+        final byte[] n = new byte[20];
+        for (int i = 0; i < 20; i++) {
+            n[i] = (byte) (n1[i] ^ n2[i]);
+        }
+        return n;
     }
 }
