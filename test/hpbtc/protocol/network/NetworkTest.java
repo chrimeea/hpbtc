@@ -27,7 +27,7 @@ public class NetworkTest {
     public void testNetworkIncomingConnection() throws IOException,
             UnsupportedEncodingException {
         final Register r = new Register();
-        final NetworkReader c = new NetworkReader(new MessageReaderStub(), r);
+        final NetworkReader c = new NetworkReader(new MessageReaderStub(r), r);
         int port = c.connect();
         final SocketChannel ch = SocketChannel.open(new InetSocketAddress(
                 InetAddress.getLocalHost(), port));

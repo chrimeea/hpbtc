@@ -23,6 +23,16 @@ public class TorrentUtil {
         return r == 0 ? c : c + 1;
     }
 
+    public static long computeRemainingBytes(final long fileLength,
+            final int pieceLength, int nrCompletePieces, boolean lastPieceComplete) {
+        long d = 0;
+        if (lastPieceComplete) {
+            d += TorrentUtil.computeRemainingLastPiece(0, fileLength, pieceLength);
+            nrCompletePieces--;
+        }
+        return d + fileLength - nrCompletePieces * pieceLength;
+    }
+
     public static int computeRemainingLastPiece(final int begin,
             final long fileLength, final int pieceLength) {
         return (int) (fileLength -

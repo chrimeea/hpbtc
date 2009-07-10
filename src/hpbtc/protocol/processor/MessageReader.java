@@ -285,8 +285,9 @@ public class MessageReader {
                     }
                 }
                 if (t.countRemainingPieces() == 0) {
-                    t.endTracker();
                     logger.info("Torrent complete !");
+                    t.endTracker();
+                    writer.contactFreshPeers(t);
                     return;
                 }
             }

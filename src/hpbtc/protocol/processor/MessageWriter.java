@@ -268,7 +268,7 @@ public class MessageWriter {
                 Register.SELECTOR_TYPE.TCP_WRITE, op, peer);
     }
 
-    private void contactFreshPeers(final Torrent torrent) {
+    public void contactFreshPeers(final Torrent torrent) {
         final Iterable<Peer> freshPeers = torrent.getFreshPeers();
         synchronized (freshPeers) {
             for (Peer peer : freshPeers) {

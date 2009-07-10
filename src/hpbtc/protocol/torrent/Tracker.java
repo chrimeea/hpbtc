@@ -52,8 +52,8 @@ public class Tracker {
         return updateTracker(Event.started, 0, 0, bytesLeft, true);
     }
 
-    public void endTracker(final long uploaded, final long downloaded) {
-        updateTracker(Event.completed, uploaded, downloaded, 0, true);
+    public Set<Peer> endTracker(final long uploaded, final long downloaded) {
+        return updateTracker(Event.completed, uploaded, downloaded, 0, true);
     }
 
     public Set<Peer> updateTracker(final Event event, final long uploaded,

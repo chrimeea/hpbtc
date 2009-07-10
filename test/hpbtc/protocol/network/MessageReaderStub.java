@@ -20,8 +20,8 @@ import hpbtc.util.IOUtil;
  */
 public class MessageReaderStub extends MessageReader {
     
-    public MessageReaderStub() {
-        super(null, null, null, null);
+    public MessageReaderStub(Register r) {
+        super(null, new MessageWriterStub(r), null, null);
     }
     
     @Override

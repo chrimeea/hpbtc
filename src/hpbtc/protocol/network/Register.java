@@ -55,7 +55,9 @@ public class Register {
             final SELECTOR_TYPE stype, final int op, final Object peer)
             throws IOException {
         Selector selector = selectors.get(stype);
-        registerNow(peer, op, selector, reg.get(selector), channel);
+        if (selector != null) {
+            registerNow(peer, op, selector, reg.get(selector), channel);
+        }
     }
 
     private void registerNow(final Object peer, final int op,
