@@ -41,11 +41,12 @@ public class RoutingTable {
     }
 
     private Bucket findBucket(final byte[] nid, final int minpos, final int maxpos) {
+        byte[] distance = DHTUtil.computeDistance(nodeID, nid);
         int pos = minpos + (maxpos - minpos) / 2;
-        Bucket b = table.get(pos);
-        if (bsc.compare(b.getMin(), nid) > 0) {
+        final Bucket b = table.get(pos);
+        if (bsc.compare(b.getMin(), distance) > 0) {
             return findBucket(nid, minpos, pos - 1);
-        } else if (bsc.compare(b.getMax(), nid) <= 0) {
+        } else if (bsc.compare(b.getMax(), distance) <= 0) {
             return findBucket(nid, pos + 1, maxpos);
         } else {
             return b;
