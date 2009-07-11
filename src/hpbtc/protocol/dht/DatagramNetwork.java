@@ -39,7 +39,6 @@ public class DatagramNetwork extends NetworkLoop {
         socket = channel.socket();
         socket.bind(new InetSocketAddress(InetAddress.getLocalHost(), port));
         super.connect();
-        processor.setSocket(socket);
     }
 
     @Override
@@ -48,7 +47,6 @@ public class DatagramNetwork extends NetworkLoop {
         socket = channel.socket();
         socket.bind(null);
         super.connect();
-        processor.setSocket(socket);
         register.registerNow(channel, Register.SELECTOR_TYPE.UDP,
                 SelectionKey.OP_READ, null);
         return socket.getPort();
