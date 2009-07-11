@@ -4,6 +4,8 @@
 
 package hpbtc.util;
 
+import java.util.Random;
+
 /**
  *
  * @author Cristian Mocanu <chrimeea@yahoo.com>
@@ -26,5 +28,12 @@ public class DHTUtil {
             n[i] = (byte) (n1[i] ^ n2[i]);
         }
         return n;
+    }
+
+    public static  byte[] generateToken() {
+        byte[] token = new byte[8];
+        Random r = new Random();
+        r.nextBytes(token);
+        return token;
     }
 }
