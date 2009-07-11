@@ -39,14 +39,14 @@ public class Torrent {
     private String createdBy;
     private String encoding;
     private FileStore fileStore;
-    private Set<Peer> peers;
-    private Set<Peer> freshPeers;
-    private AtomicLong uploaded;
-    private AtomicLong downloaded;
+    private Set<Peer> peers = Collections.synchronizedSet(new HashSet<Peer>());
+    private Set<Peer> freshPeers = new HashSet<Peer>();
+    private AtomicLong uploaded = new AtomicLong();
+    private AtomicLong downloaded = new AtomicLong();
     private Tracker tracker;
     private AtomicIntegerArray availability;
     private int optimisticCounter;
-    private AtomicInteger remainingPeers;
+    private AtomicInteger remainingPeers = new AtomicInteger();
     private TimerTask trackerTask;
 
     public Torrent(final InputStream is, final String rootFolder,
@@ -107,14 +107,9 @@ public class Torrent {
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder,
                     fileName, fileLength);
         }
-        peers = Collections.synchronizedSet(new HashSet<Peer>());
-        freshPeers = new HashSet<Peer>();
         tracker = new Tracker(infoHash, peerId, port, trackers,
                 byteEncoding);
         availability = new AtomicIntegerArray(getNrPieces());
-        remainingPeers = new AtomicInteger();
-        uploaded = new AtomicLong();
-        downloaded = new AtomicLong();
     }
 
     public void setTrackerTask(TimerTask trackerTask) {

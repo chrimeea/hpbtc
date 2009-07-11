@@ -4,6 +4,7 @@
  */
 package hpbtc.protocol.dht;
 
+import hpbtc.util.DHTUtil;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramSocket;
@@ -11,7 +12,6 @@ import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -26,6 +26,8 @@ public class KRPCReader {
     private RoutingTable table = new RoutingTable(new Timer());
     private Map<InetAddress, DHTNode> nodes =
             new HashMap<InetAddress, DHTNode>();
+    private Map<byte[], List<String>> torrents =
+            new HashMap<byte[], List<String>>();
     private DatagramSocket socket;
     private KRPCWriter writer;
 
@@ -65,11 +67,8 @@ public class KRPCReader {
                         respargs.put("nodes".getBytes(byteEncoding),
                                 b.getNode(targetID).getCompactNodeInfo());
                     } else {
-                        final List<String> sb = new LinkedList<String>();
-                        for(DHTNode n: b.getNodes()) {
-                            sb.add(n.getCompactNodeInfo());
-                        }
-                        respargs.put("nodes".getBytes(byteEncoding), sb);
+                        respargs.put("nodes".getBytes(byteEncoding),
+                                b.getCompactNodes());
                     }
                     //TODO: update routing info
                 } else if (Arrays.equals(mquery,
@@ -77,6 +76,22 @@ public class KRPCReader {
                     byte[] infohash = (byte[]) margs.get(
                             "info_hash".getBytes(byteEncoding));
                     //TODO: update routing info
+                    respargs.put("token".getBytes(byteEncoding),
+                            DHTUtil.generateToken());
+                    boolean haveTorrent = false;
+                    for (byte[] torrent: torrents.keySet()) {
+                        if (Arrays.equals(torrent, infohash)) {
+                            haveTorrent = true;
+                            respargs.put("values".getBytes(byteEncoding),
+                                    torrents.get(torrent));
+                            break;
+                        }
+                    }
+                    if (!haveTorrent) {
+                        Bucket b = table.findBucket(infohash);
+                        respargs.put("nodes".getBytes(byteEncoding),
+                                b.getCompactNodes());
+                    }
                 } else if (Arrays.equals(mquery,
                         "announce_peer".getBytes(byteEncoding))) {
                     byte[] infohash = (byte[]) margs.get(

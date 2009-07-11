@@ -45,7 +45,7 @@ public class Bucket {
     byte[] getMin() {
         return min;
     }
-    
+
     byte[] getMax() {
         return max;
     }
@@ -83,5 +83,13 @@ public class Bucket {
 
     List<DHTNode> getNodes() {
         return nodes;
+    }
+
+    List<String> getCompactNodes() {
+        final List<String> sb = new LinkedList<String>();
+        for (DHTNode n : nodes) {
+            sb.add(n.getCompactNodeInfo());
+        }
+        return sb;
     }
 }
