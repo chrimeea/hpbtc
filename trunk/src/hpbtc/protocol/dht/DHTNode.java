@@ -23,6 +23,8 @@ public class DHTNode {
     private byte[] id;
     private Timer timer;
     private TimerTask refreshTask;
+    private byte[] token;
+    private long tokenTimestamp;
 
     public DHTNode(final byte[] id, final InetSocketAddress peer,
             final Timer timer) {
@@ -30,6 +32,10 @@ public class DHTNode {
         this.id = id;
         this.peer = peer;
         updateLastSeen();
+    }
+
+    public InetSocketAddress getAddress() {
+        return peer;
     }
 
     public synchronized Status getStatus() {
@@ -40,17 +46,20 @@ public class DHTNode {
         return id;
     }
 
-    public String getCompactNodeInfo() {
+    public String getCompactNodeInfo(int port) {
         byte[] compact = Arrays.copyOf(id, 26);
         byte[] ip = peer.getAddress().getAddress();
         compact[20] = ip[0];
         compact[21] = ip[1];
         compact[22] = ip[2];
         compact[23] = ip[3];
-        int port = peer.getPort();
         compact[24] = (byte) (port % 256);
         compact[25] = (byte) ((port / 256) % 256);
         return new String(compact);
+    }
+
+    public String getCompactNodeInfo() {
+        return getCompactNodeInfo(peer.getPort());
     }
 
     public long getLastSeen() {
@@ -73,5 +82,18 @@ public class DHTNode {
 
     public synchronized void setStatus(final Status status) {
         this.status = status;
+    }
+
+    public void setToken(byte[] token) {
+        this.token = token;
+        this.tokenTimestamp = System.currentTimeMillis();
+    }
+
+    public byte[] getToken() {
+        return token;
+    }
+
+    public long getTokenAge() {
+        return System.currentTimeMillis() - tokenTimestamp;
     }
 }
