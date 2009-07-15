@@ -59,4 +59,9 @@ public class HandshakeMessage extends LengthPrefixMessage {
     public void setPeerId(final byte[] peerId) {
         this.peerId = peerId;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + ", handshake";
+    }
 }
