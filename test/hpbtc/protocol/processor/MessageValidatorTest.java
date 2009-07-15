@@ -54,7 +54,7 @@ public class MessageValidatorTest {
         final List<Torrent> t = new ArrayList<Torrent>(1);
         final HandshakeMessage hm = new HandshakeMessage(null, protocol, peer,
                 info.getInfoHash());
-        final MessageValidator v = new MessageValidator(t, protocol);
+        final MessageValidator v = new MessageValidator(t, protocol, peer.getId());
         assert !v.validateHandshakeMessage(hm);
         t.add(info);
         assert v.validateHandshakeMessage(hm);
@@ -73,7 +73,7 @@ public class MessageValidatorTest {
         b.close();
         peer.setTorrent(info);
         final BitSet bs = new BitSet(info.getNrPieces());
-        final MessageValidator v = new MessageValidator(null, protocol);
+        final MessageValidator v = new MessageValidator(null, protocol, peer.getId());
         BitfieldMessage bm = new BitfieldMessage(bs, info.getNrPieces(), peer);
         assert v.validateBitfieldMessage(bm);
         bm = new BitfieldMessage(bs, info.getNrPieces() - 1, peer);
@@ -92,7 +92,7 @@ public class MessageValidatorTest {
         final Torrent info = new Torrent(b, ".", null, 0);
         b.close();
         peer.setTorrent(info);
-        final MessageValidator v = new MessageValidator(null, protocol);
+        final MessageValidator v = new MessageValidator(null, protocol, peer.getId());
         BlockMessage bm = new BlockMessage(0, 0, info.getPieceLength(),
                 SimpleMessage.TYPE_CANCEL, peer);
         assert v.validateCancelMessage(bm);
@@ -113,7 +113,7 @@ public class MessageValidatorTest {
         final Torrent info = new Torrent(b, ".", null, 0);
         b.close();
         peer.setTorrent(info);
-        final MessageValidator v = new MessageValidator(null, protocol);
+        final MessageValidator v = new MessageValidator(null, protocol, peer.getId());
         HaveMessage hm = new HaveMessage(0, peer);
         assert v.validateHaveMessage(hm);
         hm = new HaveMessage(info.getNrPieces(), peer);
@@ -132,7 +132,7 @@ public class MessageValidatorTest {
         final Torrent info = new Torrent(b, ".", null, 0);
         b.close();
         peer.setTorrent(info);
-        final MessageValidator v = new MessageValidator(null, protocol);
+        final MessageValidator v = new MessageValidator(null, protocol, peer.getId());
         int l = info.getPieceLength();
         PieceMessage pm = new PieceMessage(0, 0, 85, peer);
         assert v.validatePieceMessage(pm);
@@ -152,7 +152,7 @@ public class MessageValidatorTest {
         final Torrent info = new Torrent(b, ".", null, 0);
         b.close();
         peer.setTorrent(info);
-        final MessageValidator v = new MessageValidator(null, protocol);
+        final MessageValidator v = new MessageValidator(null, protocol, peer.getId());
         final BlockMessage bm = new BlockMessage(0, 0, info.getPieceLength(),
                 SimpleMessage.TYPE_REQUEST, peer);
         assert !v.validateRequestMessage(bm);
