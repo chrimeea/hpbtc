@@ -37,7 +37,7 @@ public class MessageReader {
         this.writer = writer;
         this.torrents = torrents;
         this.protocol = protocol;
-        validator = new MessageValidator(torrents, protocol);
+        validator = new MessageValidator(torrents, protocol, peerId);
     }
 
     public void disconnect(final Peer peer)
