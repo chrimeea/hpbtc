@@ -73,6 +73,7 @@ public class Client {
     }
     
     public void startProtocol(int port) throws IOException {
+        this.port = port;
         initNetwork();
         netReader.connect(port);
         netWriter.connect();
