@@ -12,6 +12,10 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 import hpbtc.util.TorrentUtil;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.util.logging.Logger;
 
 /**
  *
@@ -19,28 +23,42 @@ import hpbtc.util.TorrentUtil;
  */
 public class MessageValidator {
 
+    private static Logger logger = Logger.getLogger(MessageValidator.class.getName());
     private List<Torrent> torrents;
     private byte[] protocol;
+    private byte[] peerId;
 
-    public MessageValidator(final List<Torrent> torrents, final byte[] protocol) {
+    public MessageValidator(final List<Torrent> torrents, final byte[] protocol,
+            final byte[] peerId) {
         this.torrents = torrents;
         this.protocol = protocol;
+        this.peerId = peerId;
     }
 
     public boolean validateHandshakeMessage(final HandshakeMessage message)
             throws UnsupportedEncodingException {
-        if (message.getDestination().isHandshakeReceived() || !Arrays.equals(
+        final Peer peer = message.getDestination();
+        if (peer.isHandshakeReceived() || !Arrays.equals(
                 message.getProtocol(), protocol)) {
             return false;
         }
-        for (Torrent t: torrents) {
+        try {
+            if (Arrays.equals(peer.getId(), peerId) &&
+                    InetAddress.getLocalHost().equals((
+                    (InetSocketAddress) peer.getAddress()).getAddress())) {
+                return false;
+            }
+        } catch (UnknownHostException e) {
+            logger.warning(e.getLocalizedMessage());
+        }
+        for (Torrent t : torrents) {
             final byte[] ih = t.getInfoHash();
             if (Arrays.equals(ih, message.getInfoHash())) {
-            message.setInfoHash(ih);
-            return true;
+                message.setInfoHash(ih);
+                return true;
             }
         }
-        return false;        
+        return false;
     }
 
     public boolean validateBitfieldMessage(final BitfieldMessage message)

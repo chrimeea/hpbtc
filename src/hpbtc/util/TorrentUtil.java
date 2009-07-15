@@ -87,9 +87,11 @@ public class TorrentUtil {
     public static byte[] generateId() throws UnsupportedEncodingException {
         byte[] pid = new byte[20];
         ByteBuffer bb = ByteBuffer.wrap(pid);
-        bb.put("CristianMocanu_2.0_".getBytes("US-ASCII"));
+        bb.put("CristianMocanu".getBytes("US-ASCII"));
         Random r = new Random();
-        pid[19] = (byte) (r.nextInt(256) - 128);
+        for (int i = 14; i < 20; i++) {
+            pid[i] = (byte) (r.nextInt(256) - 128);
+        }
         return pid;
     }
 

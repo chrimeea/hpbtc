@@ -6,6 +6,9 @@ import hpbtc.util.TorrentUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -48,10 +51,12 @@ public class Torrent {
     private int optimisticCounter;
     private AtomicInteger remainingPeers = new AtomicInteger();
     private TimerTask trackerTask;
+    private int port;
 
     public Torrent(final InputStream is, final String rootFolder,
             final byte[] peerId, final int port)
             throws IOException, NoSuchAlgorithmException {
+        this.port = port;
         final BencodingReader parser = new BencodingReader(is);
         final Map<byte[], Object> meta = parser.readNextDictionary();
         final Map<byte[], Object> info = (Map) meta.get("info".getBytes(
@@ -199,6 +204,13 @@ public class Torrent {
         int s;
         synchronized(peers) {
             freshPeers.removeAll(peers);
+            try {
+                InetSocketAddress sad =
+                    new InetSocketAddress(InetAddress.getLocalHost(), port);
+                freshPeers.remove(new Peer(sad));
+            } catch (UnknownHostException e) {
+                logger.warning(e.getLocalizedMessage());
+            }
             s = freshPeers.size();
         }
         remainingPeers.getAndAdd(s);
