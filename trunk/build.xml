@@ -37,7 +37,8 @@
         </junit>
     </target>
     <target name="run" description="run command line client" depends="compile">
-        <java classname="hpbtc.HPBTC" classpathref="cp.classpath">
+        <java spawn="true" fork="true" classname="hpbtc.HPBTC"
+        classpathref="cp.classpath">
             <arg value="-torrentC:\Users\Chris\Desktop\test.torrent"/>
             <arg value="-targetC:\Users\Chris\Desktop\test"/>
             <arg value="-logC:\Users\Chris\Desktop\hpbtc.log"/>
