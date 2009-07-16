@@ -44,6 +44,7 @@ public class Torrent {
     private FileStore fileStore;
     private Set<Peer> peers = Collections.synchronizedSet(new HashSet<Peer>());
     private Set<Peer> freshPeers = new HashSet<Peer>();
+    private Set<Peer> pastPeers = new HashSet<Peer>();
     private AtomicLong uploaded = new AtomicLong();
     private AtomicLong downloaded = new AtomicLong();
     private Tracker tracker;
@@ -204,6 +205,7 @@ public class Torrent {
         int s;
         synchronized(peers) {
             freshPeers.removeAll(peers);
+            freshPeers.removeAll(pastPeers);
             try {
                 InetSocketAddress sad =
                     new InetSocketAddress(InetAddress.getLocalHost(), port);
@@ -271,6 +273,7 @@ public class Torrent {
                 availability.getAndDecrement(i);
             }
         }
+        pastPeers.add(peer);
         final int rem = remainingPeers.decrementAndGet();
         logger.info("Have " + rem + " peers");
     }
