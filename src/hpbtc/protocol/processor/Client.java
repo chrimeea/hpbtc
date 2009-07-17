@@ -92,4 +92,8 @@ public class Client {
     public void setUploadLimit(long limit) {
         writer.setLimit(limit);
     }
+
+    public int getPort() {
+        return port;
+    }
 }

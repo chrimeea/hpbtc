@@ -203,16 +203,16 @@ public class HPBTCW extends JFrame {
                     peers.get(i).setText(String.valueOf(t.getRemainingPeers()));
                     progress.get(i).setValue(
                             t.getCompletePieces().cardinality());
-                    download.get(i).pushValueToHistory(t.getDownloaded());
-                    upload.get(i).pushValueToHistory(t.getUploaded());
                 }
                 for (int j = 0; j < tabbed.getTabCount(); j++) {
                     t = torrents.get(j);
+                    download.get(j).pushValueToHistory(t.getDownloaded());
+                    upload.get(j).pushValueToHistory(t.getUploaded());
                     if (t.countRemainingPieces() == 0) {
                         tabbed.setTitleAt(j, rb.getString("label.seed"));
                     } else {
                         tabbed.setTitleAt(j, DesktopUtil.getETA(
-                                t.getFileLength(),
+                                t.getRemainingBytes(),
                                 download.get(j).getAverage() / 2f));
                     }
                 }
