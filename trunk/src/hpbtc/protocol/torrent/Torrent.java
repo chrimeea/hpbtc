@@ -185,20 +185,20 @@ public class Torrent {
     public void endTracker() {
         completeFreshPeers(tracker.endTracker(uploaded.get(), downloaded.get()));
     }
-    
-    public void beginTracker() {
-        completeFreshPeers(tracker.beginTracker(
-                TorrentUtil.computeRemainingBytes(getFileLength(),
+
+    public long getRemainingBytes() {
+        return  TorrentUtil.computeRemainingBytes(getFileLength(),
                 getPieceLength(), getCompletePieces().cardinality(),
-                isPieceComplete(getNrPieces() - 1))));
+                isPieceComplete(getNrPieces() - 1));
+    }
+
+    public void beginTracker() {
+        completeFreshPeers(tracker.beginTracker(getRemainingBytes()));
     }
 
     public void updateTracker() {
         completeFreshPeers(tracker.updateTracker(null, uploaded.get(),
-                downloaded.get(), TorrentUtil.computeRemainingBytes(
-                getFileLength(), getPieceLength(),
-                getCompletePieces().cardinality(),
-                isPieceComplete(getNrPieces() - 1)), true));
+                downloaded.get(), getRemainingBytes(), true));
     }
 
     public Set<Peer> getFreshPeers() {
