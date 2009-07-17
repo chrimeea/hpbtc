@@ -275,7 +275,7 @@ public class Torrent {
         }
         pastPeers.add(peer);
         final int rem = remainingPeers.decrementAndGet();
-        logger.info("Have " + rem + " peers");
+        logger.info("Removed " + peer + ", now have " + rem + " peers");
     }
 
     public void addPeer(final Peer peer, boolean isIncoming) {
