@@ -2,7 +2,7 @@
  * Created on 15.10.2008
  */
 
-package hpbtc.desktop;
+package hpbtc.util;
 
 /**
  *
