@@ -4,6 +4,7 @@
 
 package hpbtc.desktop;
 
+import hpbtc.util.DesktopUtil;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
