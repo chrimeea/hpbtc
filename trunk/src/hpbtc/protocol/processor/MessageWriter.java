@@ -287,7 +287,7 @@ public class MessageWriter {
         try {
             keepAliveRead(peer);
         } catch (InvalidPeerException ex) {
-            throw new IOException();
+            throw new IOException(ex);
         }
     }
 

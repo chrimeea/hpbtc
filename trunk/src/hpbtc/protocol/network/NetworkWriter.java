@@ -39,7 +39,7 @@ public class NetworkWriter extends NetworkLoop {
             try {
                 writer.writeNext(peer);
             } catch (InvalidPeerException ex) {
-                throw new IOException();
+                throw new IOException(ex);
             }
         }
     }

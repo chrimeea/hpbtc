@@ -68,7 +68,7 @@ public class NetworkReader extends NetworkLoop {
             try {
                 reader.readMessage(peer);
             } catch (InvalidPeerException ex) {
-                throw new IOException();
+                throw new IOException(ex);
             }
         }
     }
