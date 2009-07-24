@@ -115,6 +115,7 @@ public class Torrent {
             fileStore = new FileStore(pieceLength, pieceHash, rootFolder,
                     fileName, fileLength);
         }
+        logger.finer("Total length: " + getFileLength());
         tracker = new Tracker(infoHash, peerId, port, trackers,
                 byteEncoding);
         availability = new AtomicIntegerArray(getNrPieces());
