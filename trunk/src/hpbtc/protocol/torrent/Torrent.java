@@ -95,8 +95,10 @@ public class Torrent {
         }
         final boolean multiple =
                 info.containsKey("files".getBytes(byteEncoding));
+        logger.finer("Multiple files: " + (multiple ? "yes" : "no"));
         final int pieceLength = ((Long) info.get("piece length".getBytes(
                 byteEncoding))).intValue();
+        logger.finer("Piece length: " + pieceLength);
         final byte[] pieceHash = (byte[]) info.get("pieces".getBytes(
                 byteEncoding));
         if (multiple) {
