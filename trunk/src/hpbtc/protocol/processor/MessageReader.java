@@ -69,7 +69,8 @@ public class MessageReader {
                         int len = peer.getData().getInt();
                         if (len < 0 ||
                                 len > peer.getTorrent().getChunkSize() + 9) {
-                            throw new IOException("Invalid message length");
+                            throw new IOException("Invalid message length: " +
+                                len + " from peer " + peer);
                         } else if (len > 0) {
                             peer.setExpectBody(true);
                             peer.setNextDataExpectation(len);
