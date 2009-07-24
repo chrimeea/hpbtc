@@ -13,13 +13,16 @@ import java.util.List;
 import java.util.Timer;
 import java.util.Vector;
 import hpbtc.util.TorrentUtil;
+import java.net.InetAddress;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Cristian Mocanu
  */
 public class Client {
-
+    
+    private static Logger logger = Logger.getLogger(Client.class.getName());
     private Timer fastTimer;
     private MessageWriter writer;
     private MessageReader processor;
@@ -77,12 +80,14 @@ public class Client {
         initNetwork();
         netReader.connect(port);
         netWriter.connect();
+        logger.fine("Started client on " + InetAddress.getLocalHost() + ":" + port);
     }
     
     public int startProtocol() throws IOException {
         initNetwork();
         port = netReader.connect();
         netWriter.connect();
+        logger.fine("Started client on " + InetAddress.getLocalHost() + ":" + port);
         return port;
     }
 
