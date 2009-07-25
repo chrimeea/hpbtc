@@ -363,7 +363,11 @@ public class MessageReader {
                 }
             }
         }
+
+        //I have all the chunks from this peer or they are already requested
         if (index == -1) {
+
+            //end game
             if (torrent.countRemainingPieces() < 3) {
                 BitSet r = null;
                 do {
