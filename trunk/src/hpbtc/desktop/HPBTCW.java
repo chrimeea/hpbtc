@@ -58,6 +58,7 @@ public class HPBTCW extends JFrame {
     private List<GraphComponent> upload = new LinkedList<GraphComponent>();
     private List<GraphComponent> download = new LinkedList<GraphComponent>();
     private List<JLabel> peers = new LinkedList<JLabel>();
+    private List<JLabel> remainingUpdate = new LinkedList<JLabel>();
     private File filetarget;
     private File filetorrent;
     private Timer timer = new Timer();
@@ -166,6 +167,7 @@ public class HPBTCW extends JFrame {
                 upload.remove(i);
                 download.remove(i);
                 peers.remove(i);
+                remainingUpdate.remove(i);
                 final Component c = tabbed.getSelectedComponent();
                 tabbed.remove(c);
                 if (tabbed.getTabCount() == 0) {
@@ -202,6 +204,8 @@ public class HPBTCW extends JFrame {
                 if (i > -1) {
                     t = torrents.get(i);
                     peers.get(i).setText(String.valueOf(t.getRemainingPeers()));
+                    remainingUpdate.get(i).setText(DesktopUtil.formatTime(
+                            t.getTracker().getRemainingMillisUntilUpdate() / 1000L));
                     progress.get(i).setValue(
                             t.getCompletePieces().cardinality());
                 }
@@ -271,9 +275,17 @@ public class HPBTCW extends JFrame {
             peers.add(l);
             c.weightx = 1; c.gridx = 1;
             panel.add(l, c);
+            l = new JLabel(rb.getString("label.remainingUpdate"));
+            c.weightx = 0; c.gridx = 0; c.gridy = 3;
+            panel.add(l, c);
+            l = new JLabel(DesktopUtil.formatTime(
+                    t.getTracker().getRemainingMillisUntilUpdate() / 1000L));
+            remainingUpdate.add(l);
+            c.weightx = 1; c.gridx = 1;
+            panel.add(l, c);
             l = new JLabel();
             l.setText(rb.getString("label.progress"));
-            c.weightx = 0; c.gridx = 0; c.gridy = 3;
+            c.weightx = 0; c.gridx = 0; c.gridy = 4;
             panel.add(l, c);
             JProgressBar p = new JProgressBar(0, t.getNrPieces());
             p.setStringPainted(true);
@@ -281,7 +293,7 @@ public class HPBTCW extends JFrame {
             c.fill = GridBagConstraints.HORIZONTAL;
             panel.add(p, c);
             c.gridwidth = 2; c.weighty = 1;
-            c.gridx = 0; c.gridy = 4;
+            c.gridx = 0; c.gridy = 5;
             c.fill = GridBagConstraints.BOTH;
             GraphComponent g1 = new GraphComponent(100, Color.BLUE);
             download.add(g1);

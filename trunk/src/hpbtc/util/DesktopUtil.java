@@ -9,12 +9,8 @@ package hpbtc.util;
  * @author Cristian Mocanu <chrimeea@yahoo.com>
  */
 public class DesktopUtil {
-    
-    public static String getETA(long total, float speedpersec) {
-        if (speedpersec == 0) {
-            return "inf";
-        }
-        float eta = total / speedpersec;
+
+    public static String formatTime(float eta) {
         if (eta < 60) {
             return String.format("%1$.1fs", eta);
         } else if (eta < 3600) {
@@ -26,6 +22,13 @@ public class DesktopUtil {
         } else {
             return String.format("%1$.1fw", eta / 604800);
         }
+    }
+
+    public static String getETA(long total, float speedpersec) {
+        if (speedpersec == 0) {
+            return "inf";
+        }
+        return formatTime(total / speedpersec);
     }
 
     public static String getRepresentation(final int value) {

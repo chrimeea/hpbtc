@@ -350,7 +350,7 @@ public class Torrent {
         return fileStore.getPieceLength();
     }
 
-    public List<LinkedList<byte[]>> getTrackers() {
+    public List<LinkedList<byte[]>> getTrackerList() {
         return trackers;
     }
 
