@@ -1,14 +1,13 @@
 package hpbtc.protocol.network;
 
 import java.io.IOException;
+import java.nio.channels.Channel;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,15 +17,17 @@ import java.util.logging.Logger;
  */
 public class Register {
 
-    public static enum SELECTOR_TYPE {TCP_READ, TCP_WRITE, UDP}
+    public static enum SELECTOR_TYPE {
 
+        TCP_READ, TCP_WRITE, UDP
+    }
     private static Logger logger = Logger.getLogger(Register.class.getName());
-    private Map<Selector, Queue<RegisterOp>> reg;
+    private Map<Channel, RegisterOp> reg;
     private Map<SELECTOR_TYPE, Selector> selectors;
 
     public Register() {
-        reg = new HashMap<Selector, Queue<RegisterOp>>();
-        selectors = new HashMap<SELECTOR_TYPE, Selector>();
+        reg = new ConcurrentHashMap<Channel, RegisterOp>();
+        selectors = new ConcurrentHashMap<SELECTOR_TYPE, Selector>();
     }
 
     public void closeSelector(SELECTOR_TYPE stype) throws IOException {
@@ -36,17 +37,15 @@ public class Register {
     public Selector openSelector(SELECTOR_TYPE stype) throws IOException {
         final Selector s = Selector.open();
         selectors.put(stype, s);
-        reg.put(s, new ConcurrentLinkedQueue<RegisterOp>());
         return s;
     }
 
     public void disconnect(final SelectableChannel channel) {
-        synchronized (channel) {
-            for (Selector s : reg.keySet()) {
-                SelectionKey key = channel.keyFor(s);
-                if (key != null) {
-                    key.cancel();
-                }
+        final RegisterOp m = reg.get(channel);
+        for (SELECTOR_TYPE s : m.operations.keySet()) {
+            SelectionKey key = channel.keyFor(selectors.get(s));
+            if (key != null) {
+                key.cancel();
             }
         }
     }
@@ -54,69 +53,56 @@ public class Register {
     public void registerNow(final SelectableChannel channel,
             final SELECTOR_TYPE stype, final int op, final Object peer)
             throws IOException {
-        Selector selector = selectors.get(stype);
-        if (selector != null) {
-            registerNow(peer, op, selector, reg.get(selector), channel);
-        }
-    }
-
-    private void registerNow(final Object peer, final int op,
-            final Selector selector, final Queue<RegisterOp> registered,
-            final SelectableChannel channel) throws IOException {
         if (channel != null && channel.isOpen()) {
+            Selector selector = selectors.get(stype);
             final SelectionKey sk = channel.keyFor(selector);
-            if (sk == null || (sk.isValid() && (sk.interestOps() != op))) {
-                registered.add(new RegisterOp(op, channel, peer));
-                selector.wakeup();
+            RegisterOp rop = reg.get(channel);
+            if (rop == null) {
+                rop = new RegisterOp(peer);
+                reg.put(channel, rop);
+            }
+            Integer c = rop.operations.get(stype);
+            if (c != null && sk != null &&
+                    sk.isValid() && sk.interestOps() == op) {
+                rop.operations.remove(stype);
+            } else if (c == null || c != op) {
+                rop.operations.put(stype, op);
+                if (sk == null || (sk.isValid() && sk.interestOps() != op)) {
+                    selector.wakeup();
+                }
             }
         }
     }
 
     public void performRegistration(final SELECTOR_TYPE stype) {
         final Selector selector = selectors.get(stype);
-        final Queue<RegisterOp> registered = reg.get(selector);
-        RegisterOp ro = registered.poll();
-        while (ro != null) {
-            final SelectableChannel channel = ro.getChannel();
-            if (channel != null) {
-                synchronized (channel) {
-                    if (channel.isOpen()) {
-                        try {
-                            channel.register(selector, ro.getOperation(), ro.
-                                    getPeer());
-                        } catch (ClosedChannelException e) {
-                            logger.log(Level.FINE, e.getLocalizedMessage(), e);
+        for (Channel channel : reg.keySet()) {
+            if (channel != null && channel.isOpen()) {
+                try {
+                    RegisterOp rop = reg.get(channel);
+                    if (rop != null) {
+                        Integer op = rop.operations.get(stype);
+                        if (op != null) {
+                            ((SelectableChannel) channel).register(selector,
+                                    op.intValue(), rop.peer);
+                            rop.operations.remove(stype);
                         }
                     }
+                } catch (ClosedChannelException e) {
+                    logger.log(Level.FINE, e.getLocalizedMessage(), e);
                 }
             }
-            ro = registered.poll();
         }
     }
 
     private class RegisterOp {
 
-        private SelectableChannel channel;
+        private Map<SELECTOR_TYPE, Integer> operations;
         private Object peer;
-        private int operation;
 
-        private RegisterOp(final int op, final SelectableChannel channel,
-                final Object peer) {
-            this.channel = channel;
-            this.operation = op;
+        private RegisterOp(final Object peer) {
+            operations = new ConcurrentHashMap<SELECTOR_TYPE, Integer>();
             this.peer = peer;
-        }
-
-        private int getOperation() {
-            return operation;
-        }
-
-        private SelectableChannel getChannel() {
-            return channel;
-        }
-
-        private Object getPeer() {
-            return peer;
         }
     }
 }
