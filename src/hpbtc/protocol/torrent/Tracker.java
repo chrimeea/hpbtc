@@ -79,10 +79,12 @@ public class Tracker {
         return new HashSet<Peer>(0);
     }
 
-    public long getLastTrackerContact() {
-        return lastTrackerContact;
+    public long getRemainingMillisUntilUpdate() {
+        final long delay = minInterval * 1000L - System.currentTimeMillis() +
+                lastTrackerContact;
+        return delay < 0L ? 0L : delay;
     }
-    
+
     private Set<Peer> connectToTracker(final Event event,
             final byte[] tracker, final long uploaded, final long dloaded,
             final long bytesLeft, final boolean compact)
@@ -124,15 +126,12 @@ public class Tracker {
         final Map<byte[], Object> response = parser.readNextDictionary();
         con.disconnect();
         if (response.containsKey("failure reason".getBytes(byteEncoding))) {
-            logger.warning(new String((byte[]) response.get("failure reason".
-                    getBytes(byteEncoding)), byteEncoding));
+            logger.warning(new String((byte[]) response.get("failure reason".getBytes(byteEncoding)), byteEncoding));
         } else {
             if (response.containsKey("warning message".getBytes(byteEncoding))) {
-                logger.warning(new String((byte[]) response.get("warning message".
-                        getBytes(byteEncoding)), byteEncoding));
+                logger.warning(new String((byte[]) response.get("warning message".getBytes(byteEncoding)), byteEncoding));
             }
-            interval = ((Long) response.get("interval".getBytes(byteEncoding))).
-                    intValue();
+            interval = ((Long) response.get("interval".getBytes(byteEncoding))).intValue();
             if (response.containsKey("min interval".getBytes(byteEncoding))) {
                 minInterval = ((Long) response.get("min interval".getBytes(
                         byteEncoding))).intValue();
@@ -150,9 +149,8 @@ public class Tracker {
                         byteEncoding));
             }
             final Object o = response.get("peers".getBytes(byteEncoding));
-            return o instanceof List ?
-                TrackerUtil.doLoosePeer((List<Map<byte[], Object>>) o,
-                byteEncoding) : TrackerUtil.doCompactPeer((byte[]) o);
+            return o instanceof List ? TrackerUtil.doLoosePeer((List<Map<byte[], Object>>) o,
+                    byteEncoding) : TrackerUtil.doCompactPeer((byte[]) o);
         }
         return new HashSet<Peer>();
     }
