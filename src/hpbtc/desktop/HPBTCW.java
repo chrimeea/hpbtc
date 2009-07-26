@@ -53,17 +53,12 @@ public class HPBTCW extends JFrame {
             ResourceBundle.getBundle("hpbtc/desktop/hpbtc");
     private JTabbedPane tabbed;
     private JFileChooser fc = new JFileChooser();
-    private List<JProgressBar> progress = new LinkedList<JProgressBar>();
-    private List<Torrent> torrents = new LinkedList<Torrent>();
-    private List<GraphComponent> upload = new LinkedList<GraphComponent>();
-    private List<GraphComponent> download = new LinkedList<GraphComponent>();
-    private List<JLabel> peers = new LinkedList<JLabel>();
-    private List<JLabel> remainingUpdate = new LinkedList<JLabel>();
     private File filetarget;
     private File filetorrent;
     private Timer timer = new Timer();
     private Client client;
     private JMenuItem stopTorrent;
+    private List<TorrentTab> tabs = new LinkedList<TorrentTab>();
 
     private void initComponents() {
         setTitle(rb.getString("title.main"));
@@ -163,18 +158,15 @@ public class HPBTCW extends JFrame {
 
             public void actionPerformed(ActionEvent arg0) {
                 final int i = tabbed.getSelectedIndex();
-                progress.remove(i);
-                upload.remove(i);
-                download.remove(i);
-                peers.remove(i);
-                remainingUpdate.remove(i);
+                final Torrent t = tabs.get(i).torrent;
+                tabs.remove(i);
                 final Component c = tabbed.getSelectedComponent();
                 tabbed.remove(c);
                 if (tabbed.getTabCount() == 0) {
                     stopTorrent.setEnabled(false);
                 }
                 try {
-                    client.stopTorrent(torrents.remove(i));
+                    client.stopTorrent(t);
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
                 }
@@ -201,24 +193,27 @@ public class HPBTCW extends JFrame {
             public void run() {
                 int i = tabbed.getSelectedIndex();
                 Torrent t;
+                TorrentTab tt;
                 if (i > -1) {
-                    t = torrents.get(i);
-                    peers.get(i).setText(String.valueOf(t.getRemainingPeers()));
-                    remainingUpdate.get(i).setText(DesktopUtil.formatTime(
+                    tt = tabs.get(i);
+                    t = tt.torrent;
+                    tt.peers.setText(String.valueOf(t.getRemainingPeers()));
+                    tt.remainingUpdate.setText(DesktopUtil.formatTime(
                             t.getTracker().getRemainingMillisUntilUpdate() / 1000L));
-                    progress.get(i).setValue(
+                    tt.progress.setValue(
                             t.getCompletePieces().cardinality());
                 }
                 for (int j = 0; j < tabbed.getTabCount(); j++) {
-                    t = torrents.get(j);
-                    download.get(j).pushValueToHistory(t.getDownloaded());
-                    upload.get(j).pushValueToHistory(t.getUploaded());
+                    tt = tabs.get(j);
+                    t = tt.torrent;
+                    tt.download.pushValueToHistory(t.getDownloaded());
+                    tt.upload.pushValueToHistory(t.getUploaded());
                     if (t.countRemainingPieces() == 0) {
                         tabbed.setTitleAt(j, rb.getString("label.seed"));
                     } else {
                         tabbed.setTitleAt(j, DesktopUtil.getETA(
                                 t.getRemainingBytes(),
-                                download.get(j).getAverage() / 2f));
+                                tt.download.getAverage() / 2f));
                     }
                 }
             }
@@ -251,9 +246,30 @@ public class HPBTCW extends JFrame {
         FileInputStream fis = new FileInputStream(ftorrent);
         Torrent t = client.download(fis, ftarget.getAbsolutePath());
         fis.close();
-        if (!torrents.contains(t)) {
+        boolean k = false;
+        for (TorrentTab b: tabs) {
+            if (t == b.torrent) {
+                k = true;
+                break;
+            }
+        }
+        if (!k) {
+            final TorrentTab tt = new TorrentTab(ftorrent, ftarget, t);
+            tabs.add(tt);
             stopTorrent.setEnabled(true);
-            torrents.add(t);
+        }
+    }
+
+    private class TorrentTab {
+        private JProgressBar progress;
+        private Torrent torrent;
+        private GraphComponent upload;
+        private GraphComponent download;
+        private JLabel peers;
+        private JLabel remainingUpdate;
+
+        private TorrentTab(final File ftorrent, final File ftarget, Torrent t) {
+            torrent = t;
             JPanel panel = new JPanel();
             panel.setLayout(new GridBagLayout());
             JLabel l = new JLabel(rb.getString("label.torrent"));
@@ -272,7 +288,7 @@ public class HPBTCW extends JFrame {
             c.weightx = 0; c.gridx = 0; c.gridy = 2;
             panel.add(l, c);
             l = new JLabel(String.valueOf(t.getRemainingPeers()));
-            peers.add(l);
+            peers = l;
             c.weightx = 1; c.gridx = 1;
             panel.add(l, c);
             l = new JLabel(rb.getString("label.remainingUpdate"));
@@ -280,7 +296,7 @@ public class HPBTCW extends JFrame {
             panel.add(l, c);
             l = new JLabel(DesktopUtil.formatTime(
                     t.getTracker().getRemainingMillisUntilUpdate() / 1000L));
-            remainingUpdate.add(l);
+            remainingUpdate = l;
             c.weightx = 1; c.gridx = 1;
             panel.add(l, c);
             l = new JLabel();
@@ -296,17 +312,17 @@ public class HPBTCW extends JFrame {
             c.gridx = 0; c.gridy = 5;
             c.fill = GridBagConstraints.BOTH;
             GraphComponent g1 = new GraphComponent(100, Color.BLUE);
-            download.add(g1);
+            download = g1;
             GraphComponent g2 =
                     new GraphComponent(100, Color.ORANGE);
-            upload.add(g2);
+            upload = g2;
             JSplitPane jsp = new JSplitPane(
                     JSplitPane.HORIZONTAL_SPLIT, g1, g2);
             jsp.setResizeWeight(0.5f);
             panel.add(jsp, c);
             tabbed.addTab(rb.getString("label.eta"), panel);
             pack();
-            progress.add(p);
+            progress = p;
         }
     }
 }
