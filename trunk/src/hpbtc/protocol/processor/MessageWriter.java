@@ -74,11 +74,8 @@ public class MessageWriter {
         logger.info("Disconnected " + peer);
         if (torrent != null && torrent.getRemainingPeers() < 20 &&
                 !torrent.hasTrackerTask()) {
-            Tracker tracker = torrent.getTracker();
-            long delay = tracker.getMinInterval() * 1000L -
-                    System.currentTimeMillis() +
-                    tracker.getLastTrackerContact();
-            scheduleTrackerTask(torrent, delay < 0L ? 0L : delay);
+            scheduleTrackerTask(torrent,
+                    torrent.getTracker().getRemainingMillisUntilUpdate());
         }
     }
 
