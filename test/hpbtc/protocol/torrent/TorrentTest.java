@@ -37,7 +37,7 @@ public class TorrentTest {
         assert info.getEncoding().equals("UTF-8");
         assert info.getPieceLength() == 65536;
         assert info.getNrPieces() == 1;
-        final List<LinkedList<byte[]>> trackers = info.getTrackers();
+        final List<LinkedList<byte[]>> trackers = info.getTrackerList();
         assert trackers.size() == 1;
         final List<byte[]> l = trackers.get(0);
         assert l.size() == 1;
