@@ -5,6 +5,7 @@ package hpbtc.protocol.dht;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,12 +24,15 @@ public class DHTMessage {
     private byte[] infohash;
     private int port;
     private byte[] token;
+    private Map<byte[], Object> margs;
+    private List<Object> merr;
+    private Map<byte[], Object> message;
 
     public DHTMessage(final Map<byte[], Object> message)
             throws UnsupportedEncodingException {
+        this.message = message;
         mid = (byte[]) message.get("t".getBytes(byteEncoding));
         mtype = (char) ((byte[]) message.get("y".getBytes(byteEncoding)))[0];
-        Map<byte[], Object> margs;
         if (isQuery()) {
             mquery = (byte[]) message.get("q".getBytes(byteEncoding));
             margs = (Map<byte[], Object>) message.get("a".getBytes(byteEncoding));
@@ -45,9 +49,44 @@ public class DHTMessage {
             margs = (Map<byte[], Object>) message.get("r".getBytes(byteEncoding));
             remoteId = (byte[]) margs.get("id".getBytes(byteEncoding));
         } else if (isError()) {
-            final List<Object> merr =
-                    (List<Object>) message.get("e".getBytes(byteEncoding));
+            merr = (List<Object>) message.get("e".getBytes(byteEncoding));
         }
+    }
+
+    public DHTMessage createReply(final byte[] nodeId)
+            throws UnsupportedEncodingException {
+        final Map<byte[], Object> resp = new HashMap<byte[], Object>();
+        resp.put("t".getBytes(byteEncoding), mid);
+        resp.put("y".getBytes(byteEncoding), "r".getBytes(byteEncoding));
+        final Map<byte[], Object> respargs =
+                new HashMap<byte[], Object>();
+        respargs.put("id".getBytes(byteEncoding), nodeId);
+        resp.put("r".getBytes(byteEncoding), respargs);
+        return new DHTMessage(resp);
+    }
+
+    public Map<byte[], Object> getMessage() {
+        return message;
+    }
+
+    public void setValues(final List<String> values)
+            throws UnsupportedEncodingException {
+        margs.put("values".getBytes(byteEncoding), values);
+    }
+
+    public void setToken(final byte[] token)
+            throws UnsupportedEncodingException {
+        margs.put("token".getBytes(byteEncoding), token);
+    }
+
+    public void setNodes(final String nodes)
+            throws UnsupportedEncodingException {
+        margs.put("nodes".getBytes(byteEncoding), nodes.getBytes(byteEncoding));
+    }
+
+    public void setNodes(final List<String> nodes)
+            throws UnsupportedEncodingException {
+        margs.put("nodes".getBytes(byteEncoding), nodes);
     }
 
     public boolean isPingQuery() throws UnsupportedEncodingException {
