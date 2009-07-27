@@ -22,7 +22,6 @@ import java.util.Timer;
  */
 public class KRPCReader {
 
-    private String byteEncoding = "US-ASCII";
     private RoutingTable table = new RoutingTable(new Timer());
     private Map<ByteArrayWrapper, DHTNode> nodes =
             new HashMap<ByteArrayWrapper, DHTNode>();
@@ -42,38 +41,29 @@ public class KRPCReader {
         ByteArrayWrapper baw;
         if (dhtmessage.isQuery()) {
             node = nodes.get(new ByteArrayWrapper(dhtmessage.getRemoteID()));
-            final Map<byte[], Object> resp = new HashMap<byte[], Object>();
-            resp.put("t".getBytes(byteEncoding), dhtmessage.getTransactionID());
-            resp.put("y".getBytes(byteEncoding), "r".getBytes(
-                    byteEncoding));
-            final Map<byte[], Object> respargs =
-                    new HashMap<byte[], Object>();
-            respargs.put("id".getBytes(byteEncoding), table.getNodeID());
+            final DHTMessage dhtreply = dhtmessage.createReply(table.getNodeID());
             if (dhtmessage.isPingQuery()) {
                 //TODO: update routing info
             } else if (dhtmessage.isFindNodeQuery()) {
                 final Bucket b = table.findBucket(dhtmessage.getTargetID());
                 if (b != null) {
-                    respargs.put("nodes".getBytes(byteEncoding),
-                            b.getNode(dhtmessage.getTargetID()).getCompactNodeInfo());
+                    dhtreply.setNodes(b.getNode(dhtmessage.getTargetID()).
+                            getCompactNodeInfo());
                 } else {
-                    respargs.put("nodes".getBytes(byteEncoding),
-                            b.getCompactNodes());
+                    dhtreply.setNodes(b.getCompactNodes());
                 }
             //TODO: update routing info
             } else if (dhtmessage.isGetPeersQuery()) {
                 //TODO: update routing info
                 byte[] token = DHTUtil.generateToken();
-                respargs.put("token".getBytes(byteEncoding), token);
+                dhtreply.setToken(token);
                 node.setToken(token);
                 baw = new ByteArrayWrapper(dhtmessage.getInfohash());
                 if (torrents.containsKey(baw)) {
-                    respargs.put("values".getBytes(byteEncoding),
-                            torrents.get(baw));
+                    dhtreply.setValues(torrents.get(baw));
                 } else {
                     Bucket b = table.findBucket(dhtmessage.getInfohash());
-                    respargs.put("nodes".getBytes(byteEncoding),
-                            b.getCompactNodes());
+                    dhtreply.setNodes(b.getCompactNodes());
                 }
             } else if (dhtmessage.isAnnouncePeerQuery()) {
                 //TODO: update routing info
@@ -94,8 +84,7 @@ public class KRPCReader {
             } else {
                 //TODO: return error
             }
-            resp.put("r".getBytes(byteEncoding), respargs);
-            writer.postMessage(resp, node.getAddress());
+            writer.postMessage(dhtreply.getMessage(), node.getAddress());
         } else if (dhtmessage.isResponse()) {
             //TODO: update routing info
         } else if (dhtmessage.isError()) {
