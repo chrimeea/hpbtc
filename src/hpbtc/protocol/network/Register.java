@@ -6,6 +6,7 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -50,38 +51,35 @@ public class Register {
         }
     }
 
-    public void registerNow(final SelectableChannel channel,
+    public synchronized void registerNow(final SelectableChannel channel,
             final SELECTOR_TYPE stype, final int op, final Object peer)
             throws IOException {
         if (channel != null && channel.isOpen()) {
-            Selector selector = selectors.get(stype);
+            final Selector selector = selectors.get(stype);
             final SelectionKey sk = channel.keyFor(selector);
             RegisterOp rop = reg.get(channel);
             if (rop == null) {
                 rop = new RegisterOp(peer);
                 reg.put(channel, rop);
             }
-            Integer c = rop.operations.get(stype);
-            if (c != null && sk != null &&
-                    sk.isValid() && sk.interestOps() == op) {
+            final Integer c = rop.operations.get(stype);
+            if (sk != null && sk.isValid() && sk.interestOps() == op) {
                 rop.operations.remove(stype);
-            } else if (c == null || c != op) {
+            } else {
                 rop.operations.put(stype, op);
-                if (sk == null || (sk.isValid() && sk.interestOps() != op)) {
-                    selector.wakeup();
-                }
+                selector.wakeup();
             }
         }
     }
 
-    public void performRegistration(final SELECTOR_TYPE stype) {
+    public synchronized void performRegistration(final SELECTOR_TYPE stype) {
         final Selector selector = selectors.get(stype);
         for (Channel channel : reg.keySet()) {
             if (channel != null && channel.isOpen()) {
                 try {
-                    RegisterOp rop = reg.get(channel);
+                    final RegisterOp rop = reg.get(channel);
                     if (rop != null) {
-                        Integer op = rop.operations.get(stype);
+                        final Integer op = rop.operations.get(stype);
                         if (op != null) {
                             ((SelectableChannel) channel).register(selector,
                                     op.intValue(), rop.peer);
@@ -101,7 +99,7 @@ public class Register {
         private Object peer;
 
         private RegisterOp(final Object peer) {
-            operations = new ConcurrentHashMap<SELECTOR_TYPE, Integer>();
+            operations = new HashMap<SELECTOR_TYPE, Integer>();
             this.peer = peer;
         }
     }
