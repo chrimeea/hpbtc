@@ -246,14 +246,16 @@ public class MessageWriter {
                 //clear the limit
                 currentWrite.limit(currentWrite.capacity() - 1);
             }
-            if (currentWrite != null && currentWrite.remaining() == 0 &&
-                    peer.isMessagesToSendEmpty()) {
-                register.registerNow((SelectableChannel) peer.getChannel(),
-                        Register.SELECTOR_TYPE.TCP_WRITE, 0, peer);
+            if (!hasMoreMessages(peer)) {
                 return false;
             }
         }
         return i > 0;
+    }
+
+    public boolean hasMoreMessages(final Peer peer) {
+        return (currentWrite == null || currentWrite.remaining() > 0 ||
+                    !peer.isMessagesToSendEmpty());
     }
 
     public void postMessage(final LengthPrefixMessage message) throws
