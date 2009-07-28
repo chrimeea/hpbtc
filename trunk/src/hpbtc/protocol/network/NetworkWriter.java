@@ -37,7 +37,7 @@ public class NetworkWriter extends NetworkLoop {
             logger.info("Connected to " + peer);
         } else if (key.isWritable()) {
             try {
-                writer.writeNext(peer);
+                while (writer.writeNext(peer));
             } catch (InvalidPeerException ex) {
                 throw new IOException(ex);
             }

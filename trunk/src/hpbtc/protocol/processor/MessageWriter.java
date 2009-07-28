@@ -8,7 +8,6 @@ import hpbtc.protocol.network.Register;
 import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
-import hpbtc.protocol.torrent.Tracker;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectableChannel;
@@ -194,9 +193,10 @@ public class MessageWriter {
         limit.set(l);
     }
 
-    public void writeNext(final Peer peer)
+    public boolean writeNext(final Peer peer)
             throws IOException, InvalidPeerException {
-        long t = System.currentTimeMillis();
+        int i = 0;
+        final long t = System.currentTimeMillis();
 
         //check if more than 1 second passed since we measured
         // the bytes uploaded
@@ -210,7 +210,7 @@ public class MessageWriter {
         // limit - (uploaded - lastUploaded)
         // computes how many bytes we can still upload this second without
         // going over the limit
-        long l = limit.get() - uploaded + lastUploaded;
+        final long l = limit.get() - uploaded + lastUploaded;
 
         // ignore the call to writeNext if the bytes uploaded in this second
         // are more than the upload limit
@@ -240,7 +240,8 @@ public class MessageWriter {
                 }
 
                 //upload the message
-                uploaded += peer.upload(currentWrite);
+                i = peer.upload(currentWrite);
+                uploaded += i;
 
                 //clear the limit
                 currentWrite.limit(currentWrite.capacity() - 1);
@@ -249,8 +250,10 @@ public class MessageWriter {
                     peer.isMessagesToSendEmpty()) {
                 register.registerNow((SelectableChannel) peer.getChannel(),
                         Register.SELECTOR_TYPE.TCP_WRITE, 0, peer);
+                return false;
             }
         }
+        return i > 0;
     }
 
     public void postMessage(final LengthPrefixMessage message) throws
