@@ -38,6 +38,10 @@ public class NetworkWriter extends NetworkLoop {
         } else if (key.isWritable()) {
             try {
                 while (writer.writeNext(peer));
+                if (!writer.hasMoreMessages(peer)) {
+                    register.registerNow((SelectableChannel) peer.getChannel(),
+                        Register.SELECTOR_TYPE.TCP_WRITE, 0, peer);
+                }
             } catch (InvalidPeerException ex) {
                 throw new IOException(ex);
             }
