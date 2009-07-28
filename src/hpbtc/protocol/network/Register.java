@@ -2,15 +2,11 @@ package hpbtc.protocol.network;
 
 import java.io.IOException;
 import java.nio.channels.Channel;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -22,7 +18,6 @@ public class Register {
 
         TCP_READ, TCP_WRITE, UDP
     }
-    private static Logger logger = Logger.getLogger(Register.class.getName());
     private Map<Channel, RegisterOp> reg;
     private Map<SELECTOR_TYPE, Selector> selectors;
 
@@ -43,7 +38,7 @@ public class Register {
 
     public void disconnect(final SelectableChannel channel) {
         final RegisterOp m = reg.get(channel);
-        for (SELECTOR_TYPE s : m.operations.keySet()) {
+        for (SELECTOR_TYPE s : m.getOperations().keySet()) {
             SelectionKey key = channel.keyFor(selectors.get(s));
             if (key != null) {
                 key.cancel();
@@ -51,56 +46,29 @@ public class Register {
         }
     }
 
-    public synchronized void registerNow(final SelectableChannel channel,
+    public void registerNow(final SelectableChannel channel,
             final SELECTOR_TYPE stype, final int op, final Object peer)
             throws IOException {
         if (channel != null && channel.isOpen()) {
             final Selector selector = selectors.get(stype);
-            final SelectionKey sk = channel.keyFor(selector);
-            RegisterOp rop = reg.get(channel);
-            if (rop == null) {
-                rop = new RegisterOp(peer);
-                reg.put(channel, rop);
-            }
-            final Integer c = rop.operations.get(stype);
-            if (sk != null && sk.isValid() && sk.interestOps() == op) {
-                rop.operations.remove(stype);
-            } else {
-                rop.operations.put(stype, op);
-                selector.wakeup();
-            }
-        }
-    }
-
-    public synchronized void performRegistration(final SELECTOR_TYPE stype) {
-        final Selector selector = selectors.get(stype);
-        for (Channel channel : reg.keySet()) {
-            if (channel != null && channel.isOpen()) {
-                try {
-                    final RegisterOp rop = reg.get(channel);
-                    if (rop != null) {
-                        final Integer op = rop.operations.get(stype);
-                        if (op != null) {
-                            ((SelectableChannel) channel).register(selector,
-                                    op.intValue(), rop.peer);
-                            rop.operations.remove(stype);
-                        }
-                    }
-                } catch (ClosedChannelException e) {
-                    logger.log(Level.FINE, e.getLocalizedMessage(), e);
+            synchronized (stype) {
+                final SelectionKey sk = channel.keyFor(selector);
+                RegisterOp rop = reg.get(channel);
+                if (rop == null) {
+                    rop = new RegisterOp(peer);
+                    reg.put(channel, rop);
+                }
+                if (sk != null && sk.isValid() && sk.interestOps() == op) {
+                    rop.getOperations().remove(stype);
+                } else {
+                    rop.getOperations().put(stype, op);
+                    selector.wakeup();
                 }
             }
         }
     }
 
-    private class RegisterOp {
-
-        private Map<SELECTOR_TYPE, Integer> operations;
-        private Object peer;
-
-        private RegisterOp(final Object peer) {
-            operations = new HashMap<SELECTOR_TYPE, Integer>();
-            this.peer = peer;
-        }
+    public Map<Channel, RegisterOp> getRegister() {
+        return reg;
     }
 }

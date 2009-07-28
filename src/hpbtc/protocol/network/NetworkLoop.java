@@ -4,10 +4,14 @@
 package hpbtc.protocol.network;
 
 import java.io.IOException;
+import java.nio.channels.Channel;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -75,7 +79,30 @@ public abstract class NetworkLoop {
                     }
                 }
             }
-            register.performRegistration(stype);
+            performRegistration();
+        }
+    }
+
+    protected void performRegistration() {
+        synchronized (stype) {
+            Map<Channel, RegisterOp> reg = register.getRegister();
+            for (Channel channel : reg.keySet()) {
+                if (channel != null && channel.isOpen()) {
+                    try {
+                        final RegisterOp rop = reg.get(channel);
+                        if (rop != null) {
+                            final Integer op = rop.getOperations().get(stype);
+                            if (op != null) {
+                                ((SelectableChannel) channel).register(selector,
+                                        op.intValue(), rop.getPeer());
+                                rop.getOperations().remove(stype);
+                            }
+                        }
+                    } catch (ClosedChannelException e) {
+                        logger.log(Level.FINE, e.getLocalizedMessage(), e);
+                    }
+                }
+            }
         }
     }
 
