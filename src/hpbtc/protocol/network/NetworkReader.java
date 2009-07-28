@@ -66,7 +66,7 @@ public class NetworkReader extends NetworkLoop {
         } else if (key.isReadable()) {
             peer = (Peer) key.attachment();
             try {
-                reader.readMessage(peer);
+                while (reader.readMessage(peer));
             } catch (InvalidPeerException ex) {
                 throw new IOException(ex);
             }

@@ -56,7 +56,7 @@ public class MessageReader {
         }
     }
 
-    public void readMessage(final Peer peer) throws IOException,
+    public boolean readMessage(final Peer peer) throws IOException,
             NoSuchAlgorithmException, InvalidPeerException {
         writer.keepAliveRead(peer);
         if (peer.isHandshakeReceived()) {
@@ -66,7 +66,7 @@ public class MessageReader {
                 if (!peer.isExpectBody()) {
                     peer.setNextDataExpectation(4);
                     if (peer.download()) {
-                        int len = peer.getData().getInt();
+                        final int len = peer.getData().getInt();
                         if (len < 0 ||
                                 len > peer.getTorrent().getChunkSize() + 9) {
                             throw new IOException("Invalid message length: " +
@@ -75,10 +75,10 @@ public class MessageReader {
                             peer.setExpectBody(true);
                             peer.setNextDataExpectation(len);
                         } else {
-                            return;
+                            return true;
                         }
                     } else {
-                        return;
+                        return false;
                     }
                 }
                 if (peer.download()) {
@@ -141,6 +141,8 @@ public class MessageReader {
                             processUnchoke(mUn);
                     }
                     peer.setMessagesReceived();
+                } else {
+                    return false;
                 }
             }
         } else {
@@ -152,8 +154,11 @@ public class MessageReader {
                 processHandshake(mHand);
                 peer.setNextDataExpectation(20);
                 checkPeerId(peer);
+            } else {
+                return false;
             }
         }
+        return true;
     }
 
     private void processHandshake(final HandshakeMessage message) throws
