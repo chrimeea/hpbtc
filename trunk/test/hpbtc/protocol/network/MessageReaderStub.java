@@ -25,7 +25,7 @@ public class MessageReaderStub extends MessageReader {
     }
     
     @Override
-    public void readMessage(final Peer peer) throws IOException,
+    public boolean readMessage(final Peer peer) throws IOException,
             NoSuchAlgorithmException {
         peer.setNextDataExpectation(11);
         assert peer.download();
@@ -39,5 +39,6 @@ public class MessageReaderStub extends MessageReader {
         assert a.getPort() == remotePort;
         bb.limit(11);
         assert bb.equals(ByteBuffer.wrap("test client".getBytes()));
+        return false;
     }
 }
