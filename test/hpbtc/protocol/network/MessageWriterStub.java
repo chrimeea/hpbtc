@@ -32,8 +32,9 @@ public class MessageWriterStub extends MessageWriter {
     }
 
     @Override
-    public void writeNext(final Peer p)
+    public boolean writeNext(final Peer p)
             throws IOException, InvalidPeerException {
         p.upload(ByteBuffer.wrap("bit torrent".getBytes("ISO-8859-1")));
+        return false;
     }
 }
