@@ -15,6 +15,7 @@ import hpbtc.util.TorrentUtil;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -49,7 +50,7 @@ public class MessageValidator {
                 return false;
             }
         } catch (UnknownHostException e) {
-            logger.warning(e.getLocalizedMessage());
+            logger.log(Level.WARNING, e.getLocalizedMessage(), e);
         }
         for (Torrent t : torrents) {
             final byte[] ih = t.getInfoHash();
