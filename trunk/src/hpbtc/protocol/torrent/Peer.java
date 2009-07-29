@@ -349,20 +349,20 @@ public class Peer {
             }
         }
     }
-    
+
     public void setId(final byte[] id) {
         this.id = id;
     }
-    
+
     public byte[] getId() {
         return id;
     }
-    
+
     @Override
     public int hashCode() {
         return this.address.hashCode();
     }
-    
+
     @Override
     public boolean equals(final Object obj) {
         try {
@@ -372,16 +372,16 @@ public class Peer {
             return false;
         }
     }
-    
+
     @Override
     public String toString() {
         return address.toString();
     }
-    
+
     public SocketAddress getAddress() {
         return address;
     }
-    
+
     public ByteChannel getChannel() {
         return channel;
     }

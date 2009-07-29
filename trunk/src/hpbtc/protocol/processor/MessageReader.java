@@ -66,7 +66,8 @@ public class MessageReader {
                 if (!peer.isExpectBody()) {
                     peer.setNextDataExpectation(4);
                     if (peer.download()) {
-                        final int len = peer.getData().getInt();
+                        ByteBuffer bx = peer.getData();
+                        final int len = bx.getInt();
                         if (len < 0 ||
                                 len > peer.getTorrent().getChunkSize() + 9) {
                             throw new IOException("Invalid message length: " +
