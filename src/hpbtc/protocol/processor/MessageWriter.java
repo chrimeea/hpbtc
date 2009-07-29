@@ -244,7 +244,7 @@ public class MessageWriter {
                 uploaded += i;
 
                 //clear the limit
-                currentWrite.limit(currentWrite.capacity() - 1);
+                currentWrite.limit(currentWrite.capacity());
             }
             if (!hasMoreMessages(peer)) {
                 return false;
