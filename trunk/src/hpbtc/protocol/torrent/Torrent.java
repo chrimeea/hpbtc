@@ -25,6 +25,7 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -214,7 +215,7 @@ public class Torrent {
                     new InetSocketAddress(InetAddress.getLocalHost(), port);
                 freshPeers.remove(new Peer(sad));
             } catch (UnknownHostException e) {
-                logger.warning(e.getLocalizedMessage());
+                logger.log(Level.WARNING, e.getLocalizedMessage(), e);
             }
             s = freshPeers.size();
         }

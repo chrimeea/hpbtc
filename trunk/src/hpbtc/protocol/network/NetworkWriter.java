@@ -8,6 +8,7 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
+import java.util.logging.Level;
 
 /**
  *
@@ -68,7 +69,7 @@ public class NetworkWriter extends NetworkLoop {
                 writer.disconnect(p);
             } catch (Exception ex1) {
             }
-            logger.info(ex.getLocalizedMessage());
+            logger.log(Level.INFO, ex.getLocalizedMessage(), ex);
             return false;
         }
         return true;
