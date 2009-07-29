@@ -93,9 +93,14 @@ public abstract class NetworkLoop {
                         if (rop != null) {
                             final Integer op = rop.getOperations().get(stype);
                             if (op != null) {
-                                ((SelectableChannel) channel).register(selector,
-                                        op.intValue(), rop.getPeer());
+                                if (registerOperation(op.intValue(),
+                                        rop.getPeer())) {
+                                    ((SelectableChannel) channel).register(
+                                            selector, op.intValue(),
+                                            rop.getPeer());
+                                }
                                 rop.getOperations().remove(stype);
+                                
                             }
                         }
                     } catch (ClosedChannelException e) {
@@ -104,6 +109,10 @@ public abstract class NetworkLoop {
                 }
             }
         }
+    }
+
+    protected boolean registerOperation(int op, Object peer) {
+        return true;
     }
 
     public void disconnect() {

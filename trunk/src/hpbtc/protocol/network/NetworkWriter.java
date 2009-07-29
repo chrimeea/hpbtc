@@ -35,17 +35,43 @@ public class NetworkWriter extends NetworkLoop {
                     SelectionKey.OP_WRITE, peer);
             writer.connect(peer);
             logger.info("Connected to " + peer);
-        } else if (key.isWritable()) {
+        }
+        if (key.isWritable() && ch.isConnected()) {
             try {
-                while (writer.writeNext(peer));
-                if (!writer.hasMoreMessages(peer)) {
+                if (!writeNext(peer)) {
                     register.registerNow((SelectableChannel) peer.getChannel(),
-                        Register.SELECTOR_TYPE.TCP_WRITE, 0, peer);
+                            Register.SELECTOR_TYPE.TCP_WRITE, 0, peer);
                 }
             } catch (InvalidPeerException ex) {
                 throw new IOException(ex);
             }
         }
+    }
+
+    private boolean writeNext(Peer peer) throws IOException,
+            InvalidPeerException {
+        while (writer.writeNext(peer));
+        return writer.hasMoreMessages(peer);
+    }
+
+    @Override
+    protected boolean registerOperation(final int op, final Object peer) {
+        final Peer p = (Peer) peer;
+        final SocketChannel ch = (SocketChannel) p.getChannel();
+        try {
+            if (ch != null && ch.isConnected() &&
+                    (op & SelectionKey.OP_WRITE) != 0) {
+                return writeNext(p);
+            }
+        } catch (Exception ex) {
+            try {
+                writer.disconnect(p);
+            } catch (Exception ex1) {
+            }
+            logger.info(ex.getLocalizedMessage());
+            return false;
+        }
+        return true;
     }
 
     @Override
