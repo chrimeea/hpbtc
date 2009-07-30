@@ -35,7 +35,8 @@ public class NetworkWriter extends NetworkLoop {
             register.registerNow(pChannel, Register.SELECTOR_TYPE.TCP_WRITE,
                     SelectionKey.OP_WRITE, peer);
             writer.connect(peer);
-            logger.info("Connected to " + peer);
+            logger.info("Connected to " + peer + ", local port: " +
+                    ch.socket().getLocalPort());
         }
         if (key.isWritable() && ch.isConnected()) {
             try {
@@ -52,7 +53,7 @@ public class NetworkWriter extends NetworkLoop {
     private boolean writeNext(Peer peer) throws IOException,
             InvalidPeerException {
         while (writer.writeNext(peer));
-        return writer.hasMoreMessages(peer);
+        return peer.hasMoreMessages();
     }
 
     @Override

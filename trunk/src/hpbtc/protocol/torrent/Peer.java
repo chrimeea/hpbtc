@@ -19,6 +19,7 @@ import java.net.SocketAddress;
 import java.nio.channels.ByteChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
 
 /**
  *
@@ -26,8 +27,10 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class Peer {
 
+    private static Logger logger = Logger.getLogger(Peer.class.getName());
     private ByteBuffer data;
     private int uploaded;
+    private ByteBuffer currentWrite;
     private int downloaded;
     private boolean messagesReceived;
     private BitSet pieces = new BitSet();
@@ -388,5 +391,28 @@ public class Peer {
 
     public void setChannel(ByteChannel channel) {
         this.channel = channel;
+    }
+
+    public boolean hasMoreMessages() {
+        return (currentWrite == null || currentWrite.remaining() > 0 ||
+                    !isMessagesToSendEmpty());
+    }
+
+    public synchronized ByteBuffer getCurrentWrite()
+            throws InvalidPeerException, IOException {
+        if (currentWrite == null || currentWrite.remaining() == 0) {
+            final LengthPrefixMessage sm = getMessageToSend();
+            if (sm != null) {
+                if (sm instanceof PieceMessage) {
+                    final PieceMessage pm = (PieceMessage) sm;
+                    pm.setPiece(getTorrent().loadPiece(pm.getBegin(),
+                            pm.getIndex(), pm.getLength()));
+                }
+                currentWrite = sm.send();
+                currentWrite.flip();
+                logger.fine("Sending: " + sm);
+            }
+        }
+        return currentWrite;
     }
 }

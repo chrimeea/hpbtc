@@ -2,7 +2,6 @@ package hpbtc.protocol.processor;
 
 import hpbtc.protocol.message.HandshakeMessage;
 import hpbtc.protocol.message.LengthPrefixMessage;
-import hpbtc.protocol.message.PieceMessage;
 import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.network.Register;
 import hpbtc.protocol.torrent.InvalidPeerException;
@@ -34,7 +33,6 @@ public class MessageWriter {
 
     private static Logger logger = Logger.getLogger(
             MessageWriter.class.getName());
-    private ByteBuffer currentWrite;
     protected Register register;
     private Timer timer;
     private byte[] peerId;
@@ -217,20 +215,9 @@ public class MessageWriter {
         // we will continue to ignore the writeNext calls until
         // a second has passed and we can upload again
         if (l > 0) {
+
             //we still may upload maximum l bytes until we reach the limit
-            if (currentWrite == null || currentWrite.remaining() == 0) {
-                final LengthPrefixMessage sm = peer.getMessageToSend();
-                if (sm != null) {
-                    if (sm instanceof PieceMessage) {
-                        final PieceMessage pm = (PieceMessage) sm;
-                        pm.setPiece(peer.getTorrent().loadPiece(pm.getBegin(),
-                                pm.getIndex(), pm.getLength()));
-                    }
-                    currentWrite = sm.send();
-                    currentWrite.rewind();
-                    logger.fine("Sending: " + sm);
-                }
-            }
+            final ByteBuffer currentWrite = peer.getCurrentWrite();
             if (currentWrite != null && currentWrite.remaining() > 0) {
                 keepAliveWrite(peer);
 
@@ -246,16 +233,11 @@ public class MessageWriter {
                 //clear the limit
                 currentWrite.limit(currentWrite.capacity());
             }
-            if (!hasMoreMessages(peer)) {
+            if (!peer.hasMoreMessages()) {
                 return false;
             }
         }
         return i > 0;
-    }
-
-    public boolean hasMoreMessages(final Peer peer) {
-        return (currentWrite == null || currentWrite.remaining() > 0 ||
-                    !peer.isMessagesToSendEmpty());
     }
 
     public void postMessage(final LengthPrefixMessage message) throws
