@@ -228,7 +228,7 @@ public class FileStore {
             final ByteBuffer bb) throws IOException {
         long[] l = getFileList(begin, index);
         loadFileChunk((int) l[0], l[1], bb);
-        bb.rewind();
+        bb.flip();
     }
 
     private boolean isHashCorrect(final int index, final ByteBuffer bb)
@@ -236,7 +236,7 @@ public class FileStore {
         loadPiece(0, index, bb);
         md.update(bb);
         final byte[] dig = md.digest();
-        bb.rewind();
+        bb.flip();
         int i = index * 20;
         for (int j = 0; j < 20; j++) {
             if (dig[j] != pieceHash[i++]) {

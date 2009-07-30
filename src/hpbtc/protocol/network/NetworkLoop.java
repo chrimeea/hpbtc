@@ -98,6 +98,9 @@ public abstract class NetworkLoop {
                                     ((SelectableChannel) channel).register(
                                             selector, op.intValue(),
                                             rop.getPeer());
+                                } else {
+                                    ((SelectableChannel) channel).register(
+                                            selector, 0, rop.getPeer());
                                 }
                                 rop.getOperations().remove(stype);
                                 
