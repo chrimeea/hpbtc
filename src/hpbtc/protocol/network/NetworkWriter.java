@@ -3,6 +3,7 @@ package hpbtc.protocol.network;
 import hpbtc.protocol.processor.MessageWriter;
 import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
+import hpbtc.util.IOUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectableChannel;
@@ -109,6 +110,16 @@ public class NetworkWriter extends NetworkLoop {
         }
     }
 
+    private int uploadToPeer(final Peer peer, final ByteBuffer bb)
+            throws InvalidPeerException, IOException {
+        if (!peer.isValid()) {
+            throw new InvalidPeerException();
+        }
+        final int i = IOUtil.writeToChannel(peer.getChannel(), bb);
+        peer.incrementUploaded(i);
+        return i;
+    }
+
     private boolean writeNextInternal(final Peer peer)
             throws IOException, InvalidPeerException {
         final long t = System.currentTimeMillis();
@@ -146,7 +157,7 @@ public class NetworkWriter extends NetworkLoop {
                 }
 
                 //upload the message
-                i = peer.upload(currentWrite);
+                i = uploadToPeer(peer, currentWrite);
                 uploaded += i;
 
                 //clear the limit
