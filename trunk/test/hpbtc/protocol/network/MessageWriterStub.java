@@ -4,10 +4,8 @@
 package hpbtc.protocol.network;
 
 import hpbtc.protocol.processor.MessageWriter;
-import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -24,17 +22,10 @@ public class MessageWriterStub extends MessageWriter {
 
     @Override
     public void connect(final Peer peer) throws IOException {
-        if (peer.getChannel() == null && !peer.connect()) {
+        if (peer.getChannel() == null && !connectPeer(peer)) {
             ((SocketChannel) peer.getChannel()).finishConnect();
         }
         register.registerNow((SelectableChannel) peer.getChannel(),
                 Register.SELECTOR_TYPE.TCP_WRITE, SelectionKey.OP_WRITE, peer);
-    }
-
-    @Override
-    public boolean writeNext(final Peer p)
-            throws IOException, InvalidPeerException {
-        p.upload(ByteBuffer.wrap("bit torrent".getBytes("ISO-8859-1")));
-        return false;
     }
 }

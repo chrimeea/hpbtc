@@ -41,7 +41,7 @@ public class NetworkTest {
         final ServerSocket ch = new ServerSocket(0);
         final Register r = new Register();
         final MessageWriter mws = new MessageWriterStub(r);
-        final NetworkWriter c = new NetworkWriter(mws, r);
+        final NetworkWriter c = new NetworkWriter(mws, r, null);
         c.connect();
         final InetSocketAddress a = new InetSocketAddress(InetAddress.
                 getLocalHost(), ch.getLocalPort());

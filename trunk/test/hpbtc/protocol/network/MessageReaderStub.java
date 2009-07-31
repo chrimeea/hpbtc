@@ -4,6 +4,7 @@
 package hpbtc.protocol.network;
 
 import hpbtc.protocol.processor.MessageReader;
+import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -26,10 +27,11 @@ public class MessageReaderStub extends MessageReader {
     
     @Override
     public boolean readMessage(final Peer peer) throws IOException,
-            NoSuchAlgorithmException {
+            NoSuchAlgorithmException, InvalidPeerException {
         peer.setNextDataExpectation(11);
-        assert peer.download();
+        assert downloadFromPeer(peer);
         final ByteBuffer bb = peer.getData();
+        bb.flip();
         final SocketChannel ch = (SocketChannel) peer.getChannel();
         final Socket s = ch.socket();
         final InetSocketAddress a = IOUtil.getAddress(ch);
