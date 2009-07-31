@@ -9,6 +9,8 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 
@@ -23,13 +25,16 @@ public class NetworkWriter extends NetworkLoop {
     private long lastUploaded;
     private long timestamp;
     private AtomicLong limit;
+    private Timer timer;
 
-    public NetworkWriter(final MessageWriter writer, final Register register) {
+    public NetworkWriter(final MessageWriter writer, final Register register,
+            final Timer timer) {
         super(register);
         this.stype = Register.SELECTOR_TYPE.TCP_WRITE;
         this.writer = writer;
         this.timestamp = System.currentTimeMillis();
         this.limit = new AtomicLong(Long.MAX_VALUE);
+        this.timer = timer;
     }
 
     /**
@@ -74,6 +79,9 @@ public class NetworkWriter extends NetworkLoop {
     @Override
     protected boolean registerOperation(final int op, final Object peer) {
         final Peer p = (Peer) peer;
+        if (p.getUploadLimitTask() != null) {
+            return false;
+        }
         final SocketChannel ch = (SocketChannel) p.getChannel();
         try {
             if (ch != null && ch.isConnected() &&
@@ -107,7 +115,8 @@ public class NetworkWriter extends NetworkLoop {
 
         //check if more than 1 second passed since we measured
         // the bytes uploaded
-        if (t - timestamp > 1000L) {
+        final long passed = t - timestamp;
+        if (passed > 1000L) {
 
             //memorize the bytes uploaded so far
             lastUploaded = uploaded;
@@ -147,7 +156,28 @@ public class NetworkWriter extends NetworkLoop {
                 return false;
             }
             return i > 0;
+        } else {
+            final TimerTask tt = new TimerTask() {
+
+                @Override
+                public void run() {
+                    try {
+                        peer.setUploadLimitTask(null);
+                        register.registerNow((SelectableChannel) peer.getChannel(),
+                            Register.SELECTOR_TYPE.TCP_WRITE,
+                            SelectionKey.OP_WRITE, peer);
+                    } catch (IOException ex) {
+                        try {
+                            writer.disconnect(peer);
+                        } catch (Exception ex1) {
+                        }
+                        logger.log(Level.INFO, ex.getLocalizedMessage(), ex);
+                    }
+                }
+            };
+            peer.setUploadLimitTask(tt);
+            timer.schedule(tt, 1000L - passed);
+            return false;
         }
-        return true;
     }
 }
