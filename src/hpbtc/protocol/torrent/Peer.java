@@ -45,6 +45,7 @@ public class Peer {
     private AtomicInteger totalRequests = new AtomicInteger();
     private TimerTask keepAliveRead;
     private TimerTask keepAliveWrite;
+    private TimerTask uploadLimitTask;
     private final List<LengthPrefixMessage> messagesToSend =
             Collections.synchronizedList(new LinkedList<LengthPrefixMessage>());
     private AtomicReference<Torrent> torrent = new AtomicReference<Torrent>();
@@ -55,6 +56,14 @@ public class Peer {
 
     public Peer(final SocketAddress address) {
         this.address = address;
+    }
+
+    public TimerTask getUploadLimitTask() {
+        return uploadLimitTask;
+    }
+
+    public void setUploadLimitTask(TimerTask uploadLimitTask) {
+        this.uploadLimitTask = uploadLimitTask;
     }
 
     public void setTorrent(final Torrent torrent) {

@@ -37,7 +37,7 @@ public class Client {
         fastTimer = new Timer(true);
         torrents = new Vector<Torrent>();
         this.peerId = peerId;
-        protocol = TorrentUtil.getSupportedProtocol();        
+        protocol = TorrentUtil.getSupportedProtocol();
     }
     
     public Client() throws UnsupportedEncodingException {
@@ -70,7 +70,7 @@ public class Client {
     private void initNetwork() {
         Register register = new Register();
         writer = new MessageWriter(register, fastTimer, peerId, protocol);
-        netWriter = new NetworkWriter(writer, register);
+        netWriter = new NetworkWriter(writer, register, fastTimer);
         processor = new MessageReader(protocol, writer, torrents, peerId);
         netReader = new NetworkReader(processor, register);
     }
