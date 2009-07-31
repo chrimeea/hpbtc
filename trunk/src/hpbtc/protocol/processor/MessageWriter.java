@@ -10,6 +10,7 @@ import hpbtc.protocol.torrent.Torrent;
 import java.io.IOException;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -50,16 +51,18 @@ public class MessageWriter {
         torrent.cancelTrackerTask();
         Set<Peer> peers = new HashSet<Peer>(torrent.getConnectedPeers());
         for (Peer peer : peers) {
-            register.disconnect((SelectableChannel) peer.getChannel());
-            peer.disconnect();
+            if (peer.isValid()) {
+                peer.disconnect();
+                peer.getChannel().close();
+            }
         }
     }
 
     public void disconnect(final Peer peer)
             throws IOException, InvalidPeerException {
-        register.disconnect((SelectableChannel) peer.getChannel());
         final Torrent torrent = peer.getTorrent();
         peer.disconnect();
+        peer.getChannel().close();
         logger.info("Disconnected " + peer);
         if (torrent != null && torrent.getRemainingPeers() < 20 &&
                 !torrent.hasTrackerTask()) {
@@ -176,12 +179,19 @@ public class MessageWriter {
         peer.setKeepAliveWrite(tt);
     }
 
+    protected boolean connectPeer(final Peer peer) throws IOException {
+        SocketChannel c = SocketChannel.open();
+        peer.setChannel(c);
+        c.configureBlocking(false);
+        return c.connect(peer.getAddress());
+    }
+
     public void postMessage(final LengthPrefixMessage message) throws
             IOException {
         final Peer peer = message.getDestination();
         peer.addMessageToSend(message);
         int op = SelectionKey.OP_WRITE;
-        if (peer.getChannel() == null && !peer.connect()) {
+        if (peer.getChannel() == null && !connectPeer(peer)) {
             op = SelectionKey.OP_CONNECT | op;
         }
         register.registerNow((SelectableChannel) peer.getChannel(),

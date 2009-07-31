@@ -9,6 +9,7 @@ import hpbtc.protocol.message.SimpleMessage;
 import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
+import hpbtc.util.IOUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import hpbtc.util.TorrentUtil;
+import java.io.EOFException;
 
 /**
  *
@@ -49,8 +51,9 @@ public class MessageReader {
         writer.connect(peer);
     }
 
-    private void checkPeerId(final Peer peer) throws IOException {
-        if (peer.download()) {
+    private void checkPeerId(final Peer peer)
+            throws IOException, InvalidPeerException {
+        if (downloadFromPeer(peer)) {
             peer.setId(peer.getData().array());
             logger.fine("Received id for " + peer);
         }
@@ -65,8 +68,9 @@ public class MessageReader {
             } else {
                 if (!peer.isExpectBody()) {
                     peer.setNextDataExpectation(4);
-                    if (peer.download()) {
-                        ByteBuffer bx = peer.getData();
+                    if (downloadFromPeer(peer)) {
+                        final ByteBuffer bx = peer.getData();
+                        bx.flip();
                         final int len = bx.getInt();
                         if (len < 0 ||
                                 len > peer.getTorrent().getChunkSize() + 9) {
@@ -82,8 +86,9 @@ public class MessageReader {
                         return false;
                     }
                 }
-                if (peer.download()) {
+                if (downloadFromPeer(peer)) {
                     final ByteBuffer data = peer.getData();
+                    data.flip();
                     peer.setExpectBody(false);
                     final byte disc = data.get();
                     switch (disc) {
@@ -148,9 +153,11 @@ public class MessageReader {
             }
         } else {
             peer.setNextDataExpectation(48);
-            if (peer.download()) {
+            if (downloadFromPeer(peer)) {
+                final ByteBuffer bx = peer.getData();
+                bx.flip();
                 final HandshakeMessage mHand = new HandshakeMessage(
-                        peer.getData(), peer);
+                        bx , peer);
                 logger.fine("Received " + mHand);
                 processHandshake(mHand);
                 peer.setNextDataExpectation(20);
@@ -160,6 +167,17 @@ public class MessageReader {
             }
         }
         return true;
+    }
+
+    protected boolean downloadFromPeer(final Peer peer)
+            throws IOException, InvalidPeerException {
+        final ByteBuffer bx = peer.getData();
+        final int i = IOUtil.readFromChannel(peer.getChannel(), bx);
+        if (i < 0) {
+            throw new EOFException();
+        }
+        peer.incrementDownloaded(i);
+        return !bx.hasRemaining();
     }
 
     private void processHandshake(final HandshakeMessage message) throws

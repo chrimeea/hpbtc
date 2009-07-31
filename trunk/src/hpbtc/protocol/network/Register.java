@@ -36,16 +36,6 @@ public class Register {
         return s;
     }
 
-    public void disconnect(final SelectableChannel channel) {
-        final RegisterOp m = reg.get(channel);
-        for (SELECTOR_TYPE s : m.getOperations().keySet()) {
-            SelectionKey key = channel.keyFor(selectors.get(s));
-            if (key != null) {
-                key.cancel();
-            }
-        }
-    }
-
     public void registerNow(final SelectableChannel channel,
             final SELECTOR_TYPE stype, final int op, final Object peer)
             throws IOException {
