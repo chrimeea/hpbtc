@@ -8,7 +8,6 @@ import hpbtc.protocol.torrent.InvalidPeerException;
 import hpbtc.protocol.torrent.Peer;
 import hpbtc.protocol.torrent.Torrent;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.util.ArrayList;
@@ -21,7 +20,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,10 +36,6 @@ public class MessageWriter {
     private byte[] peerId;
     private byte[] protocol;
     private Random random;
-    private long uploaded;
-    private AtomicLong limit;
-    private long timestamp;
-    private long lastUploaded;
 
     public MessageWriter(final Register register, final Timer timer,
             final byte[] peerId, final byte[] protocol) {
@@ -50,8 +44,6 @@ public class MessageWriter {
         this.protocol = protocol;
         this.register = register;
         this.timer = timer;
-        this.timestamp = System.currentTimeMillis();
-        this.limit = new AtomicLong(Long.MAX_VALUE);
     }
 
     public void stopTorrent(final Torrent torrent) throws IOException {
@@ -167,7 +159,7 @@ public class MessageWriter {
         return result;
     }
 
-    private void keepAliveWrite(final Peer peer) throws InvalidPeerException {
+    public void keepAliveWrite(final Peer peer) throws InvalidPeerException {
         peer.cancelKeepAliveWrite();
         final TimerTask tt = new TimerTask() {
 
@@ -182,62 +174,6 @@ public class MessageWriter {
         };
         timer.schedule(tt, 90000L);
         peer.setKeepAliveWrite(tt);
-    }
-
-    /**
-     * Set the maximum number of uploaded bytes per second
-     */
-    public void setLimit(long l) {
-        limit.set(l);
-    }
-
-    public boolean writeNext(final Peer peer)
-            throws IOException, InvalidPeerException {
-        int i = 0;
-        final long t = System.currentTimeMillis();
-
-        //check if more than 1 second passed since we measured
-        // the bytes uploaded
-        if (t - timestamp > 1000L) {
-
-            //memorize the bytes uploaded so far
-            lastUploaded = uploaded;
-            timestamp = t;
-        }
-
-        // limit - (uploaded - lastUploaded)
-        // computes how many bytes we can still upload this second without
-        // going over the limit
-        final long l = limit.get() - uploaded + lastUploaded;
-
-        // ignore the call to writeNext if the bytes uploaded in this second
-        // are more than the upload limit
-        // we will continue to ignore the writeNext calls until
-        // a second has passed and we can upload again
-        if (l > 0) {
-
-            //we still may upload maximum l bytes until we reach the limit
-            final ByteBuffer currentWrite = peer.getCurrentWrite();
-            if (currentWrite != null && currentWrite.remaining() > 0) {
-                keepAliveWrite(peer);
-
-                //limit the message so that we don't go over the upload limit
-                if (currentWrite.remaining() > l) {
-                    currentWrite.limit(currentWrite.position() + (int) l);
-                }
-
-                //upload the message
-                i = peer.upload(currentWrite);
-                uploaded += i;
-
-                //clear the limit
-                currentWrite.limit(currentWrite.capacity());
-            }
-            if (!peer.hasMoreMessages()) {
-                return false;
-            }
-        }
-        return i > 0;
     }
 
     public void postMessage(final LengthPrefixMessage message) throws
