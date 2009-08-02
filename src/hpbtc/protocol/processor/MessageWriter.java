@@ -53,7 +53,7 @@ public class MessageWriter {
         for (Peer peer : peers) {
             if (peer.isValid()) {
                 peer.disconnect();
-                peer.getChannel().close();
+                register.removeChannel(peer.getChannel());
             }
         }
     }
@@ -62,7 +62,7 @@ public class MessageWriter {
             throws IOException, InvalidPeerException {
         final Torrent torrent = peer.getTorrent();
         peer.disconnect();
-        peer.getChannel().close();
+        register.removeChannel(peer.getChannel());
         logger.info("Disconnected " + peer);
         if (torrent != null && torrent.getRemainingPeers() < 20 &&
                 !torrent.hasTrackerTask()) {
