@@ -85,7 +85,7 @@ public abstract class NetworkLoop {
 
     protected void performRegistration() {
         synchronized (stype) {
-            Map<Channel, RegisterOp> reg = register.getRegister();
+            final Map<Channel, RegisterOp> reg = register.getRegister();
             for (Channel channel : reg.keySet()) {
                 if (channel != null && channel.isOpen()) {
                     try {

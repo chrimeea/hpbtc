@@ -5,6 +5,7 @@ import java.nio.channels.Channel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,7 +23,7 @@ public class Register {
     private Map<SELECTOR_TYPE, Selector> selectors;
 
     public Register() {
-        reg = new ConcurrentHashMap<Channel, RegisterOp>();
+        reg = new LinkedHashMap<Channel, RegisterOp>();
         selectors = new ConcurrentHashMap<SELECTOR_TYPE, Selector>();
     }
 
@@ -56,6 +57,11 @@ public class Register {
                 }
             }
         }
+    }
+
+    public void removeChannel(final Channel channel) throws IOException {
+        reg.remove(channel);
+        channel.close();
     }
 
     public Map<Channel, RegisterOp> getRegister() {
