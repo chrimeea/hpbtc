@@ -79,18 +79,18 @@ public class IOUtil {
 
     public static int writeToFile(final File file, final long begin,
             final ByteBuffer piece) throws IOException {
-        RandomAccessFile r = new RandomAccessFile(file, "rw");
+        final RandomAccessFile r = new RandomAccessFile(file, "rw");
         r.seek(begin);
-        int i = writeToChannel(r.getChannel(), piece);
+        final int i = writeToChannel(r.getChannel(), piece);
         r.close();
         return i;
     }
 
     public static int readFromFile(final File file, final long begin,
             final ByteBuffer dest) throws IOException {
-        RandomAccessFile r = new RandomAccessFile(file, "r");
+        final RandomAccessFile r = new RandomAccessFile(file, "r");
         r.seek(begin);
-        int i = readFromChannel(r.getChannel(), dest);
+        final int i = readFromChannel(r.getChannel(), dest);
         r.close();
         return i;
     }
