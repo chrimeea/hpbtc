@@ -50,6 +50,8 @@ public class Peer {
     private SocketAddress address;
     private byte[] id;
     private AtomicBoolean valid = new AtomicBoolean(true);
+    private AtomicBoolean isReading = new AtomicBoolean(false);
+    private AtomicBoolean isWriting = new AtomicBoolean(false);
 
     public Peer(final SocketAddress address) {
         this.address = address;
@@ -59,6 +61,22 @@ public class Peer {
         return valid.get();
     }
 
+    public boolean isReading() {
+        return isReading.get();
+    }
+
+    public boolean isWriting() {
+        return isWriting.get();
+    }
+
+    public void setReading(boolean reading) {
+        isReading.set(reading);
+    }
+
+    public void setWriting(boolean writing) {
+        isWriting.set(writing);
+    }
+    
     public void incrementUploaded(int i) throws InvalidPeerException {
         uploaded += i;
         getTorrent().incrementUploaded(i);
@@ -287,6 +305,8 @@ public class Peer {
         cancelKeepAliveRead();
         cancelKeepAliveWrite();
         data = null;
+        setReading(false);
+        setWriting(false);
     }
 
     public boolean isMessagesToSendEmpty() {

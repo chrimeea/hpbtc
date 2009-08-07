@@ -1,13 +1,14 @@
 package hpbtc.protocol.network;
 
+import hpbtc.protocol.torrent.Peer;
 import java.io.IOException;
 import java.nio.channels.Channel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  *
@@ -19,11 +20,13 @@ public class Register {
 
         TCP_READ, TCP_WRITE, UDP
     }
+    protected static Logger logger = Logger.getLogger(
+            Register.class.getName());
     private Map<Channel, RegisterOp> reg;
     private Map<SELECTOR_TYPE, Selector> selectors;
 
     public Register() {
-        reg = new LinkedHashMap<Channel, RegisterOp>();
+        reg = new ConcurrentHashMap<Channel, RegisterOp>();
         selectors = new ConcurrentHashMap<SELECTOR_TYPE, Selector>();
     }
 
@@ -49,9 +52,11 @@ public class Register {
                     rop = new RegisterOp(peer);
                     reg.put(channel, rop);
                 }
+                final Peer p = (Peer) peer;
                 if (sk != null && sk.isValid() && sk.interestOps() == op) {
                     rop.getOperations().remove(stype);
-                } else {
+                } else if (((op & SelectionKey.OP_READ) != 0 && !p.isReading())
+                        || ((op & SelectionKey.OP_WRITE) != 0 && !p.isWriting())) {
                     rop.getOperations().put(stype, op);
                     selector.wakeup();
                 }
@@ -60,8 +65,8 @@ public class Register {
     }
 
     public void removeChannel(final Channel channel) throws IOException {
-        reg.remove(channel);
         channel.close();
+        reg.remove(channel);
     }
 
     public Map<Channel, RegisterOp> getRegister() {

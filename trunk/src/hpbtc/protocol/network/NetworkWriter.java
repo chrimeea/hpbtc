@@ -53,51 +53,68 @@ public class NetworkWriter extends NetworkLoop {
             SelectableChannel pChannel = (SelectableChannel) peer.getChannel();
             register.registerNow(pChannel, Register.SELECTOR_TYPE.TCP_READ,
                     SelectionKey.OP_READ, peer);
-            register.registerNow(pChannel, Register.SELECTOR_TYPE.TCP_WRITE,
-                    SelectionKey.OP_WRITE, peer);
+            pChannel.register(selector, SelectionKey.OP_WRITE, peer);
             writer.connect(peer);
             logger.info("Connected to " + peer + ", local port: " +
                     ch.socket().getLocalPort());
         }
-        if (key.isWritable() && ch.isConnected()) {
-            try {
-                if (!writeNext(peer)) {
-                    register.registerNow((SelectableChannel) peer.getChannel(),
-                            Register.SELECTOR_TYPE.TCP_WRITE, 0, peer);
-                }
-            } catch (InvalidPeerException ex) {
-                throw new IOException(ex);
-            }
+        if (key.isWritable() && ch.isConnected() && !peer.isWriting()) {
+            writeNext(key.channel(), key.interestOps(), (Peer) key.attachment());
         }
     }
 
-    private boolean writeNext(Peer peer) throws IOException,
-            InvalidPeerException {
-        while (writeNextInternal(peer));
-        return peer.hasMoreMessages();
+    private void writeNext(final SelectableChannel channel, final int ops,
+            final Peer peer) throws IOException {
+        peer.setWriting(true);
+        channel.register(selector, ops ^ SelectionKey.OP_WRITE, peer);
+        new Thread(new Runnable() {
+
+            public void run() {
+                try {
+                    while (writeNextInternal(peer));
+                    peer.setWriting(false);
+                    if (peer.hasMoreMessages()) {
+                        register.registerNow(channel, stype,
+                                ops | SelectionKey.OP_WRITE, peer);
+                    }
+                } catch (IOException ex1) {
+                    logger.log(Level.INFO, ex1.getLocalizedMessage(), ex1);
+                    try {
+                        writer.disconnect(peer);
+                    } catch (Exception ex3) {
+                        logger.log(Level.INFO, ex3.getLocalizedMessage(), ex3);
+                    }
+                } catch (Exception ex2) {
+                    logger.log(Level.INFO, ex2.getLocalizedMessage(), ex2);
+                }
+            }
+        }).start();
     }
 
     @Override
-    protected boolean registerOperation(final int op, final Object peer) {
+    protected void registerOperation(final SelectableChannel channel,
+            int op, final Object peer) {
         final Peer p = (Peer) peer;
-        if (p.getUploadLimitTask() != null) {
-            return false;
-        }
-        final SocketChannel ch = (SocketChannel) p.getChannel();
-        try {
-            if (ch != null && ch.isConnected() &&
-                    (op & SelectionKey.OP_WRITE) != 0) {
-                return writeNext(p);
-            }
-        } catch (Exception ex) {
+        final SocketChannel ch = (SocketChannel) channel;
+        if (p.getUploadLimitTask() == null) {
             try {
-                writer.disconnect(p);
-            } catch (Exception ex1) {
+                if (p.isWriting()) {
+                    op ^= SelectionKey.OP_WRITE;
+                }
+                if (ch != null && ch.isConnected() &&
+                        (op & SelectionKey.OP_WRITE) != 0) {
+                    writeNext(channel, op, p);
+                } else if (ch != null && !ch.isConnected()) {
+                    super.registerOperation(channel, op, peer);
+                }
+            } catch (Exception ex) {
+                try {
+                    writer.disconnect(p);
+                } catch (Exception ex1) {
+                }
+                logger.log(Level.INFO, ex.getLocalizedMessage(), ex);
             }
-            logger.log(Level.INFO, ex.getLocalizedMessage(), ex);
-            return false;
         }
-        return true;
     }
 
     @Override
@@ -163,10 +180,7 @@ public class NetworkWriter extends NetworkLoop {
                 //clear the limit
                 currentWrite.limit(currentWrite.capacity());
             }
-            if (!peer.hasMoreMessages()) {
-                return false;
-            }
-            return i > 0;
+            return peer.hasMoreMessages();
         } else {
             final TimerTask tt = new TimerTask() {
 
@@ -174,15 +188,18 @@ public class NetworkWriter extends NetworkLoop {
                 public void run() {
                     try {
                         peer.setUploadLimitTask(null);
-                        register.registerNow((SelectableChannel) peer.getChannel(),
-                            Register.SELECTOR_TYPE.TCP_WRITE,
-                            SelectionKey.OP_WRITE, peer);
+                        if (peer.hasMoreMessages()) {
+                            register.registerNow((SelectableChannel) peer.getChannel(),
+                                    Register.SELECTOR_TYPE.TCP_WRITE,
+                                    SelectionKey.OP_WRITE, peer);
+                        }
                     } catch (IOException ex) {
+                        logger.log(Level.INFO, ex.getLocalizedMessage(), ex);
                         try {
                             writer.disconnect(peer);
                         } catch (Exception ex1) {
+                            logger.log(Level.INFO, ex1.getLocalizedMessage(), ex1);
                         }
-                        logger.log(Level.INFO, ex.getLocalizedMessage(), ex);
                     }
                 }
             };
