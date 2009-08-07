@@ -12,10 +12,13 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
+import java.util.logging.Level;
 
 /**
  * @author Cristian Mocanu
@@ -25,7 +28,7 @@ public class NetworkReader extends NetworkLoop {
 
     private ServerSocketChannel serverCh;
     private MessageReader reader;
-    
+
     public NetworkReader(final MessageReader reader, final Register register) {
         super(register);
         this.stype = Register.SELECTOR_TYPE.TCP_READ;
@@ -38,7 +41,7 @@ public class NetworkReader extends NetworkLoop {
                 InetAddress.getLocalHost(), port));
         super.connect();
         serverCh.configureBlocking(false);
-        register.registerNow(serverCh, stype, SelectionKey.OP_ACCEPT, null);
+        serverCh.register(selector, SelectionKey.OP_ACCEPT);
     }
 
     @Override
@@ -48,27 +51,46 @@ public class NetworkReader extends NetworkLoop {
         s.bind(null);
         super.connect();
         serverCh.configureBlocking(false);
-        register.registerNow(serverCh, stype, SelectionKey.OP_ACCEPT, null);
+        serverCh.register(selector, SelectionKey.OP_ACCEPT);
         return s.getLocalPort();
     }
 
     protected void processKey(final SelectionKey key) throws IOException,
             NoSuchAlgorithmException {
-        Peer peer;
         if (key.isAcceptable()) {
             final SocketChannel chan = serverCh.accept();
             chan.configureBlocking(false);
-            peer = new Peer(IOUtil.getAddress(chan));
+            final Peer peer = new Peer(IOUtil.getAddress(chan));
             peer.setChannel(chan);
-            register.registerNow(chan, stype, SelectionKey.OP_READ, peer);
+            chan.register(selector, SelectionKey.OP_READ, peer);
             reader.connect(peer);
             logger.info("Accepted connection from " + peer);
         } else if (key.isReadable()) {
-            peer = (Peer) key.attachment();
-            try {
-                while (reader.readMessage(peer));
-            } catch (InvalidPeerException ex) {
-                throw new IOException(ex);
+            final Peer peer = (Peer) key.attachment();
+            if (!peer.isReading()) {
+                peer.setReading(true);
+                key.channel().register(selector,
+                        key.interestOps() ^ SelectionKey.OP_READ, peer);
+                new Thread(new Runnable() {
+
+                    public void run() {
+                        try {
+                            while (reader.readMessage(peer));
+                            peer.setReading(false);
+                            register.registerNow(key.channel(), stype,
+                                    key.interestOps() | SelectionKey.OP_READ, peer);
+                        } catch (IOException ex) {
+                            logger.log(Level.INFO, ex.getLocalizedMessage(), ex);
+                            try {
+                                disconnect(key);
+                            } catch (IOException ex1) {
+                                logger.log(Level.INFO, ex1.getLocalizedMessage(), ex1);
+                            }
+                        } catch (Exception ex2) {
+                            logger.log(Level.INFO, ex2.getLocalizedMessage(), ex2);
+                        }
+                    }
+                }).start();
             }
         }
     }
@@ -81,5 +103,15 @@ public class NetworkReader extends NetworkLoop {
         } catch (InvalidPeerException ex) {
             throw new IOException("Invalid peer " + peer);
         }
+    }
+
+    @Override
+    protected void registerOperation(final SelectableChannel channel,
+            int op, final Object peer) throws ClosedChannelException {
+        final Peer p = (Peer) peer;
+        if (p.isReading()) {
+            op ^= SelectionKey.OP_READ;
+        }
+        super.registerOperation(channel, op, peer);
     }
 }
