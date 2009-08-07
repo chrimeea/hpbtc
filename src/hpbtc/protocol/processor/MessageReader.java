@@ -15,7 +15,6 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 import hpbtc.util.TorrentUtil;
 import java.io.EOFException;
@@ -46,7 +45,7 @@ public class MessageReader {
             throws IOException, InvalidPeerException {
         writer.disconnect(peer);
     }
-    
+
     public void connect(final Peer peer) throws IOException {
         writer.connect(peer);
     }
@@ -75,7 +74,7 @@ public class MessageReader {
                         if (len < 0 ||
                                 len > peer.getTorrent().getChunkSize() + 9) {
                             throw new IOException("Invalid message length: " +
-                                len + " from peer " + peer);
+                                    len + " from peer " + peer);
                         } else if (len > 0) {
                             peer.setExpectBody(true);
                             peer.setNextDataExpectation(len);
@@ -157,7 +156,7 @@ public class MessageReader {
                 final ByteBuffer bx = peer.getData();
                 bx.flip();
                 final HandshakeMessage mHand = new HandshakeMessage(
-                        bx , peer);
+                        bx, peer);
                 logger.fine("Received " + mHand);
                 processHandshake(mHand);
                 peer.setNextDataExpectation(20);
@@ -241,7 +240,7 @@ public class MessageReader {
             message.getDestination().cancelPieceMessage(message.getBegin(),
                     message.getIndex(), message.getLength());
         } else {
-            throw new IOException("Invalid message " + message);
+            logger.info("Invalid message: " + message);
         }
     }
 
@@ -269,7 +268,7 @@ public class MessageReader {
                         SimpleMessage.TYPE_INTERESTED, peer));
             }
         } else {
-            throw new IOException("Invalid message " + message);
+            logger.info("Invalid message: " + message);
         }
     }
 
@@ -290,22 +289,19 @@ public class MessageReader {
         if (validator.validatePieceMessage(message) &&
                 peer.removeRequest(index, begin)) {
             if (t.savePiece(begin, index, message.getPiece())) {
-                final Set<Peer> peers = t.getConnectedPeers();
-                synchronized (peers) {
-                    for (Peer p : peers) {
-                        if (!p.getPieces().get(index)) {
-                            writer.postMessage(new HaveMessage(index, p));
-                        } else {
-                            if (t.getOtherPieces(p).isEmpty()) {
-                                p.setClientInterested(false);
-                                writer.postMessage(
-                                        new SimpleMessage(
-                                        SimpleMessage.TYPE_NOT_INTERESTED, p));
-                            }
-                            if (p.removeRequest(index, begin)) {
-                                writer.postMessage(createBlockMessage(begin,
-                                        index, p, SimpleMessage.TYPE_CANCEL));
-                            }
+                for (Peer p : t.getConnectedPeers()) {
+                    if (!p.getPieces().get(index)) {
+                        writer.postMessage(new HaveMessage(index, p));
+                    } else {
+                        if (t.getOtherPieces(p).isEmpty()) {
+                            p.setClientInterested(false);
+                            writer.postMessage(
+                                    new SimpleMessage(
+                                    SimpleMessage.TYPE_NOT_INTERESTED, p));
+                        }
+                        if (p.removeRequest(index, begin)) {
+                            writer.postMessage(createBlockMessage(begin,
+                                    index, p, SimpleMessage.TYPE_CANCEL));
                         }
                     }
                 }
@@ -320,7 +316,7 @@ public class MessageReader {
                 decideNextPieces(peer);
             }
         } else {
-            throw new IOException("Invalid message " + message);
+            logger.info("Invalid message: " + message);
         }
     }
 
@@ -333,7 +329,7 @@ public class MessageReader {
                     message.getIndex(), message.getLength(), peer);
             writer.postMessage(pm);
         } else {
-            throw new IOException("Invalid message " + message);
+            logger.info("Invalid message: " + message);
         }
     }
 

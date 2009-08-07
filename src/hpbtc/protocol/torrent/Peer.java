@@ -5,15 +5,14 @@ import hpbtc.protocol.message.PieceMessage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import hpbtc.util.TorrentUtil;
 import java.net.SocketAddress;
 import java.nio.channels.ByteChannel;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
@@ -43,8 +42,8 @@ public class Peer {
     private TimerTask keepAliveRead;
     private TimerTask keepAliveWrite;
     private TimerTask uploadLimitTask;
-    private final List<LengthPrefixMessage> messagesToSend =
-            Collections.synchronizedList(new LinkedList<LengthPrefixMessage>());
+    private final Queue<LengthPrefixMessage> messagesToSend =
+            new ConcurrentLinkedQueue<LengthPrefixMessage>();
     private AtomicReference<Torrent> torrent = new AtomicReference<Torrent>();
     private ByteChannel channel;
     private SocketAddress address;
@@ -76,7 +75,7 @@ public class Peer {
     public void setWriting(boolean writing) {
         isWriting.set(writing);
     }
-    
+
     public void incrementUploaded(int i) throws InvalidPeerException {
         uploaded += i;
         getTorrent().incrementUploaded(i);
@@ -219,7 +218,7 @@ public class Peer {
             t.incrementDownloaded(i);
         }
     }
-    
+
     public boolean isClientChoking() {
         return clientChoking;
     }
@@ -295,7 +294,7 @@ public class Peer {
 
     public synchronized void disconnect() throws IOException {
         valid.set(false);
-        Torrent t = torrent.get();
+        final Torrent t = torrent.get();
         if (t != null) {
             t.removePeer(this);
             torrent.set(null);
@@ -314,45 +313,37 @@ public class Peer {
     }
 
     public LengthPrefixMessage getMessageToSend() {
-        return isMessagesToSendEmpty() ? null : messagesToSend.remove(0);
+        return messagesToSend.poll();
     }
 
     public void addMessageToSend(final LengthPrefixMessage message) {
-        if (message.isPriorityMessage()) {
-            messagesToSend.add(0, message);
-        } else {
-            messagesToSend.add(message);
-        }
+        messagesToSend.add(message);
     }
 
     public void cancelPieceMessage(final int begin, final int index,
             final int length) throws InvalidPeerException {
-        synchronized (messagesToSend) {
-            final Iterator<LengthPrefixMessage> i = messagesToSend.iterator();
-            while (i.hasNext()) {
-                final LengthPrefixMessage m = i.next();
-                if (m instanceof PieceMessage) {
-                    final PieceMessage pm = (PieceMessage) m;
-                    if (pm.getIndex() == index && pm.getBegin() == begin &&
-                            pm.getLength() == length) {
-                        i.remove();
-                        removeRequest(pm.getIndex(), pm.getBegin());
-                    }
+        final Iterator<LengthPrefixMessage> i = messagesToSend.iterator();
+        while (i.hasNext()) {
+            final LengthPrefixMessage m = i.next();
+            if (m instanceof PieceMessage) {
+                final PieceMessage pm = (PieceMessage) m;
+                if (pm.getIndex() == index && pm.getBegin() == begin &&
+                        pm.getLength() == length) {
+                    i.remove();
+                    removeRequest(pm.getIndex(), pm.getBegin());
                 }
             }
         }
     }
 
     public void cancelPieceMessage() throws InvalidPeerException {
-        synchronized (messagesToSend) {
-            final Iterator<LengthPrefixMessage> i = messagesToSend.iterator();
-            while (i.hasNext()) {
-                final LengthPrefixMessage m = i.next();
-                if (m instanceof PieceMessage) {
-                    i.remove();
-                    final PieceMessage pm = (PieceMessage) m;
-                    removeRequest(pm.getIndex(), pm.getBegin());
-                }
+        final Iterator<LengthPrefixMessage> i = messagesToSend.iterator();
+        while (i.hasNext()) {
+            final LengthPrefixMessage m = i.next();
+            if (m instanceof PieceMessage) {
+                i.remove();
+                final PieceMessage pm = (PieceMessage) m;
+                removeRequest(pm.getIndex(), pm.getBegin());
             }
         }
     }
@@ -399,10 +390,10 @@ public class Peer {
 
     public boolean hasMoreMessages() {
         return (currentWrite == null || currentWrite.remaining() > 0 ||
-                    !isMessagesToSendEmpty());
+                !isMessagesToSendEmpty());
     }
 
-    public synchronized ByteBuffer getCurrentWrite()
+    public ByteBuffer getCurrentWrite()
             throws InvalidPeerException, IOException {
         if (currentWrite == null || currentWrite.remaining() == 0) {
             final LengthPrefixMessage sm = getMessageToSend();

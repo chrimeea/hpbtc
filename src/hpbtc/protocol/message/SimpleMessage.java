@@ -44,11 +44,6 @@ public class SimpleMessage extends LengthPrefixMessage {
     }
     
     @Override
-    public boolean isPriorityMessage() {
-        return disc == TYPE_CANCEL || disc == TYPE_CHOKE;
-    }
-    
-    @Override
     public ByteBuffer send() {
         final ByteBuffer prefix = super.send();
         prefix.flip();
