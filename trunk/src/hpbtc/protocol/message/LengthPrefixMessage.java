@@ -16,10 +16,6 @@ public class LengthPrefixMessage {
         this.destination = destination;
         this.messageLength = length;
     }
-
-    public boolean isPriorityMessage() {
-        return false;
-    }
     
     public Peer getDestination() {
         return destination;

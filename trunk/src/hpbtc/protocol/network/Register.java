@@ -45,21 +45,19 @@ public class Register {
             throws IOException {
         if (channel != null && channel.isOpen()) {
             final Selector selector = selectors.get(stype);
-            synchronized (stype) {
-                final SelectionKey sk = channel.keyFor(selector);
-                RegisterOp rop = reg.get(channel);
-                if (rop == null) {
-                    rop = new RegisterOp(peer);
-                    reg.put(channel, rop);
-                }
-                final Peer p = (Peer) peer;
-                if (sk != null && sk.isValid() && sk.interestOps() == op) {
-                    rop.getOperations().remove(stype);
-                } else if (((op & SelectionKey.OP_READ) != 0 && !p.isReading())
-                        || ((op & SelectionKey.OP_WRITE) != 0 && !p.isWriting())) {
-                    rop.getOperations().put(stype, op);
-                    selector.wakeup();
-                }
+            final SelectionKey sk = channel.keyFor(selector);
+            RegisterOp rop = reg.get(channel);
+            if (rop == null) {
+                rop = new RegisterOp(peer);
+                reg.put(channel, rop);
+            }
+            final Peer p = (Peer) peer;
+            if (sk != null && sk.isValid() && sk.interestOps() == op) {
+                rop.getOperations().remove(stype);
+            } else if (((op & SelectionKey.OP_READ) != 0 && !p.isReading())
+                    || ((op & SelectionKey.OP_WRITE) != 0 && !p.isWriting())) {
+                rop.getOperations().put(stype, op);
+                selector.wakeup();
             }
         }
     }

@@ -120,10 +120,7 @@ public class MessageWriter {
 
     private List<SimpleMessage> decideChoking(final Torrent torrent) {
         Set<Peer> peers = torrent.getConnectedPeers();
-        List<Peer> prs;
-        synchronized (peers) {
-            prs = new ArrayList<Peer>(peers);
-        }
+        List<Peer> prs = new ArrayList<Peer>(peers);
         final Comparator<Peer> comp = torrent.countRemainingPieces() == 0 ? new Comparator<Peer>() {
 
             public int compare(Peer p1, Peer p2) {
@@ -200,15 +197,13 @@ public class MessageWriter {
 
     public void contactFreshPeers(final Torrent torrent) {
         final Iterable<Peer> freshPeers = torrent.getFreshPeers();
-        synchronized (freshPeers) {
-            for (Peer peer : freshPeers) {
-                try {
-                    postMessage(new HandshakeMessage(peerId, protocol, peer,
-                            torrent.getInfoHash()));
-                    peer.setHandshakeSent();
-                } catch (Exception e) {
-                    logger.log(Level.FINE, e.getLocalizedMessage(), e);
-                }
+        for (Peer peer : freshPeers) {
+            try {
+                postMessage(new HandshakeMessage(peerId, protocol, peer,
+                        torrent.getInfoHash()));
+                peer.setHandshakeSent();
+            } catch (Exception e) {
+                logger.log(Level.FINE, e.getLocalizedMessage(), e);
             }
         }
     }

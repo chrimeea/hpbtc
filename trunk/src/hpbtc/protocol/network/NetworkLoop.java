@@ -84,23 +84,21 @@ public abstract class NetworkLoop {
     }
 
     protected void performRegistration() {
-        synchronized (stype) {
-            final Map<Channel, RegisterOp> reg = register.getRegister();
-            for (Channel channel : reg.keySet()) {
-                if (channel != null && channel.isOpen()) {
-                    try {
-                        final RegisterOp rop = reg.get(channel);
-                        if (rop != null) {
-                            final Integer op = rop.getOperations().get(stype);
-                            if (op != null) {
-                                registerOperation((SelectableChannel) channel,
-                                        op.intValue(), rop.getPeer());
-                                rop.getOperations().remove(stype);
-                            }
+        final Map<Channel, RegisterOp> reg = register.getRegister();
+        for (Channel channel : reg.keySet()) {
+            if (channel != null && channel.isOpen()) {
+                try {
+                    final RegisterOp rop = reg.get(channel);
+                    if (rop != null) {
+                        final Integer op = rop.getOperations().get(stype);
+                        if (op != null) {
+                            registerOperation((SelectableChannel) channel,
+                                    op.intValue(), rop.getPeer());
+                            rop.getOperations().remove(stype);
                         }
-                    } catch (ClosedChannelException e) {
-                        logger.log(Level.FINE, e.getLocalizedMessage(), e);
                     }
+                } catch (ClosedChannelException e) {
+                    logger.log(Level.FINE, e.getLocalizedMessage(), e);
                 }
             }
         }
