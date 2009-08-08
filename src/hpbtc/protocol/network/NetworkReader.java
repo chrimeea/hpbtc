@@ -18,8 +18,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.security.NoSuchAlgorithmException;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Level;
 
 /**
@@ -30,7 +28,6 @@ public class NetworkReader extends NetworkLoop {
 
     private ServerSocketChannel serverCh;
     private MessageReader reader;
-    private Timer readTimer = new Timer("READ");
 
     public NetworkReader(final MessageReader reader, final Register register) {
         super(register);
@@ -74,11 +71,13 @@ public class NetworkReader extends NetworkLoop {
                 peer.setReading(true);
                 key.channel().register(selector,
                         key.interestOps() ^ SelectionKey.OP_READ, peer);
-                readTimer.schedule(new TimerTask() {
+                new Thread(new Runnable() {
 
                     public void run() {
                         try {
-                            while (reader.readMessage(peer));
+                            while (reader.readMessage(peer)) {
+                                Thread.yield();
+                            }
                             peer.setReading(false);
                             register.registerNow(key.channel(), stype,
                                     key.interestOps() | SelectionKey.OP_READ, peer);
@@ -93,7 +92,10 @@ public class NetworkReader extends NetworkLoop {
                             logger.log(Level.INFO, ex2.getLocalizedMessage(), ex2);
                         }
                     }
-                }, 0L);
+                }).start();
+            } else {
+                key.channel().register(selector,
+                        key.interestOps() ^ SelectionKey.OP_READ, peer);
             }
         }
     }
