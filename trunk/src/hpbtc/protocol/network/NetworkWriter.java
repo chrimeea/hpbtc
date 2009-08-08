@@ -27,7 +27,6 @@ public class NetworkWriter extends NetworkLoop {
     private long timestamp;
     private AtomicLong limit;
     private Timer timer;
-    private Timer writeTimer = new Timer("WRITE");
 
     public NetworkWriter(final MessageWriter writer, final Register register,
             final Timer timer) {
@@ -61,6 +60,8 @@ public class NetworkWriter extends NetworkLoop {
         }
         if (key.isWritable() && ch.isConnected() && !peer.isWriting()) {
             writeNext(key.channel(), key.interestOps(), (Peer) key.attachment());
+        } else if (peer.isWriting()) {
+            ch.register(selector, key.interestOps() ^ SelectionKey.OP_WRITE, peer);
         }
     }
 
@@ -68,11 +69,13 @@ public class NetworkWriter extends NetworkLoop {
             final Peer peer) throws IOException {
         peer.setWriting(true);
         channel.register(selector, ops ^ SelectionKey.OP_WRITE, peer);
-        writeTimer.schedule(new TimerTask() {
+        new Thread(new Runnable() {
 
             public void run() {
                 try {
-                    while (writeNextInternal(peer));
+                    while (writeNextInternal(peer)) {
+                        Thread.yield();
+                    }
                     peer.setWriting(false);
                     if (peer.hasMoreMessages()) {
                         register.registerNow(channel, stype,
@@ -89,7 +92,7 @@ public class NetworkWriter extends NetworkLoop {
                     logger.log(Level.INFO, ex2.getLocalizedMessage(), ex2);
                 }
             }
-        }, 0L);
+        }).start();
     }
 
     @Override
