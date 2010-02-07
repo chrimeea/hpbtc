@@ -172,8 +172,8 @@ public class MessageWriter {
                 }
             }
         };
-        timer.schedule(tt, 90000L);
         peer.setKeepAliveWrite(tt);
+        timer.schedule(tt, 90000L);
     }
 
     protected boolean connectPeer(final Peer peer) throws IOException {
