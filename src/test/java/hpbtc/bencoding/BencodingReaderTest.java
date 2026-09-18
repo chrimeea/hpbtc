@@ -89,8 +89,8 @@ public class BencodingReaderTest {
             ByteArrayInputStream is = new ByteArrayInputStream("l5:gammai-13ee".
                     getBytes(byteEncoding));
             BencodingReader parser = new BencodingReader(is);
-            List list = parser.readNextList();
-            Iterator it = list.iterator();
+            List<Object> list = parser.readNextList();
+            Iterator<Object> it = list.iterator();
             byte[] elString = (byte[]) it.next();
             assert Arrays.equals(elString, "gamma".getBytes(byteEncoding)) :
                     "Incorrect list";

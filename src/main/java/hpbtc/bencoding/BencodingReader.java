@@ -90,7 +90,7 @@ public class BencodingReader {
             throw new BencodingException("Found char: '" + (char) c +
                     "', required: 'i'");
         }
-        return new Long(readNextNumber('e'));
+        return Long.valueOf(readNextNumber('e'));
     }
 
     public List<Object> readNextList() throws IOException {

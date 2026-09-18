@@ -52,12 +52,8 @@ public class BencodedWriterTest {
 
     @Test
     public void testWriteBencodedList() throws IOException {
-        final List l = new ArrayList(3);
-        l.add(4527120);
-        l.add("dvd".getBytes(byteEncoding));
-        final List ll = new ArrayList(1);
-        ll.add("nemo".getBytes(byteEncoding));
-        l.add(ll);
+        final List<Object> ll = Arrays.asList(new Object[] {"nemo".getBytes(byteEncoding)});
+        final List<Object> l = Arrays.asList(new Object[] {4527120, "dvd".getBytes(byteEncoding), ll});
         final ByteArrayOutputStream os = new ByteArrayOutputStream(24);
         final BencodingWriter w = new BencodingWriter(os);
         w.write(l);
@@ -67,10 +63,10 @@ public class BencodedWriterTest {
 
     @Test
     public void testWriteBencodedDictionary() throws IOException {
-        final Map mm = new HashMap(1);
+        final Map<byte[], byte[]> mm = new HashMap<byte[], byte[]>();
         mm.put("second".getBytes(byteEncoding),
                 "value".getBytes(byteEncoding));
-        final Map m = new HashMap(2);
+        final Map<byte[], Object> m = new HashMap<byte[], Object>();
         m.put("mykey".getBytes(byteEncoding), mm);
         m.put("another".getBytes(byteEncoding),
                 "myvalue".getBytes(byteEncoding));

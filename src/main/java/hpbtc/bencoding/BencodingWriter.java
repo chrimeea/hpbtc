@@ -42,7 +42,7 @@ public class BencodingWriter {
         }
     }
 
-    public void write(final List l) throws IOException {
+    public void write(final List<?> l) throws IOException {
         os.write((byte) 'l');
         for (Object o : l) {
             write(o);
@@ -67,7 +67,7 @@ public class BencodingWriter {
         } else if (o instanceof byte[]) {
             write((byte[]) o);
         } else if (o instanceof List) {
-            write((List) o);
+            write((List<?>) o);
         } else if (o instanceof Map) {
             write((Map<byte[], Object>) o);
         } else {
