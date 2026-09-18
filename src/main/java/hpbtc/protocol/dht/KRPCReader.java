@@ -4,7 +4,6 @@
  */
 package hpbtc.protocol.dht;
 
-import hpbtc.util.ByteArrayWrapper;
 import hpbtc.util.DHTUtil;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -23,10 +22,10 @@ import java.util.Timer;
 public class KRPCReader {
 
     private RoutingTable table = new RoutingTable(new Timer());
-    private Map<ByteArrayWrapper, DHTNode> nodes =
-            new HashMap<ByteArrayWrapper, DHTNode>();
-    private Map<ByteArrayWrapper, List<String>> torrents =
-            new HashMap<ByteArrayWrapper, List<String>>();
+    private Map<byte[], DHTNode> nodes =
+            new HashMap<byte[], DHTNode>();
+    private Map<byte[], List<String>> torrents =
+            new HashMap<byte[], List<String>>();
     private KRPCWriter writer;
 
     public KRPCReader(final KRPCWriter writer) {
@@ -38,9 +37,9 @@ public class KRPCReader {
             IOException {
         final DHTMessage dhtmessage = new DHTMessage(message);
         DHTNode node;
-        ByteArrayWrapper baw;
+        byte[] baw;
         if (dhtmessage.isQuery()) {
-            node = nodes.get(new ByteArrayWrapper(dhtmessage.getRemoteID()));
+            node = nodes.get(dhtmessage.getRemoteID());
             final DHTMessage dhtreply = dhtmessage.createReply(table.getNodeID());
             if (dhtmessage.isPingQuery()) {
                 //TODO: update routing info
@@ -58,7 +57,7 @@ public class KRPCReader {
                 byte[] token = DHTUtil.generateToken();
                 dhtreply.setToken(token);
                 node.setToken(token);
-                baw = new ByteArrayWrapper(dhtmessage.getInfohash());
+                baw = dhtmessage.getInfohash();
                 if (torrents.containsKey(baw)) {
                     dhtreply.setValues(torrents.get(baw));
                 } else {
@@ -69,7 +68,7 @@ public class KRPCReader {
                 //TODO: update routing info
                 if (Arrays.equals(dhtmessage.getToken(), node.getToken()) &&
                         node.getTokenAge() < 600000L) {
-                    baw = new ByteArrayWrapper(dhtmessage.getInfohash());
+                    baw = dhtmessage.getInfohash();
                     List<String> l;
                     if (!torrents.containsKey(baw)) {
                         l = new LinkedList<String>();
