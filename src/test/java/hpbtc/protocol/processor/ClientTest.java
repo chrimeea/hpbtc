@@ -53,11 +53,7 @@ public class ClientTest {
         assert is.read() == -1;
         s.close();
         c.stopProtocol();
-        try {
-            new Socket(InetAddress.getLocalHost(), port);
-        } catch (IOException e) {
-            assert false;
-        }
+        try (final Socket socket = new Socket(InetAddress.getLocalHost(), port)) {}
     }
 
     @Test
