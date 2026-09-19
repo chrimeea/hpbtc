@@ -71,7 +71,7 @@ public class BencodingWriter {
         } else if (o instanceof Map) {
             write((Map<byte[], Object>) o);
         } else {
-            throw new BencodingException("Wrong type");
+            throw new IOException("Wrong type");
         }
     }
 }

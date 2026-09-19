@@ -31,7 +31,7 @@ public class BencodingReaderTest {
         }
     }
 
-    @Test(expected = BencodingException.class)
+    @Test(expected = IOException.class)
     public void testReadNextStringWithWrongLength() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("4a:test".
@@ -57,7 +57,7 @@ public class BencodingReaderTest {
         }
     }
 
-    @Test(expected = BencodingException.class)
+    @Test(expected = IOException.class)
     public void testReadNextIntegerWithoutEnding() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("i89".getBytes(
@@ -70,7 +70,7 @@ public class BencodingReaderTest {
         }
     }
 
-    @Test(expected = BencodingException.class)
+    @Test(expected = IOException.class)
     public void testReadNextIntegerWithZeroPrefix() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("i05e".getBytes(
@@ -102,7 +102,7 @@ public class BencodingReaderTest {
         }
     }
 
-    @Test(expected = BencodingException.class)
+    @Test(expected = IOException.class)
     public void testReadNextListWithTwoLists() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("lli1eeie".
@@ -139,7 +139,7 @@ public class BencodingReaderTest {
         }
     }
 
-    @Test(expected = BencodingException.class)
+    @Test(expected = IOException.class)
     public void readNextDictionaryWithError() throws IOException {
         try {
             ByteArrayInputStream is = new ByteArrayInputStream("di8e3:vale".

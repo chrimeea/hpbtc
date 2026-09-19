@@ -32,7 +32,7 @@ public class BencodingReader {
     private long readNextNumber(final char terminator) throws IOException {
         int c = is.read();
         if (c == terminator) {
-            throw new BencodingException("Parse error !");
+            throw new IOException("Parse error !");
         }
         int sign = -1;
         long n = 0L;
@@ -41,7 +41,7 @@ public class BencodingReader {
                 is.mark(1);
                 int d = is.read();
                 if (d != terminator) {
-                    throw new BencodingException("Numbers must not start with 0");
+                    throw new IOException("Numbers must not start with 0");
                 }
                 is.reset();
             }
@@ -51,7 +51,7 @@ public class BencodingReader {
         c = is.read();
         while (c != terminator) {
             if (!Character.isDigit(c)) {
-                throw new BencodingException("Found number containing illegal character: '" +
+                throw new IOException("Found number containing illegal character: '" +
                         (char) c + "'");
             }
             n *= 10;
@@ -59,7 +59,7 @@ public class BencodingReader {
             c = is.read();
         }
         if (n == 0 && sign == -1) {
-            throw new BencodingException("Number -0 is illegal");
+            throw new IOException("Number -0 is illegal");
         }
         n *= sign;
         return n;
@@ -68,7 +68,7 @@ public class BencodingReader {
     public byte[] readNextString() throws IOException {
         int n = (int) readNextNumber(':');
         if (n < 0) {
-            throw new BencodingException(
+            throw new IOException(
                     "Found string element with negative length");
         }
         if (n > 0) {
@@ -87,7 +87,7 @@ public class BencodingReader {
     public Long readNextInteger() throws IOException {
         final int c = is.read();
         if (c != 'i') {
-            throw new BencodingException("Found char: '" + (char) c +
+            throw new IOException("Found char: '" + (char) c +
                     "', required: 'i'");
         }
         return Long.valueOf(readNextNumber('e'));
@@ -97,7 +97,7 @@ public class BencodingReader {
         final List<Object> r = new LinkedList<Object>();
         int c = is.read();
         if (c != 'l') {
-            throw new BencodingException("Found char: '" + (char) c +
+            throw new IOException("Found char: '" + (char) c +
                     "', required: 'l'");
         }
         is.mark(1);
@@ -116,7 +116,7 @@ public class BencodingReader {
                 new ByteStringComparator());
         int c = is.read();
         if (c != 'd') {
-            throw new BencodingException("Found char: '" + (char) c +
+            throw new IOException("Found char: '" + (char) c +
                     "', required: 'd'");
         }
         is.mark(1);
@@ -146,7 +146,7 @@ public class BencodingReader {
         } else if (c == 'd') {
             r = readNextDictionary();
         } else {
-            throw new BencodingException("Unrecognized element type: " +
+            throw new IOException("Unrecognized element type: " +
                     (char) c);
         }
         return r;
