@@ -35,20 +35,11 @@ public class NetworkReader extends NetworkLoop {
         this.reader = reader;
     }
 
-    public void connect(final int port) throws IOException {
-        serverCh = ServerSocketChannel.open();
-        serverCh.socket().bind(new InetSocketAddress(
-                InetAddress.getLocalHost(), port));
-        super.connect();
-        serverCh.configureBlocking(false);
-        serverCh.register(selector, SelectionKey.OP_ACCEPT);
-    }
-
-    @Override
-    public int connect() throws IOException {
+    public int connect(final Integer port) throws IOException {
         serverCh = ServerSocketChannel.open();
         ServerSocket s = serverCh.socket();
-        s.bind(null);
+        s.bind(port == null ? null : new InetSocketAddress(
+                InetAddress.getLocalHost(), port));
         super.connect();
         serverCh.configureBlocking(false);
         serverCh.register(selector, SelectionKey.OP_ACCEPT);

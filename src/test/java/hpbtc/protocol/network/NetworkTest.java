@@ -21,7 +21,7 @@ public class NetworkTest {
             UnsupportedEncodingException {
         final Register r = new Register();
         final NetworkReader c = new NetworkReader(new MessageReaderStub(r), r);
-        int port = c.connect();
+        int port = c.connect(null);
         final SocketChannel ch = SocketChannel.open(new InetSocketAddress(
                 InetAddress.getLocalHost(), port));
         ch.write(ByteBuffer.wrap("test client".getBytes(encoding)));

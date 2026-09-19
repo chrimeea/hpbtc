@@ -44,7 +44,7 @@ public class ClientTest {
     public void testStartStop() throws UnsupportedEncodingException,
             IOException {
         final Client c = new Client();
-        final int port = c.startProtocol();
+        final int port = c.startProtocol(null);
         final Socket s = new Socket(InetAddress.getLocalHost(), port);
         final HandshakeMessage hm = new HandshakeMessage(null,
                 TorrentUtil.getSupportedProtocol(), null, new byte[20]);
@@ -65,7 +65,7 @@ public class ClientTest {
             NoSuchAlgorithmException, URISyntaxException {
         final byte[] pid = TorrentUtil.generateId();
         final Client c = new Client(pid);
-        final int port = c.startProtocol();
+        final int port = c.startProtocol(null);
         final byte[] peers = new byte[12];
         peers[0] = 127; peers[1] = 0; peers[2] = 0;
         peers[3] = 1; peers[4] = (byte) 13; peers[5] = (byte) 4;

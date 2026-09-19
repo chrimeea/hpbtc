@@ -38,6 +38,10 @@ public class NetworkWriter extends NetworkLoop {
         this.timer = timer;
     }
 
+    public int connect() throws IOException {
+      return super.connect();
+    }
+
     /**
      * Set the maximum number of uploaded bytes per second
      */

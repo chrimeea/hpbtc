@@ -32,7 +32,7 @@ public abstract class NetworkLoop {
         this.register = register;
     }
 
-    public int connect() throws IOException {
+    protected int connect() throws IOException {
         selector = register.openSelector(stype);
         running = true;
         new Thread(new Runnable() {

@@ -75,20 +75,12 @@ public class Client {
         netReader = new NetworkReader(processor, register);
     }
     
-    public void startProtocol(int port) throws IOException {
-        this.port = port;
+    public int startProtocol(Integer port) throws IOException {
         initNetwork();
-        netReader.connect(port);
+        this.port = netReader.connect(port == null ? null : port);
         netWriter.connect();
         logger.fine("Started client on " + InetAddress.getLocalHost() + ":" + port);
-    }
-    
-    public int startProtocol() throws IOException {
-        initNetwork();
-        port = netReader.connect();
-        netWriter.connect();
-        logger.fine("Started client on " + InetAddress.getLocalHost() + ":" + port);
-        return port;
+        return this.port;
     }
 
     /**

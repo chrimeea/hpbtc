@@ -90,8 +90,8 @@ public class HPBTC {
 
           public void run() {
             try {
-              HPBTCW h = port != null ? new HPBTCW(Integer.parseInt(
-                  port)) : new hpbtc.desktop.HPBTCW();
+              HPBTCW h = new HPBTCW(port == null ? null : Integer.parseInt(
+                  port));
               h.setVisible(true);
               if (tor != null) {
                 h.startTorrent(new File(tor), new File(target));
@@ -105,11 +105,7 @@ public class HPBTC {
         logger.severe("Mandatory parameter missing");
       } else {
         final Client protocol = new Client();
-        if (port != null) {
-          protocol.startProtocol(Integer.parseInt(port));
-        } else {
-          protocol.startProtocol();
-        }
+        protocol.startProtocol(port == null ? null : Integer.parseInt(port));
         final FileInputStream fis = new FileInputStream(tor);
         protocol.download(fis, target);
         fis.close();

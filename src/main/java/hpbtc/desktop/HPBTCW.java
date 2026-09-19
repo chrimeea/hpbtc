@@ -228,13 +228,7 @@ public class HPBTCW extends JFrame {
         });
     }
 
-    public HPBTCW() throws UnsupportedEncodingException, IOException {
-        initComponents();
-        client = new Client();
-        client.startProtocol();
-    }
-
-    public HPBTCW(final int port) throws UnsupportedEncodingException,
+    public HPBTCW(final Integer port) throws UnsupportedEncodingException,
             IOException {
         initComponents();
         client = new Client();
