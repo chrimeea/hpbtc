@@ -6,6 +6,8 @@ package hpbtc;
 
 import hpbtc.desktop.HPBTCW;
 import hpbtc.protocol.processor.Client;
+import hpbtc.util.CLIParser;
+
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,18 +33,21 @@ public class HPBTC {
      */
     public static void main(final String[] args) throws IOException,
             NoSuchAlgorithmException {
-        String arg = getArg(args, "-log");
+        CLIParser p = new CLIParser(args);
+        String logArg = p.getArgValue("--log");
         final Handler fh =
-                arg != null ? new FileHandler(arg) : new ConsoleHandler();
-        fh.setFormatter(new SimpleFormatter());
+                logArg != null ? new FileHandler(logArg) : new ConsoleHandler();
         final Logger l = Logger.getLogger("hpbtc");
+        l.setUseParentHandlers(false);
         l.addHandler(fh);
-        l.setLevel(arg != null ? Level.ALL : Level.INFO);
-        final String port = getArg(args, "-port");
-        arg = getArg(args, "-cmd");
-        final String tor = getArg(args, "-torrent");
-        final String target = getArg(args, "-target");
-        if (arg == null) {
+        l.setLevel(logArg != null ? Level.ALL : Level.INFO);
+        if (p.hasArg("--help")) {
+          logger.info(String.format("Usage: java HPBTC [--cmd][--port 1234][--torrent path][--target path][--help]"));
+        }
+        final String port = p.getArgValue("--port");
+        final String tor = p.getArgValue("--torrent");
+        final String target = p.getArgValue("--target");
+        if (!p.hasArg("--cmd")) {
             EventQueue.invokeLater(new Runnable() {
 
                 public void run() {
@@ -77,14 +82,5 @@ public class HPBTC {
                 }
             }, "Shutdown"));
         }
-    }
-
-    private static String getArg(String[] args, String prefix) {
-        for (String a : args) {
-            if (a.startsWith(prefix)) {
-                return a.substring(prefix.length());
-            }
-        }
-        return null;
     }
 }
